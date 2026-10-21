@@ -46,3 +46,20 @@ A IA verificou o Git limpo e os quatro commits já existentes, preservando a aut
 Telas de lista, mapa com fallback, favoritos, perfil e detalhe foram ligadas aos hooks HTTP existentes. Canvas de consulta com polling, zoom, pan, status e lista HTML equivalente; alerta in-app na transição de zero para alguma vaga livre.
 Revisão do grupo: conferir significado dos status, teste sem internet e uso por teclado. Alertas só funcionam com a página aberta.
 
+
+### Fase 5 — Administração
+A IA conectou CRUDs de estacionamentos, sensores e usuários à API existente, com confirmação de exclusão, erros inline e chave demonstrativa exibida só ao criar o sensor.
+Revisão do grupo: percorrer criar/editar/remover e testar isolamento entre empresas; a chave mock é ilustrativa.
+
+### Fase 6 — Editor de layout
+A IA implementou Konva com gerador e preview, seleção múltipla, drag/drop, Transformer, snap, duplicação, undo/redo via Zustand e propriedades HTML com vínculo de sensor. Incluiu validações geométricas e bloqueio ao sair com mudanças pendentes.
+Revisão do grupo: entender a transformação de coordenadas e testar teclado e edição; sobreposição é aviso, rótulos duplicados impedem salvar.
+
+### Fase 7 — Painel
+A IA conectou KPIs, gráfico Recharts por período, heatmap de 14 dias, mapa das vagas e tabela de sensores. O histórico é sintético e a ocupação inclui vagas sem sinal entre as indisponíveis.
+Revisão do grupo: conferir unidades, períodos e definição do pico do dia com o contrato.
+
+### Fase 8 — Simulador e apresentação
+A IA implementou simulador opt-in, temas, responsividade, legendas redundantes e estados de erro/vazio/carregamento. Copiou .env.example para .env local (ignorado pelo Git) para habilitar o simulador na conferência.
+Revisão do grupo: validar em celulares reais e com internet desligada; os tiles do mapa são o único recurso online opcional.
+

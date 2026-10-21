@@ -11,6 +11,7 @@ target/
 __pycache__/
 .venv/
 *.log
+*.tsbuildinfo
 .DS_Store
 Thumbs.db
 frontend/test-results/

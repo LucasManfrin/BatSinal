@@ -16,9 +16,14 @@ async function start() {
     await worker.start({ onUnhandledRequest: 'bypass', quiet: true });
   }
   const { App } = await import('./app/App');
-  ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
 }
 
 void start().catch(() => {
-  document.getElementById('root')!.textContent = 'Não foi possível iniciar o BatSinal. Recarregue a página e confira se o navegador permite service workers em localhost.';
+  document.getElementById('root')!.textContent =
+    'Não foi possível iniciar o BatSinal. Recarregue a página e confira se o navegador permite service workers em localhost.';
 });

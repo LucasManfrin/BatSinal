@@ -1,24 +1,283 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowDownRight, ArrowRight, ArrowUpRight, Filter, List, Map, MapPin, Minus, Search, Sparkles, Star } from 'lucide-react';
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  Filter,
+  List,
+  Map,
+  MapPin,
+  Minus,
+  Search,
+  Sparkles,
+  Star,
+} from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useFavorites, useLots } from '../../features/estacionamentos/queries';
-import { Badge, Button, Card, EmptyState, ErrorState, Input, LiveDot, Loading, OccupancyBar, Select, Tabs } from '../../components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  LiveDot,
+  Loading,
+  OccupancyBar,
+  Select,
+  Tabs,
+} from '../../components/ui';
 import { CampusMap } from '../../components/lot/CampusMap';
 import type { EstacionamentoResumo, TipoVaga } from '../../types';
 import { ocupacao } from '../../lib/utils';
 
 export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
-  const { user } = useAuth(); const query = useLots(); const favorites = useFavorites();
-  const [mode, setMode] = useState<'lista' | 'mapa'>('lista'); const [search, setSearch] = useState(''); const [freeOnly, setFreeOnly] = useState(false); const [starred, setStarred] = useState(false); const [type, setType] = useState<TipoVaga | ''>('');
+  const { user } = useAuth();
+  const query = useLots();
+  const favorites = useFavorites();
+  const [mode, setMode] = useState<'lista' | 'mapa'>('lista');
+  const [search, setSearch] = useState('');
+  const [freeOnly, setFreeOnly] = useState(false);
+  const [starred, setStarred] = useState(false);
+  const [type, setType] = useState<TipoVaga | ''>('');
   if (query.isPending || favorites.isPending) return <Loading />;
-  if (query.isError || favorites.isError) return <ErrorState retry={() => { void query.refetch(); void favorites.refetch(); }} />;
-  const lots = query.data.filter(l => l.nome.toLowerCase().includes(search.toLowerCase()) && (!freeOnly || l.vagasLivres > 0) && (!(favoritesOnly || starred) || favorites.data.includes(l.id)) && (!type || l.livresPorTipo[type] > 0));
-  const best = [...query.data].filter(l => !type || l.livresPorTipo[type] > 0).sort((a, b) => b.vagasLivres - a.vagasLivres)[0];
+  if (query.isError || favorites.isError)
+    return (
+      <ErrorState
+        retry={() => {
+          void query.refetch();
+          void favorites.refetch();
+        }}
+      />
+    );
+  const lots = query.data.filter(
+    (l) =>
+      l.nome.toLowerCase().includes(search.toLowerCase()) &&
+      (!freeOnly || l.vagasLivres > 0) &&
+      (!(favoritesOnly || starred) || favorites.data.includes(l.id)) &&
+      (!type || l.livresPorTipo[type] > 0),
+  );
+  const best = [...query.data]
+    .filter((l) => !type || l.livresPorTipo[type] > 0)
+    .sort((a, b) => b.vagasLivres - a.vagasLivres)[0];
   const totalFree = query.data.reduce((n, l) => n + l.vagasLivres, 0);
-  return <><div className="page-heading"><div><div className="eyebrow">SEU CAMPUS, NO RADAR</div><h1>{favoritesOnly ? 'Seus lugares favoritos' : `Olá, ${user?.nome.split(' ')[0]}. Vamos estacionar?`}</h1><p>Encontre sua vaga e siga o dia com mais tranquilidade.</p></div><LiveDot label="Atualiza a cada 3 s" /></div>{!favoritesOnly && best && <section className="recommendation"><div className="recommendation-copy"><Badge><Sparkles size={13} /> MELHOR OPÇÃO AGORA</Badge><h2>{best.nome}</h2><p><MapPin size={15} />{best.descricao}</p><div className="recommendation-actions"><Link className="btn btn-primary" to={`/estacionamentos/${best.id}`}>Ver vagas disponíveis <ArrowRight size={17} /></Link><Button variant="ghost" onClick={() => setMode('mapa')}><Map size={16} />Ver no mapa</Button></div></div><div className="recommendation-number"><strong>{String(best.vagasLivres).padStart(2, '0')}</strong><span>vagas livres<br />esperando por você</span><div className="radar-ring" /></div></section>}<div className="section-heading"><div><h2>{favoritesOnly ? 'Sempre por perto' : 'Estacionamentos do campus'}</h2><p><strong className="green-text">{totalFree} vagas livres</strong> em {query.data.length} estacionamentos</p></div><Tabs value={mode} onChange={setMode} options={[{ value: 'lista', label: <><List size={15} />Lista</> }, { value: 'mapa', label: <><Map size={15} />Mapa do campus</> }]} /></div><div className="filter-toolbar"><div className="search-input"><Search size={16} /><Input aria-label="Buscar estacionamento" placeholder="Buscar estacionamento…" value={search} onChange={e => setSearch(e.target.value)} /></div><Button variant={freeOnly ? 'primary' : 'secondary'} aria-pressed={freeOnly} onClick={() => setFreeOnly(!freeOnly)}><Filter size={15} />Só com vagas livres</Button>{!favoritesOnly && <Button variant={starred ? 'primary' : 'secondary'} aria-pressed={starred} onClick={() => setStarred(!starred)}><Star size={15} />Favoritos</Button>}<Select aria-label="Tipo de vaga" value={type} onChange={e => setType(e.target.value as TipoVaga | '')}><option value="">Todos os tipos</option><option value="COMUM">Comum</option><option value="PCD">PCD</option><option value="MOTO">Moto</option></Select></div>{!lots.length ? <EmptyState title={favoritesOnly ? 'Seus favoritos começam aqui' : 'Nenhum estacionamento por aqui'} description={favoritesOnly ? 'Toque na estrela de um estacionamento para encontrá-lo aqui.' : 'Ajuste os filtros ou aguarde o cadastro de um estacionamento.'}><Link className="btn btn-secondary" to="/estacionamentos">Ver estacionamentos</Link></EmptyState> : mode === 'mapa' ? <CampusMap lots={lots} onFail={() => setMode('lista')} /> : <div className="lots-grid">{lots.map(lot => <LotCard key={lot.id} lot={lot} favorite={favorites.data.includes(lot.id)} onFavorite={() => void favorites.toggle(lot.id)} />)}</div>}<div className="info-strip"><span className="live-orb"><MapPin size={18} /></span><p>Seu único trabalho é chegar.<span>A detecção de vagas acontece automaticamente pelos sensores.</span></p></div></>;
+  return (
+    <>
+      <div className="page-heading">
+        <div>
+          <div className="eyebrow">SEU CAMPUS, NO RADAR</div>
+          <h1>
+            {favoritesOnly
+              ? 'Seus lugares favoritos'
+              : `Olá, ${user?.nome.split(' ')[0]}. Vamos estacionar?`}
+          </h1>
+          <p>Encontre sua vaga e siga o dia com mais tranquilidade.</p>
+        </div>
+        <LiveDot label="Atualiza a cada 3 s" />
+      </div>
+      {!favoritesOnly && best && (
+        <section className="recommendation">
+          <div className="recommendation-copy">
+            <Badge>
+              <Sparkles size={13} /> MELHOR OPÇÃO AGORA
+            </Badge>
+            <h2>{best.nome}</h2>
+            <p>
+              <MapPin size={15} />
+              {best.descricao}
+            </p>
+            <div className="recommendation-actions">
+              <Link className="btn btn-primary" to={`/estacionamentos/${best.id}`}>
+                Ver vagas disponíveis <ArrowRight size={17} />
+              </Link>
+              <Button variant="ghost" onClick={() => setMode('mapa')}>
+                <Map size={16} />
+                Ver no mapa
+              </Button>
+            </div>
+          </div>
+          <div className="recommendation-number">
+            <strong>{String(best.vagasLivres).padStart(2, '0')}</strong>
+            <span>
+              vagas livres
+              <br />
+              esperando por você
+            </span>
+            <div className="radar-ring" />
+          </div>
+        </section>
+      )}
+      <div className="section-heading">
+        <div>
+          <h2>{favoritesOnly ? 'Sempre por perto' : 'Estacionamentos do campus'}</h2>
+          <p>
+            <strong className="green-text">{totalFree} vagas livres</strong> em {query.data.length}{' '}
+            estacionamentos
+          </p>
+        </div>
+        <Tabs
+          value={mode}
+          onChange={setMode}
+          options={[
+            {
+              value: 'lista',
+              label: (
+                <>
+                  <List size={15} />
+                  Lista
+                </>
+              ),
+            },
+            {
+              value: 'mapa',
+              label: (
+                <>
+                  <Map size={15} />
+                  Mapa do campus
+                </>
+              ),
+            },
+          ]}
+        />
+      </div>
+      <div className="filter-toolbar">
+        <div className="search-input">
+          <Search size={16} />
+          <Input
+            aria-label="Buscar estacionamento"
+            placeholder="Buscar estacionamento…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Button
+          variant={freeOnly ? 'primary' : 'secondary'}
+          aria-pressed={freeOnly}
+          onClick={() => setFreeOnly(!freeOnly)}
+        >
+          <Filter size={15} />
+          Só com vagas livres
+        </Button>
+        {!favoritesOnly && (
+          <Button
+            variant={starred ? 'primary' : 'secondary'}
+            aria-pressed={starred}
+            onClick={() => setStarred(!starred)}
+          >
+            <Star size={15} />
+            Favoritos
+          </Button>
+        )}
+        <Select
+          aria-label="Tipo de vaga"
+          value={type}
+          onChange={(e) => setType(e.target.value as TipoVaga | '')}
+        >
+          <option value="">Todos os tipos</option>
+          <option value="COMUM">Comum</option>
+          <option value="PCD">PCD</option>
+          <option value="MOTO">Moto</option>
+        </Select>
+      </div>
+      {!lots.length ? (
+        <EmptyState
+          title={favoritesOnly ? 'Seus favoritos começam aqui' : 'Nenhum estacionamento por aqui'}
+          description={
+            favoritesOnly
+              ? 'Toque na estrela de um estacionamento para encontrá-lo aqui.'
+              : 'Ajuste os filtros ou aguarde o cadastro de um estacionamento.'
+          }
+        >
+          <Link className="btn btn-secondary" to="/estacionamentos">
+            Ver estacionamentos
+          </Link>
+        </EmptyState>
+      ) : mode === 'mapa' ? (
+        <CampusMap lots={lots} onFail={() => setMode('lista')} />
+      ) : (
+        <div className="lots-grid">
+          {lots.map((lot) => (
+            <LotCard
+              key={lot.id}
+              lot={lot}
+              favorite={favorites.data.includes(lot.id)}
+              onFavorite={() => void favorites.toggle(lot.id)}
+            />
+          ))}
+        </div>
+      )}
+      <div className="info-strip">
+        <span className="live-orb">
+          <MapPin size={18} />
+        </span>
+        <p>
+          Seu único trabalho é chegar.
+          <span>A detecção de vagas acontece automaticamente pelos sensores.</span>
+        </p>
+      </div>
+    </>
+  );
 }
-function LotCard({ lot, favorite, onFavorite }: { lot: EstacionamentoResumo; favorite: boolean; onFavorite: () => void }) {
-  const Trend = lot.tendencia === 'SUBINDO' ? ArrowUpRight : lot.tendencia === 'CAINDO' ? ArrowDownRight : Minus;
-  return <Card className="lot-card"><div className="lot-card-top"><span className="lot-icon"><MapPin size={21} /></span><button className={`icon-button favorite-button ${favorite ? 'is-favorite' : ''}`} aria-label={`${favorite ? 'Remover' : 'Adicionar'} ${lot.nome} ${favorite ? 'dos' : 'aos'} favoritos`} aria-pressed={favorite} onClick={onFavorite}><Star size={19} fill={favorite ? 'currentColor' : 'none'} /></button></div><Link to={`/estacionamentos/${lot.id}`}><h3>{lot.nome}</h3></Link><p className="lot-description">{lot.descricao}</p><div className="lot-count" aria-live="polite"><strong>{String(lot.vagasLivres).padStart(2, '0')}</strong><span>livres <small>de {lot.totalVagas} vagas</small></span><Badge className={lot.vagasLivres ? 'badge-green' : 'badge-red'}>{lot.vagasLivres ? 'Disponível' : 'Lotado'}</Badge></div><OccupancyBar total={lot.totalVagas} livres={lot.vagasLivres} /><div className="lot-meta"><span>{ocupacao(lot.totalVagas, lot.vagasLivres)}% indisponíveis</span><span><Trend size={13} />{lot.tendencia === 'SUBINDO' ? 'Liberando' : lot.tendencia === 'CAINDO' ? 'Enchendo' : 'Estável'} · 15 min</span></div><Link className="lot-card-link" to={`/estacionamentos/${lot.id}`}>Explorar estacionamento <ArrowRight size={16} /></Link></Card>;
+function LotCard({
+  lot,
+  favorite,
+  onFavorite,
+}: {
+  lot: EstacionamentoResumo;
+  favorite: boolean;
+  onFavorite: () => void;
+}) {
+  const Trend =
+    lot.tendencia === 'SUBINDO'
+      ? ArrowUpRight
+      : lot.tendencia === 'CAINDO'
+        ? ArrowDownRight
+        : Minus;
+  return (
+    <Card className="lot-card">
+      <div className="lot-card-top">
+        <span className="lot-icon">
+          <MapPin size={21} />
+        </span>
+        <button
+          className={`icon-button favorite-button ${favorite ? 'is-favorite' : ''}`}
+          aria-label={`${favorite ? 'Remover' : 'Adicionar'} ${lot.nome} ${favorite ? 'dos' : 'aos'} favoritos`}
+          aria-pressed={favorite}
+          onClick={onFavorite}
+        >
+          <Star size={19} fill={favorite ? 'currentColor' : 'none'} />
+        </button>
+      </div>
+      <Link to={`/estacionamentos/${lot.id}`}>
+        <h3>{lot.nome}</h3>
+      </Link>
+      <p className="lot-description">{lot.descricao}</p>
+      <div className="lot-count" aria-live="polite">
+        <strong>{String(lot.vagasLivres).padStart(2, '0')}</strong>
+        <span>
+          livres <small>de {lot.totalVagas} vagas</small>
+        </span>
+        <Badge className={lot.vagasLivres ? 'badge-green' : 'badge-red'}>
+          {lot.vagasLivres ? 'Disponível' : 'Lotado'}
+        </Badge>
+      </div>
+      <OccupancyBar total={lot.totalVagas} livres={lot.vagasLivres} />
+      <div className="lot-meta">
+        <span>{ocupacao(lot.totalVagas, lot.vagasLivres)}% indisponíveis</span>
+        <span>
+          <Trend size={13} />
+          {lot.tendencia === 'SUBINDO'
+            ? 'Liberando'
+            : lot.tendencia === 'CAINDO'
+              ? 'Enchendo'
+              : 'Estável'}{' '}
+          · 15 min
+        </span>
+      </div>
+      <Link className="lot-card-link" to={`/estacionamentos/${lot.id}`}>
+        Explorar estacionamento <ArrowRight size={16} />
+      </Link>
+    </Card>
+  );
 }

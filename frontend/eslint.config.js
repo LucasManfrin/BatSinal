@@ -7,7 +7,10 @@ export default tseslint.config(
   { ignores: ['dist', 'public/mockServiceWorker.js', 'coverage'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  { files: ['**/*.{ts,tsx}'], languageOptions: { globals: { ...globals.browser, ...globals.node } },
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: { globals: { ...globals.browser, ...globals.node } },
     plugins: { 'react-hooks': reactHooks },
-    rules: { ...reactHooks.configs.recommended.rules, 'no-console': 'error' } },
+    rules: { ...reactHooks.configs.recommended.rules, 'no-console': 'error' },
+  },
 );

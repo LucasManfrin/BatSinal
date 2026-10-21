@@ -1,19 +1,259 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Bell, ChevronRight, CircleHelp, CircleParking, LayoutDashboard, LogOut, Map, Menu, Moon, Radio, ShieldCheck, Star, Sun, Users, X } from 'lucide-react';
+import {
+  Bell,
+  ChevronRight,
+  CircleHelp,
+  CircleParking,
+  LayoutDashboard,
+  LogOut,
+  Map,
+  Menu,
+  Moon,
+  Radio,
+  ShieldCheck,
+  Star,
+  Sun,
+  Users,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Logo } from './Logo';
 import { Button, Dialog, Tooltip } from '../ui';
 import { USE_MOCK } from '../../lib/api';
 import { Simulator } from '../../features/sensores/Simulator';
+import type { LucideIcon } from 'lucide-react';
 
-const adminLinks = [{ to: '/admin', label: 'Visão geral', icon: LayoutDashboard, end: true }, { to: '/admin/estacionamentos', label: 'Estacionamentos', icon: CircleParking }, { to: '/admin/editor', label: 'Editor de layout', icon: Map }, { to: '/admin/sensores', label: 'Sensores', icon: Radio }, { to: '/admin/usuarios', label: 'Usuários', icon: Users }];
-const userLinks = [{ to: '/estacionamentos', label: 'Encontrar vagas', icon: CircleParking }, { to: '/favoritos', label: 'Favoritos', icon: Star }, { to: '/perfil', label: 'Meu perfil', icon: Users }];
+interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end?: boolean;
+}
+const adminLinks: NavItem[] = [
+  { to: '/admin', label: 'Visão geral', icon: LayoutDashboard, end: true },
+  { to: '/admin/estacionamentos', label: 'Estacionamentos', icon: CircleParking },
+  { to: '/admin/editor', label: 'Editor de layout', icon: Map },
+  { to: '/admin/sensores', label: 'Sensores', icon: Radio },
+  { to: '/admin/usuarios', label: 'Usuários', icon: Users },
+];
+const userLinks: NavItem[] = [
+  { to: '/estacionamentos', label: 'Encontrar vagas', icon: CircleParking },
+  { to: '/favoritos', label: 'Favoritos', icon: Star },
+  { to: '/perfil', label: 'Meu perfil', icon: Users },
+];
 export function AppLayout() {
-  const { user, logout } = useAuth(); const [mobile, setMobile] = useState(false); const [help, setHelp] = useState(false); const [notifications, setNotifications] = useState(false);
-  const [light, setLight] = useState(() => localStorage.getItem('batsinal.theme') === 'light'); const location = useLocation();
-  const admin = location.pathname.startsWith('/admin'); const links = admin ? adminLinks : userLinks;
-  const current = links.find(l => l.end ? location.pathname === l.to : location.pathname.startsWith(l.to))?.label ?? 'Detalhe do estacionamento';
-  function theme() { const next = !light; setLight(next); document.documentElement.dataset.theme = next ? 'light' : 'dark'; localStorage.setItem('batsinal.theme', next ? 'light' : 'dark'); }
-  return <div className={`app-shell ${admin ? 'admin-shell' : 'user-shell'}`}><aside className={`sidebar ${mobile ? 'sidebar-open' : ''}`}><div className="sidebar-brand"><Logo /><button className="mobile-close icon-button" onClick={() => setMobile(false)} aria-label="Fechar menu"><X size={19} /></button></div><div className="workspace"><span className="workspace-icon">U</span><div><strong>Unisagrado<span className="muted"> / campus</span></strong><small>{admin ? 'Área de administração' : 'Encontre seu lugar'}</small></div><ChevronRight size={14} /></div><p className="nav-label">{admin ? 'GERENCIAMENTO' : 'MEU CAMPUS'}</p><nav aria-label="Menu principal">{links.map(({ to, label, icon: Icon, ...rest }) => <NavLink key={to} to={to} end={'end' in rest ? rest.end : false} onClick={() => setMobile(false)} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}><Icon size={19} strokeWidth={1.7} />{label}{label === 'Sensores' && <span className="nav-tag">IoT</span>}</NavLink>)}</nav>{user?.role === 'ADMIN' && <div className="sidebar-switch"><p className="nav-label">EXPERIÊNCIA DO USUÁRIO</p><NavLink className="nav-item" to={admin ? '/estacionamentos' : '/admin'} onClick={() => setMobile(false)}>{admin ? <Map size={19} /> : <ShieldCheck size={19} />}{admin ? 'Visão do usuário' : 'Painel administrativo'}<ChevronRight size={14} /></NavLink></div>}<div className="sidebar-bottom"><div className="system-status"><span className="live-orb"><Radio size={19} /></span><div><strong>{USE_MOCK ? 'Demonstração local' : 'API conectada'}</strong><small>{USE_MOCK ? 'Sensores simulados · sem hardware' : 'Dados recebidos pela API'}</small></div><span className="status-led" /></div><button className="help-link" onClick={() => setHelp(true)}><CircleHelp size={17} />Como funciona o BatSinal<ChevronRight size={14} /></button><div className="sidebar-person"><span className="avatar">{user?.nome.split(' ').map(n => n[0]).slice(0, 2).join('')}</span><div><strong>{user?.nome}</strong><small>{user?.role === 'ADMIN' ? 'Administrador' : 'Usuário'}</small></div><Tooltip text="Sair da conta"><button aria-label="Sair da conta" className="icon-button" onClick={logout}><LogOut size={17} /></button></Tooltip></div></div></aside>{mobile && <button className="sidebar-backdrop" onClick={() => setMobile(false)} aria-label="Fechar menu" />}<div className="main-shell"><header className="topbar"><div className="breadcrumb"><button className="mobile-menu icon-button" aria-label="Abrir menu" onClick={() => setMobile(true)}><Menu size={21} /></button><span>{admin ? 'Administração' : 'Meu campus'}</span><ChevronRight size={13} /><strong>{current}</strong></div><div className="topbar-actions"><span className="local-badge"><span />{USE_MOCK ? 'AMBIENTE DEMO' : 'CONECTADO'}</span><Tooltip text={light ? 'Usar tema escuro' : 'Usar tema claro'}><button className="icon-button" onClick={theme} aria-label={light ? 'Usar tema escuro' : 'Usar tema claro'}>{light ? <Moon size={18} /> : <Sun size={18} />}</button></Tooltip><button className="icon-button notification-button" onClick={() => setNotifications(true)} aria-label="Notificações"><Bell size={18} /></button></div></header><main className="main-content" id="conteudo"><Outlet /></main><footer className="app-footer"><span>BatSinal <span className="muted">/</span> Inteligência para estacionar.</span><span>Projeto acadêmico · Unisagrado <span className="version">v0.1.0</span></span></footer></div><nav className="bottom-nav" aria-label="Navegação mobile">{userLinks.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to}><Icon size={20} /><span>{label}</span></NavLink>)}</nav><Dialog open={help} onOpenChange={setHelp} title="Seu campus no radar" description="Os sensores detectam automaticamente a presença de um veículo."><div className="help-content"><Radio size={32} className="accent-text" /><p>O sensor envia a leitura à API. A tela consulta o status a cada 3 segundos: você só precisa encontrar uma vaga livre e seguir até ela.</p><p>Verde + check: livre. Vermelho + carro: ocupada. Cinza + hachura: sem leitura confiável há mais de 60 segundos.</p><p>Na demonstração, abra o simulador no canto inferior direito para representar os dispositivos. Não existe reserva nem confirmação manual de ocupação.</p><Button onClick={() => setHelp(false)}>Entendi</Button></div></Dialog><Dialog open={notifications} onOpenChange={setNotifications} title="Notificações" description="Alertas de disponibilidade"><p className="muted space-y">Nenhum alerta pendente. Abra um estacionamento sem vagas e ative “Avisar quando abrir vaga”. Mantenha a página aberta para receber o aviso.</p><Button onClick={() => setNotifications(false)}>Entendi</Button></Dialog>{USE_MOCK && import.meta.env.VITE_SHOW_SIMULATOR === 'true' && <Simulator />}</div>;
+  const { user, logout } = useAuth();
+  const [mobile, setMobile] = useState(false);
+  const [help, setHelp] = useState(false);
+  const [notifications, setNotifications] = useState(false);
+  const [light, setLight] = useState(() => localStorage.getItem('batsinal.theme') === 'light');
+  const location = useLocation();
+  useEffect(() => {
+    document.documentElement.dataset.theme = light ? 'light' : 'dark';
+  }, [light]);
+  const admin = location.pathname.startsWith('/admin');
+  const links = admin ? adminLinks : userLinks;
+  const current =
+    links.find((l) => (l.end ? location.pathname === l.to : location.pathname.startsWith(l.to)))
+      ?.label ?? 'Detalhe do estacionamento';
+  function theme() {
+    const next = !light;
+    setLight(next);
+    document.documentElement.dataset.theme = next ? 'light' : 'dark';
+    localStorage.setItem('batsinal.theme', next ? 'light' : 'dark');
+  }
+  return (
+    <div className={`app-shell ${admin ? 'admin-shell' : 'user-shell'}`}>
+      <aside className={`sidebar ${mobile ? 'sidebar-open' : ''}`}>
+        <div className="sidebar-brand">
+          <Logo />
+          <button
+            className="mobile-close icon-button"
+            onClick={() => setMobile(false)}
+            aria-label="Fechar menu"
+          >
+            <X size={19} />
+          </button>
+        </div>
+        <div className="workspace">
+          <span className="workspace-icon">U</span>
+          <div>
+            <strong>
+              Unisagrado<span className="muted"> / campus</span>
+            </strong>
+            <small>{admin ? 'Área de administração' : 'Encontre seu lugar'}</small>
+          </div>
+          <ChevronRight size={14} />
+        </div>
+        <p className="nav-label">{admin ? 'GERENCIAMENTO' : 'MEU CAMPUS'}</p>
+        <nav aria-label="Menu principal">
+          {links.map(({ to, label, icon: Icon, ...rest }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={'end' in rest ? rest.end : false}
+              onClick={() => setMobile(false)}
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            >
+              <Icon size={19} strokeWidth={1.7} />
+              {label}
+              {label === 'Sensores' && <span className="nav-tag">IoT</span>}
+            </NavLink>
+          ))}
+        </nav>
+        {user?.role === 'ADMIN' && (
+          <div className="sidebar-switch">
+            <p className="nav-label">EXPERIÊNCIA DO USUÁRIO</p>
+            <NavLink
+              className="nav-item"
+              to={admin ? '/estacionamentos' : '/admin'}
+              onClick={() => setMobile(false)}
+            >
+              {admin ? <Map size={19} /> : <ShieldCheck size={19} />}
+              {admin ? 'Visão do usuário' : 'Painel administrativo'}
+              <ChevronRight size={14} />
+            </NavLink>
+          </div>
+        )}
+        <div className="sidebar-bottom">
+          <div className="system-status">
+            <span className="live-orb">
+              <Radio size={19} />
+            </span>
+            <div>
+              <strong>{USE_MOCK ? 'Demonstração local' : 'API conectada'}</strong>
+              <small>
+                {USE_MOCK ? 'Sensores simulados · sem hardware' : 'Dados recebidos pela API'}
+              </small>
+            </div>
+            <span className="status-led" />
+          </div>
+          <button className="help-link" onClick={() => setHelp(true)}>
+            <CircleHelp size={17} />
+            Como funciona o BatSinal
+            <ChevronRight size={14} />
+          </button>
+          <div className="sidebar-person">
+            <span className="avatar">
+              {user?.nome
+                .split(' ')
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join('')}
+            </span>
+            <div>
+              <strong>{user?.nome}</strong>
+              <small>{user?.role === 'ADMIN' ? 'Administrador' : 'Usuário'}</small>
+            </div>
+            <Tooltip text="Sair da conta">
+              <button aria-label="Sair da conta" className="icon-button" onClick={logout}>
+                <LogOut size={17} />
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+      </aside>
+      {mobile && (
+        <button
+          className="sidebar-backdrop"
+          onClick={() => setMobile(false)}
+          aria-label="Fechar menu"
+        />
+      )}
+      <div className="main-shell">
+        <header className="topbar">
+          <div className="breadcrumb">
+            <button
+              className="mobile-menu icon-button"
+              aria-label="Abrir menu"
+              onClick={() => setMobile(true)}
+            >
+              <Menu size={21} />
+            </button>
+            <span>{admin ? 'Administração' : 'Meu campus'}</span>
+            <ChevronRight size={13} />
+            <strong>{current}</strong>
+          </div>
+          <div className="topbar-actions">
+            <span className="local-badge">
+              <span />
+              {USE_MOCK ? 'AMBIENTE DEMO' : 'CONECTADO'}
+            </span>
+            <Tooltip text={light ? 'Usar tema escuro' : 'Usar tema claro'}>
+              <button
+                className="icon-button"
+                onClick={theme}
+                aria-label={light ? 'Usar tema escuro' : 'Usar tema claro'}
+              >
+                {light ? <Moon size={18} /> : <Sun size={18} />}
+              </button>
+            </Tooltip>
+            <button
+              className="icon-button notification-button"
+              onClick={() => setNotifications(true)}
+              aria-label="Notificações"
+            >
+              <Bell size={18} />
+            </button>
+          </div>
+        </header>
+        <main className="main-content" id="conteudo">
+          <Outlet />
+        </main>
+        <footer className="app-footer">
+          <span>
+            BatSinal <span className="muted">/</span> Inteligência para estacionar.
+          </span>
+          <span>
+            Projeto acadêmico · Unisagrado <span className="version">v0.1.0</span>
+          </span>
+        </footer>
+      </div>
+      <nav className="bottom-nav" aria-label="Navegação mobile">
+        {userLinks.map(({ to, label, icon: Icon }) => (
+          <NavLink key={to} to={to}>
+            <Icon size={20} />
+            <span>{label}</span>
+          </NavLink>
+        ))}
+      </nav>
+      <Dialog
+        open={help}
+        onOpenChange={setHelp}
+        title="Seu campus no radar"
+        description="Os sensores detectam automaticamente a presença de um veículo."
+      >
+        <div className="help-content">
+          <Radio size={32} className="accent-text" />
+          <p>
+            O sensor envia a leitura à API. A tela consulta o status a cada 3 segundos: você só
+            precisa encontrar uma vaga livre e seguir até ela.
+          </p>
+          <p>
+            Verde + check: livre. Vermelho + carro: ocupada. Cinza + hachura: sem leitura confiável
+            há mais de 60 segundos.
+          </p>
+          <p>
+            Na demonstração, abra o simulador no canto inferior direito para representar os
+            dispositivos. Não existe reserva nem confirmação manual de ocupação.
+          </p>
+          <Button onClick={() => setHelp(false)}>Entendi</Button>
+        </div>
+      </Dialog>
+      <Dialog
+        open={notifications}
+        onOpenChange={setNotifications}
+        title="Notificações"
+        description="Alertas de disponibilidade"
+      >
+        <p className="muted space-y">
+          Nenhum alerta pendente. Abra um estacionamento sem vagas e ative “Avisar quando abrir
+          vaga”. Mantenha a página aberta para receber o aviso.
+        </p>
+        <Button onClick={() => setNotifications(false)}>Entendi</Button>
+      </Dialog>
+      {USE_MOCK && import.meta.env.VITE_SHOW_SIMULATOR === 'true' && <Simulator />}
+    </div>
+  );
 }
