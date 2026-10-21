@@ -1,6 +1,7 @@
 # BatSinal
 
-Consulta de vagas de estacionamento detectadas por sensores. Demonstração acadêmica local para a Unisagrado.
+Consulta pública de vagas e administração de uma maquete de estacionamento com sensores.
+Demonstração acadêmica local para a Unisagrado, com API simulada por MSW.
 
 ## Executar
 
@@ -11,41 +12,81 @@ npm install
 npm run dev
 ```
 
-Abra a URL do Vite, normalmente `http://localhost:5173`. Porta fixa 5173: reutilize a instância já em execução.
-O mock funciona sem backend, chave ou `.env`. Fontes são empacotadas, sem CDN.
+Abra o endereço informado pelo Vite, normalmente `http://127.0.0.1:5173`. Reutilize a instância
+que já estiver na porta 5173. Não é necessário backend, chave ou arquivo `.env` para a demo.
 
-## Visitantes e empresas
+Conta fictícia: **admin@unisagrado.demo / Demo@123**. O botão de demonstração preenche o login.
+Use somente dados fictícios: senhas e cadastros do mock ficam no armazenamento local do navegador.
 
-- Alunos/professores consultam **sem cadastro e sem login**. A entrada abre o único campus cadastrado
-  ou mostra uma escolha de campi. Exemplo: `/c/unisagrado`.
-- Somente empresas se cadastram em `/cadastro`: nome da empresa, responsável, e-mail e senha.
-  O responsável entra em `/login` e administra seus estacionamentos, layouts e sensores.
-- Cada empresa tem um responsável no MVP. Não existem roles USER/ADMIN, cadastro de motorista,
-  gerenciamento de usuários, veículos ou favoritos.
-- A consulta de todos os campi é sempre pública, desde o cadastro da empresa. Não há controle de visibilidade.
-  Login é exigido apenas para acessar e alterar dados administrativos.
+## Visitante sem conta
 
-Conta fictícia para administrar o seed: **admin@unisagrado.demo / Demo@123**.
-O botão de demonstração preenche os campos; clique em **Entrar**. Nunca use senhas ou dados pessoais reais no mock.
-O seed Unisagrado contém dados apenas demonstrativos.
+`/` abre diretamente o mapa público da Unisagrado, sem tela intermediária nem login.
+O visitante escolhe bloco/serviço e pode filtrar portão, tipo e vagas livres. A lista ordena por
+proximidade relativa ao destino na ilustração, sem prometer metros, minutos ou rota interna.
+Links antigos em `/c/unisagrado` redirecionam à raiz preservando filtros. Outras empresas usam
+`/c/:slug`. `VITE_DEFAULT_CAMPUS_SLUG` define o campus da raiz; atualize-o se renomear esse slug.
+O menu do cabeçalho dá acesso ao cadastro e login das empresas.
 
-## Mapa do campus
+Favoritos de destinos, último destino e **Avisar quando abrir vaga** ficam no próprio aparelho,
+separados por campus. O aviso é um toast e funciona apenas com a aba aberta, na mudança de zero
+para vaga livre. Não há favoritos no servidor, push, e-mail ou conta de motorista.
 
-Na Unisagrado, a consulta abre o **campus inteiro em uma cena isométrica**, com alternativa 2D,
-zoom e deslocamento. Selecione **Bloco J** ou clique no prédio para destacar as vagas próximas;
-o portão escolhido também fica destacado. A busca Ctrl+K encontra blocos e serviços.
+**Ver de perto** ou clicar em uma área abre a maquete 3D do trecho. Selecione uma vaga para ver
+tipo, status e última leitura; **Voltar ao campus** recupera a consulta. Sem WebGL há planta/lista.
 
-O desenho aproxima as áreas marcadas pelo grupo. As 92 vagas do seed foram distribuídas em
-fileiras nas frentes/laterais dos blocos e canteiros, mantendo as mesmas leituras dos sensores.
-Não é capacidade real, mapa em escala nem cálculo de rota/tempo. Geometria e vínculos ficam
-persistidos no mock; o banco real continua planejado. Veja [MAPA_CAMPUS.md](docs/MAPA_CAMPUS.md).
+## Empresa
 
-Campi sem cena cadastrada conservam a consulta por setores. A administração existente permanece
-disponível; o editor atual altera o layout local, não a posição da vaga no mapa do campus.
+Cadastro em `/cadastrar-empresa`: nome, slug sugerido e editável, e-mail e senha com ao menos
+oito caracteres. O endereço é conferido e o cadastro entra automaticamente no painel.
+Login em `/entrar`. `/admin/*` exige sessão da empresa, sem papéis ou perfis de motorista.
 
-## Simulador
+Cada empresa acessa apenas seus estacionamentos, áreas, vagas e sensores. A API mock resolve
+a empresa pelo token e verifica a propriedade de todos os IDs. O mapa de qualquer empresa é
+sempre público, desde o cadastro; a sessão só é necessária para administrar.
 
-Copie opcionalmente `frontend/.env.example` para `frontend/.env`:
+O primeiro acesso tem checklist de estacionamento, sensores, posicionamento e link público.
+**Minha empresa** permite alterar nome/slug e trocar a senha. Sair preserva os cadastros locais.
+
+## Posicionar vagas
+
+Em `/admin/posicionar`, escolha uma área. A cena central usa as posições já mapeadas; a bandeja
+contém vagas ainda sem posição. Arraste uma peça da bandeja ou de outra posição: o ímã aproxima,
+alinha e encaixa. Ao soltar, a alteração é salva no mock e aparece na consulta pública.
+
+- Posição ocupada: troca as duas peças quando os tipos são compatíveis; peça da bandeja desloca a outra para a bandeja.
+- Soltura fora de uma posição: retorna à origem. Falha de gravação mantém a posição anterior e informa o erro.
+- **Desfazer**, **Refazer** e **Restaurar padrão mapeado** operam sobre o lote inteiro; restauração pede confirmação.
+- Histórico de desfazer pertence à área aberta e não persiste ao mudar de área ou recarregar.
+- Vaga sem sensor oferece seletor inline para vincular um sensor livre.
+- **Posicionar por lista** oferece o mesmo resultado por teclado/toque, inclusive sem WebGL. Escolha a vaga, use Tab/setas nas posições, Enter para encaixar e Escape para cancelar.
+- Movimento reduzido do sistema dispensa interpolação.
+
+Não existe editor livre 2D, desenho manual, gerador de grid ou rotação manual das peças.
+Vaga guarda `ancoraId`; coordenadas, rotação, dimensões e tipos permitidos pertencem à âncora.
+
+Empresa nova pode cadastrar área e importar um levantamento JSON de posições. Sem arquivo,
+a área fica vazia: o app não inventa vagas físicas. Formato de exemplo em
+[ancoras.exemplo.json](backend/database/ancoras.exemplo.json), apenas ilustrativo e sem escala real.
+Depois, cadastre vagas na bandeja e sensores para vinculá-los às peças.
+
+## Campus e dados preservados
+
+O campus mantém a geometria aproximada enviada pelo grupo: blocos, vias, portões e 11 trechos.
+As 92 posições demonstrativas originais viraram âncoras. Uma instalação nova deixa três peças
+na bandeja; uma instalação existente preserva seus vínculos e dados, sem reset do navegador.
+
+O mock persiste cadastros, mapa, posições, leituras e sessões em `batsinal.mock.v1`.
+Migração reconhece formatos antigos apenas para preservar contas de empresas e seus dados;
+layouts antigos ficam como snapshot de referência, sem editor. Preferências do visitante são separadas.
+Falha ao persistir uma escrita administrativa reverte a operação e devolve erro 507.
+
+A geometria não tem escala ou levantamento geográfico. Quantidades não representam a capacidade
+real. O grupo precisa validar entradas, tipos de posição e vínculos dos sensores na maquete física.
+Veja [MAPA_CAMPUS.md](docs/MAPA_CAMPUS.md). Não há cálculo de trajeto, reserva ou garantia de vaga.
+
+## Simulador e integração futura
+
+Opcionalmente copie `frontend/.env.example` para `frontend/.env`:
 
 ```dotenv
 VITE_USE_MOCK=true
@@ -53,55 +94,35 @@ VITE_API_URL=http://localhost:8000/api
 VITE_SHOW_SIMULATOR=true
 ```
 
-Reinicie após mudar variáveis. O simulador aparece somente na administração autenticada, com o mock ativo.
-Altere as vagas vinculadas a sensores ou use **Simular movimento**. A consulta pública é apenas leitura.
-O mock repete leituras a cada 10 s; as telas consultam status a cada 3 s. Sem leitura há mais de 60 s, SEM_SINAL.
+Reinicie o Vite depois de mudar essas variáveis. O simulador aparece apenas na administração
+autenticada. Altere uma vaga vinculada ou use **Simular movimento** e observe a consulta em outra aba.
+O mock repete leituras a cada 10 s e a consulta usa polling de 3 s. Sem leitura há mais de 60 s ou
+sem sensor, o status é **SEM_SINAL**. Gráficos e leituras do seed são sintéticos.
 
-## Apresentação
+Campus, cena 3D, ícones e fontes são locais, sem CDN. Google Maps e tiles opcionais de localização
+exigem internet; a consulta/lista não depende deles. A maquete 3D é carregada sob demanda;
+o build ainda informa um chunk Three.js de cerca de 688 kB antes de gzip.
 
-1. Abra o app sem conta e consulte a disponibilidade da Unisagrado.
-2. Entre como empresa e explore painel, sensores e **Minha empresa**.
-3. Cadastre estacionamento com nome, posição e dimensões. Portão e caminhada são opcionais.
-4. Abra o editor, gere um grid e configure vagas/sensores. Salve o layout.
-5. Abra o endereço da consulta em outra aba, sem login. A gestão de uma empresa nova não acessa os dados do seed.
-6. Use o simulador na aba administrativa e observe os contadores/cores na consulta pública.
-7. No detalhe de um bolsão lotado, ative **Avisar quando abrir vaga** e libere uma vaga. O aviso exige a página aberta.
-8. No campus, escolha Bloco J e um portão, filtre o tipo de vaga e teste 2D/3D, zoom e seleção por teclado.
-9. Saia da conta: a consulta permanece disponível e as rotas administrativas passam a exigir login.
+O backend tem uma **base executável** de FastAPI, configuração, health/readiness, conexão PostgreSQL,
+Compose e migração Alembic inicial. Dependências estão fixadas em `backend/uv.lock`.
+As rotas de autenticação/consulta/gestão e os modelos ORM ainda serão implementados; o frontend
+continua com MSW. A migração foi validada offline, mas não aplicada em PostgreSQL nesta preparação.
+O mapa ficará em JSONB; áreas, âncoras, vagas e sensores terão tabelas relacionadas.
 
-Editor: Ctrl+Z desfaz, Ctrl+Shift+Z refaz, Ctrl+D duplica e Delete exclui. Setas movem 1 unidade;
-Shift+setas, 10. Existem controles HTML equivalentes. Alterações pendentes têm aviso de saída.
-Rótulos vazios/duplicados impedem salvar; sobreposição é aviso. Gerar layout padrão substitui as vagas e desvincula sensores.
-
-## Interface e dados
-
-Na consulta do campus, o mapa completo mostra prédios, portões, vias e vagas. Verde indica livre;
-cinza, ocupada; contorno tracejado indica sem sinal. A lista ordena vagas pela proximidade visual
-da entrada do bloco, sem estimar metros ou tempo. Campi sem cena usam a lista/planta existente.
-Barras da lista representam vagas indisponíveis (ocupadas + sem sinal). A busca global abre com Ctrl+K.
-Plus Jakarta Sans e JetBrains Mono são locais. Ícones são SVGs Lucide e o logo é original.
-
-O botão **Navegar até o bolsão** abre o Google Maps em outra aba com as coordenadas cadastradas.
-Portões, tempos e coordenadas do seed são **ilustrativos** e precisam ser substituídos por dados validados.
-Campos ausentes são informados; o frontend não calcula tempos de caminhada ou rotas internas.
-
-O mapa próprio do campus será salvo no banco como GeoJSON, separado das posições lógicas das vagas.
-O arquivo inicial da Unisagrado está vazio, para receber o levantamento real do grupo.
-Consulta e planta locais funcionam offline após instalar as dependências; rotas externas e tiles opcionais do cadastro exigem internet.
-
-## Backend e banco planejados
-
-- [Arquitetura e próximos passos](docs/ARQUITETURA_BACKEND.md)
+- [Contrato HTTP implementado no mock](docs/api-contract.md)
+- [Como executar e continuar o backend](backend/README.md)
+- [Roteiro para os próximos agentes](docs/HANDOFF.md)
+- [Arquitetura do backend e transações](docs/ARQUITETURA_BACKEND.md)
 - [Esquema PostgreSQL proposto](backend/database/schema.proposta.sql)
-- [Formato do mapa](backend/database/mapa-campus.schema.json)
-- [Mapa inicial vazio da Unisagrado](backend/database/mapa-unisagrado.inicial.geojson)
-- [Contrato HTTP atual](docs/api-contract.md)
+- [Formato GeoJSON futuro](backend/database/mapa-campus.schema.json)
+- [Mapa geográfico inicial vazio](backend/database/mapa-unisagrado.inicial.geojson)
 
-Proposta: FastAPI + SQLAlchemy + PostgreSQL + Alembic. A API real ainda não foi implementada e o SQL
-não foi aplicado a um banco. O frontend continua usando MSW. Para integrar a API futura, altere
-`VITE_USE_MOCK=false` e `VITE_API_URL`; o frontend sempre acessa HTTP/JSON, nunca o banco diretamente.
+Quando o contrato completo estiver implementado, configure `VITE_USE_MOCK=false` e `VITE_API_URL`.
+Os endpoints health/readiness do bootstrap não substituem esse contrato. O frontend usa somente HTTP/JSON.
+O mock compartilha armazenamento entre abas, mas não oferece bloqueio concorrente de banco;
+a versão reduz sobrescritas e a API real deverá verificar a versão sob bloqueio da área.
 
-## Verificar
+## Verificar e revisar
 
 ```sh
 npm run lint
@@ -110,18 +131,14 @@ npm run build
 npm run preview
 ```
 
-`lint` inclui ESLint sem warnings e Prettier. Formatação: `npm run format`.
-Última suíte: **41 testes em oito arquivos**. Cobertura de mapa contínuo, destino, leituras e falhas, consulta anônima, cadastro e acesso público imediato,
-isolamento, proteção administrativa, DTO público, migração, seleção, teclado, acesso, sensores e geometria.
-O worker MSW já está versionado; ao atualizar a dependência, regenere com `npx msw init frontend/public`.
+Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte frontend: **59 testes em 13 arquivos**,
+incluindo ímã, troca atômica, persistência/erro de armazenamento, versão, isolamento, cadastro,
+consulta anônima, raiz pública, aliases, checklist, preferências locais, migração, status, teclado e alternativa sem WebGL.
+Backend: **7 testes**, Ruff e verificação do lock, com comandos em `backend/README.md`.
+O worker MSW é versionado; após atualizar MSW, regenere com `npx msw init frontend/public`.
+Durante alterações no próprio mock em desenvolvimento, recarregue a página se o worker perder a conexão.
 
-## Limites e revisão
+[Uso de IA](docs/USO_DE_IA.md) · [Revisão do grupo](docs/ROTEIRO_DE_REVISAO.md) · [Design vigente](frontend/DESIGN.md)
 
-- Sessões, chaves e senhas do mock são fictícias. Autenticação e validação reais pertencem ao backend.
-- Não há banco, hardware integrado, reserva, pagamento, push/e-mail ou garantia de vaga.
-- Históricos são sintéticos. O painel chama de ocupação a fração indisponível, incluindo sem sinal.
-- O mock compartilha alterações entre abas, mas não controla edição concorrente. Sair não apaga cadastros.
-- Para voltar ao seed, limpar dados do site apaga os cadastros fictícios locais. Não é necessário para atualizar o app.
-- O grupo deve testar os próprios dispositivos, mapear acessos reais e revisar o código.
-
-[Uso de IA](docs/USO_DE_IA.md) · [Roteiro de revisão](docs/ROTEIRO_DE_REVISAO.md) · [Design](docs/DESIGN.md)
+Referências visuais atuais: [campus](docs/v2-campus.png), [área](docs/v2-area.png),
+[painel](docs/v2-painel.png) e [posicionamento](docs/v2-posicionar.png).

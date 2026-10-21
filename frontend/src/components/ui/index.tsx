@@ -3,6 +3,9 @@ import {
   cloneElement,
   isValidElement,
   useId,
+  useEffect,
+  useRef,
+  useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -12,7 +15,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import * as SwitchPrimitive from '@radix-ui/react-switch';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { cva } from 'class-variance-authority';
-import { Car, Check, WifiOff, X, CircleParking, Loader2 } from 'lucide-react';
+import { Car, Check, WifiOff, X, Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import type { StatusVaga } from '../../types';
 
@@ -78,12 +81,32 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 export function Badge({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <span className={cn('badge', className)}>{children}</span>;
 }
-export function LiveDot({ label = 'Ao vivo' }: { label?: string }) {
+export function LiveDot({ label = 'Atualizado recentemente' }: { label?: string }) {
   return (
     <span className="live">
       <span />
       {label}
     </span>
+  );
+}
+export function UpdatedAt({ at }: { at: number | string }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const elapsed = Math.max(
+    1,
+    Math.floor((now - (typeof at === 'string' ? Date.parse(at) : at)) / 1000),
+  );
+  return (
+    <LiveDot
+      label={
+        Number.isFinite(elapsed)
+          ? `Atualizado há ${elapsed < 60 ? `${elapsed} s` : `${Math.floor(elapsed / 60)} min`}`
+          : 'Ainda sem leitura'
+      }
+    />
   );
 }
 export function OccupancyBar({ total, livres }: { total: number; livres: number }) {
@@ -144,7 +167,6 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <CircleParking size={34} strokeWidth={1.3} />
       <h3>{title}</h3>
       {description && <p>{description}</p>}
       {children}
@@ -179,6 +201,7 @@ export function Dialog({
   children,
   sheet = false,
   wide = false,
+  destructive = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -187,7 +210,37 @@ export function Dialog({
   children: ReactNode;
   sheet?: boolean;
   wide?: boolean;
+  destructive?: boolean;
 }) {
+  const panel = useRef<HTMLElement>(null);
+  const change = useRef(onOpenChange);
+  change.current = onOpenChange;
+  useEffect(() => {
+    if (!open || destructive) return;
+    const previous = document.activeElement as HTMLElement | null;
+    panel.current?.querySelector<HTMLElement>('input,button,select')?.focus();
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') change.current(false);
+    };
+    window.addEventListener('keydown', escape);
+    return () => {
+      window.removeEventListener('keydown', escape);
+      previous?.focus();
+    };
+  }, [open, destructive]);
+  if (!destructive)
+    return open ? (
+      <aside ref={panel} className={`inline-panel ${wide ? 'panel-wide' : ''}`} aria-label={title}>
+        <header>
+          <h2>{title}</h2>
+          <button className="icon-button" aria-label="Fechar" onClick={() => onOpenChange(false)}>
+            <X size={20} />
+          </button>
+        </header>
+        {description && <p>{description}</p>}
+        {children}
+      </aside>
+    ) : null;
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>

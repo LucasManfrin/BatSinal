@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -10,10 +10,10 @@ import { createSeed, store } from '../mocks/seed';
 import { TOKEN_KEY } from '../lib/api';
 import { CompanyPage } from '../pages/empresa/CompanyPage';
 import { SectorLotsPage as LotsPage } from '../pages/estacionamentos/SectorLotsPage';
-import type { Administrador } from '../types';
+import type { ContaEmpresa } from '../types';
 import { AppLayout } from '../components/layout/AppLayout';
 
-const auth = vi.hoisted(() => ({ user: null as Administrador | null, logout: vi.fn() }));
+const auth = vi.hoisted(() => ({ user: null as ContaEmpresa | null, logout: vi.fn() }));
 vi.mock('../features/auth/AuthContext', () => ({ useAuth: () => ({ ...auth, loading: false }) }));
 const server = setupServer(...handlers);
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
@@ -48,7 +48,10 @@ describe('consulta e perfil redesenhados', () => {
     await user.type(await screen.findByLabelText('Buscar estacionamento'), 'Complexo');
     expect(screen.getAllByRole('article')).toHaveLength(1);
     expect(
-      screen.getByRole('heading', { name: 'Complexo Esportivo', level: 2 }),
+      within(screen.getByRole('article')).getByRole('heading', {
+        name: 'Complexo Esportivo',
+        level: 2,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Ver planta de Complexo Esportivo' }),
@@ -77,7 +80,7 @@ describe('consulta e perfil redesenhados', () => {
   it('atualiza a planta com leituras HTTP e gera navegação pelas coordenadas', async () => {
     const { client } = show(<LotsPage />);
     const plan = await screen.findByRole('region', { name: 'Planta de Estacionamento Central' });
-    const spot = store.estacionamentos[0].vagas[0];
+    const spot = store.estacionamentos[0].vagas[30];
     expect(
       within(plan).getByRole('button', { name: `Vaga ${spot.rotulo}, Livre, PCD` }),
     ).toBeInTheDocument();
@@ -104,25 +107,20 @@ describe('consulta e perfil redesenhados', () => {
     store.estacionamentos[0].caminhadaDestino = undefined;
     show(<LotsPage />);
     expect(await screen.findByText('Acesso não informado')).toBeInTheDocument();
-    expect(screen.getByText('Tempo a pé não informado')).toBeInTheDocument();
+    expect(screen.queryByText(/min a pé/)).not.toBeInTheDocument();
   });
   it('oferece cadastro somente para empresas e consulta pública sem conta', async () => {
     const user = userEvent.setup();
     show(<AppLayout />);
-    await waitFor(() =>
-      expect(
-        screen.getByRole('status', { name: 'Total de vagas livres no campus' }),
-      ).toHaveTextContent('26'),
-    );
     await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
-    const dialog = screen.getByRole('dialog');
+    const dialog = screen.getByRole('complementary', { name: 'Consulta de vagas' });
     expect(within(dialog).getByRole('link', { name: 'Cadastrar empresa' })).toHaveAttribute(
       'href',
-      '/cadastro',
+      '/cadastrar-empresa',
     );
     expect(within(dialog).getByRole('link', { name: 'Acesso para empresas' })).toHaveAttribute(
       'href',
-      '/login',
+      '/entrar',
     );
     expect(
       within(dialog).queryByRole('link', { name: /perfil|favoritos/i }),
@@ -131,17 +129,17 @@ describe('consulta e perfil redesenhados', () => {
   });
   it('mostra o endereço público da empresa sem controle de visibilidade', async () => {
     auth.user = {
-      id: 'admin',
-      empresaId: 'unisagrado',
+      id: 'unisagrado',
+      slug: 'unisagrado',
       nome: 'Lucas Oliveira',
       email: 'admin@unisagrado.demo',
     };
-    store.sessoes['teste-ui'] = 'admin';
+    store.sessoes['teste-ui'] = 'unisagrado';
     localStorage.setItem(TOKEN_KEY, 'teste-ui');
     show(<CompanyPage />, '/empresa');
-    expect(await screen.findByRole('link', { name: '/c/unisagrado' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: `${window.location.origin}/` })).toHaveAttribute(
       'href',
-      '/c/unisagrado',
+      '/',
     );
     expect(screen.queryByRole('switch')).not.toBeInTheDocument();
     expect(screen.queryByText('Consulta fechada')).not.toBeInTheDocument();

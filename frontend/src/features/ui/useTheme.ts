@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 
 export function useTheme() {
-  const [light, setLight] = useState(() => localStorage.getItem('batsinal.theme') === 'light');
+  const [light, setLight] = useState(() => localStorage.getItem('batsinal.theme') !== 'dark');
   useEffect(() => {
-    const refresh = () => setLight(localStorage.getItem('batsinal.theme') === 'light');
+    const refresh = () => setLight(localStorage.getItem('batsinal.theme') !== 'dark');
     window.addEventListener('batsinal:theme', refresh);
     window.addEventListener('storage', refresh);
     return () => {

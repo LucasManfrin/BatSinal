@@ -2,10 +2,13 @@
 
 ## Ferramenta e modelo
 
-- Codex, agente baseado em GPT-6.1, em 21/10/2026.
+- Codex, em 21/10/2026. O nome exato do modelo não foi confirmado pela ferramenta nesta rodada.
 - Pedido: implementação de uma demonstração local do BatSinal conforme o documento do grupo.
 - Uso: geração de código, documentação, dados sintéticos e testes; revisão automatizada de tipos e lint.
 - Não foram usados dados reais de alunos, sensores reais ou credenciais de serviços.
+
+O registro abaixo preserva a evolução do projeto. As fases antigas citam papéis e editor que
+foram removidos; a especificação vigente é a v2, registrada ao final deste documento.
 
 ## Registro por fase
 
@@ -303,3 +306,134 @@ blocos, sentidos de circulação, acessibilidade dos percursos e vínculo físic
 O editor atual continua sendo o de layout local: editar a cena do campus requer implementação futura.
 Não houve revisão humana nem validação da geometria pela instituição registrada pela IA.
 
+
+## V2 — Fase 0 e A: auditoria e acesso da empresa
+
+A IA leu as rotas, tipos, mock, guardas e dependências sem alterar arquivos, apresentou a auditoria
+em até 25 linhas e criou a branch solicitada `feat/v2-acesso-3d-identidade`.
+A sessão agora retorna empresa; credenciais antigas dos responsáveis são migradas sem apagar
+campus, vagas, sensores ou histórico. Sessões antigas válidas passam a apontar à empresa.
+Cadastro tem slug sugerido/editável, checagem pública de disponibilidade e validação final no servidor mock.
+Foram criados `/entrar`, `/cadastrar-empresa`, página inicial com duas ações, checklist e troca de senha inline.
+Favoritos, último destino e alerta na transição de zero para vagas livres são locais ao aparelho/campus.
+A consulta continua sempre pública conforme a decisão anterior do usuário. Não há envio de preferências ao servidor.
+Os testes de autenticação e migração foram adaptados, com novos casos de slug e hooks do visitante.
+Uma asserção antiga foi limitada ao card da lista para evitar ambiguidade com o título da planta.
+O backend real continua não implementado. Revisão humana ainda não foi registrada.
+
+## V2 — Fase B: retirada do editor livre
+
+A IA conferiu dependências com busca textual antes de excluir editor, store de undo/redo 2D,
+canvas Konva, gerador de grid, snap e detecção de sobreposição. O detalhe e o painel passaram
+à visualização SVG existente; nenhum outro consumidor de Konva permaneceu.
+Konva, react-konva e Zustand foram retirados. Foram removidos endpoints e testes do editor livre,
+preservando testes de ocupação e leituras. A rota Posicionar vagas começa como consulta das posições
+existentes, antes da implantação da cena/encaixe nas fases D/E. A geometria do campus não foi alterada.
+
+## V2 — Fase C: identidade de maquete
+
+A IA criou `frontend/DESIGN.md`, instalou Barlow Condensed e Atkinson Hyperlegible localmente,
+retirou as fontes anteriores e substituiu as três folhas de estilo antigas por uma base quente.
+Modo claro é o padrão para aparelhos sem preferência; escolha noturna existente é respeitada.
+O campus conserva seus vetores e passa a ter volumes de papel/argila, base visível, status com símbolos,
+legenda integrada, destino sobre o desenho e lista em painel inferior recolhível no celular.
+O contador saiu do cabeçalho. O painel administrativo ganhou resumo e pico calculados, linha sem
+preenchimento, anotação do pico e heatmap de uma matiz com observação obtida das amostras.
+Formulários, busca e detalhes usam painéis não modais; exclusão permanece em modal.
+Foram retirados tempos de caminhada da consulta e do formulário, sem apagar dados antigos.
+Os pares principais de texto foram calculados por luminância relativa (4,63:1 a 15,01:1),
+registrados em DESIGN.md. Não foi declarada auditoria completa de acessibilidade.
+A IA leu a tela sem depender do logo: os textos citam bloco, vaga, portão e sensor específicos.
+Revisão visual de desktop e celular foi feita pela IA; revisão humana continua pendente.
+
+## V2 — Fase D: cena 3D e âncoras
+
+A IA preservou os vetores do campus e derivou 92 âncoras das posições já mapeadas, retirando x/y livres
+do modelo Vaga. Área é um trecho da geometria existente; vaga guarda apenas o vínculo à âncora.
+O seed novo demonstra três peças sem posição; migrações preservam os vínculos anteriores e guardam
+um snapshot dos layouts legados, sem reutilizá-los como editor. Favoritos/destino e credenciais foram preservados.
+A cena usa Three.js, Fiber 8 (compatível com React 18) e Drei, com câmera ortográfica, rotação limitada,
+frameloop demand, dpr até 2, volumes extrudados dos blocos e rótulos HTML. Sem assets remotos.
+Mais de 100 peças usam instâncias; há lista e planta 2D quando WebGL não está disponível.
+O mapa público abre a área por Ver de perto ou seleção do trecho, com transição reduzível; há retorno ao campus.
+O painel usa a mesma cena em modo de consulta. A posição atual vem da âncora, não do desenho inicial.
+A IA consultou as documentações oficiais referenciadas em frontend/DESIGN.md. Tipos duplicados de
+Three.js foram alinhados pelo override do monorepo. A prévia também exigiu regenerar o pré-bundle do Vite
+após instalar as bibliotecas; a configuração inclui explicitamente as dependências 3D.
+Testes acrescentados: progresso por área, ordenação relativa e abertura pública com fallback e retorno.
+Backend real e banco seguem propostos. Revisão humana ainda pendente.
+
+## V2 — Fase E: posicionamento magnético
+
+A IA implementou `calcularIma` como função pura: atração smoothstep, trava, histerese,
+compatibilidade e tratamento de posições ocupadas. Os raios são relativos à largura da âncora.
+A tela oferece áreas com progresso, maquete e bandeja filtrável; o celular usa seletor de área.
+O arraste usa projeção do ponteiro no piso 3D; a peça alinha rotação, levanta e desce em 180 ms,
+com realce de posições compatíveis e prévia de troca. Movimento reduzido dispensa interpolação.
+Há alternativa por lista, Tab/setas/Enter e Escape, com anúncios em aria-live.
+
+Foram acrescentados CRUD privado de áreas/vagas, importação de levantamento JSON, gravação da
+posição, troca atômica, restauração do padrão e lote de posições para desfazer/refazer. As escritas
+validam empresa, área, tipo, unicidade e versão; erro de persistência local reverte a alteração.
+O histórico da tela não substitui auditoria persistente e é limpo ao mudar de área/recarregar.
+Vagas sem sensor oferecem associação inline. O checklist agora verifica posicionamento real.
+
+A IA testou o arraste real no navegador com WebGL: uma primeira soltura fora da posição foi
+recusada e uma segunda na âncora encaixou e persistiu. Testes automatizados cobrem limites do ímã,
+troca/desfazer, restauração, isolamento, persistência, versão, CRUD e alternativa sem WebGL.
+A compilação detectou uma opção de consulta inválida nos testes; ela foi corrigida antes da conclusão.
+Revisão de textos sem depender do logo e de desktop/celular realizada pela IA. O grupo ainda precisa
+validar o mapeamento, os tipos aceitos em cada posição e os vínculos dos sensores na maquete física.
+Não foi registrada revisão humana nem implantada uma API/banco reais.
+
+## V2 — Polimento e documentação final
+
+A IA removeu instruções antigas de editor/arraste da consulta por lista e do simulador;
+o aviso do detalhe de estacionamento também passou a usar o hook local compartilhado.
+Foram conferidos desktop e celular, consulta pública, abertura da área, persistência após
+recarregar e arraste real. Os controles de atualização/Ver de perto têm agrupamento responsivo.
+Capturas v2 documentam o estado atual; capturas sem esse prefixo registram versões anteriores.
+
+README, contrato HTTP, guia de revisão e mapa foram alinhados à implementação. O guia antigo
+de design aponta à referência vigente em `frontend/DESIGN.md`, evitando duas direções conflitantes.
+A proposta SQL foi reconciliada com conta única da empresa, sessões, áreas, âncoras e vínculos,
+sem tabela de motorista ou elementos de editor livre. Foram descritos controle de versão,
+transação de troca e importação do levantamento. Esse SQL não foi executado nem aplicado.
+
+Validação da rodada: 53 testes em 12 arquivos, ESLint/Prettier e compilação de produção.
+Há aviso de tamanho do chunk Three.js (~688 kB antes de gzip), carregado somente quando se abre
+a área 3D; não foi mascarado o aviso nem alegado teste de desempenho em hardware do grupo.
+Durante a revisão, a atualização do mock em desenvolvimento perdeu conexão com o worker;
+recarregar a página recuperou as consultas sem apagar dados. O teste de histórico também foi
+ajustado para esperar o botão habilitar após a gravação e atualização, sem atrasos fixos.
+O grupo ainda deve validar o levantamento real, explicar o código e preencher a avaliação humana
+no início deste documento. Nenhuma correção humana não informada foi atribuída aos integrantes.
+
+## Finalização — raiz pública, preparação e continuidade
+
+A pedido do usuário, a IA substituiu a tela intermediária pelo mapa público diretamente em `/`.
+Centralizou os links canônicos: a Unisagrado usa a raiz, outras empresas mantêm `/c/:slug`.
+O alias antigo redireciona preservando query e fragmento; o endereço copiado e Minha empresa
+apontam à URL correta. A consulta permanece pública mesmo quando uma empresa está autenticada.
+O checklist ganhou quatro etapas com quantidades/progresso reais, indicadores de conclusão,
+ações consistentes e endereço público separado, com disposição responsiva.
+
+Para os próximos agentes, a IA preparou FastAPI com configuração tipada, conexão lazy, CORS,
+health/readiness, uv.lock, PostgreSQL em Compose e revisão Alembic inicial derivada do SQL v2.
+Ainda não implementou ORM ou rotas de negócio. O frontend permanece no MSW.
+Foram acrescentados AGENTS.md na raiz/backend e docs/HANDOFF.md com fontes, limites e próximos passos.
+O Docker daemon estava desligado: nenhum PostgreSQL foi iniciado/modificado e a migração não foi aplicada.
+PGlAST validou sintaxe do SQL gerado offline; isso não foi apresentado como teste real de constraints.
+
+Testes acrescentados cobrem raiz pública, empresa logada, alias com filtros, cópia/erro/conclusão
+do checklist e infraestrutura/migrações do backend. A suíte frontend passou a 59 testes em 13 arquivos;
+o backend tem sete testes. Na revisão completa, a IA corrigiu fixtures antigas que renderizavam
+Posicionar vagas na URL `/`: agora simulam sua rota administrativa real.
+Consultou documentação oficial de FastAPI, SQLAlchemy, Alembic, uv e imagem PostgreSQL, referida
+em backend/README.md. Ajustou a dependência do cliente de testes à versão usada pelo Starlette e
+a configuração de path do Alembic, eliminando avisos encontrados na execução.
+Revisão visual e verificações automatizadas são da IA; revisão humana do grupo continua pendente.
+Na revisão móvel final, corrigiu o tamanho mínimo das colunas da maquete do painel: a página
+passou a respeitar os 375 px disponíveis, mantendo a navegação horizontal em sua própria faixa.
+Capturas desktop: `v2-raiz.png` e `v2-preparacao.png`. Os dados usados na verificação de
+posicionamento foram restaurados pela própria interface.

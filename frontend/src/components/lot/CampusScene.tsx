@@ -12,6 +12,7 @@ export function CampusScene({
   matches,
   onDestination,
   onSelect,
+  onArea,
 }: {
   mapa: MapaCampus;
   vagas: VagaCampus[];
@@ -21,6 +22,7 @@ export function CampusScene({
   matches: Set<string>;
   onDestination: (id: string) => void;
   onSelect: (id: string) => void;
+  onArea?: (id: string) => void;
 }) {
   const [flat, setFlat] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -93,9 +95,7 @@ export function CampusScene({
             2D
           </button>
         </div>
-        <span>
-          UNISAGRADO <span>/</span> CAMPUS
-        </span>
+        <span>Maquete do campus</span>
         <div className="campus-zoom-controls">
           <button
             aria-label="Diminuir mapa"
@@ -148,6 +148,9 @@ export function CampusScene({
         }}
       >
         <defs>
+          <pattern id="campus-slot-hatch" width="5" height="5" patternUnits="userSpaceOnUse">
+            <path d="M0 5L5 0" stroke="#6a645a" strokeWidth="1" />
+          </pattern>
           <pattern id="campus-map-grid" width="32" height="32" patternUnits="userSpaceOnUse">
             <circle cx="1" cy="1" r="0.7" fill="currentColor" opacity="0.16" />
           </pattern>
@@ -186,7 +189,17 @@ export function CampusScene({
           </g>
         ))}
         {mapa.areas.map((area) => (
-          <polygon key={area.id} points={points(area.contorno)} className="campus-parking-area" />
+          <polygon
+            key={area.id}
+            points={points(area.contorno)}
+            className="campus-parking-area"
+            role="button"
+            tabIndex={0}
+            data-map-action="area"
+            aria-label={`Ver de perto: ${area.nome}`}
+            onClick={() => onArea?.(area.id)}
+            onKeyDown={(event) => activate(event, () => onArea?.(area.id))}
+          />
         ))}
         {destination && (
           <polygon
@@ -230,6 +243,18 @@ export function CampusScene({
                 {vaga.rotulo} · {campusStatus[vaga.status]} · {vaga.tipo}
               </title>
               <polygon points={points(footprint)} />
+              {vaga.status === 'SEM_SINAL' && (
+                <polygon points={points(footprint)} style={{ fill: 'url(#campus-slot-hatch)' }} />
+              )}
+              {vaga.status === 'LIVRE' && (
+                <path
+                  d={`M${x - 3} ${y}l2 2 4-5`}
+                  fill="none"
+                  stroke="#f3efe6"
+                  strokeWidth="1.5"
+                  pointerEvents="none"
+                />
+              )}
               {selectedId === vaga.id && (
                 <circle cx={x} cy={y} r="23" className="campus-selection-ring" />
               )}

@@ -41,9 +41,9 @@ function show(path = '/c/unisagrado') {
 describe('consulta do campus inteiro', () => {
   it('expõe apenas vagas existentes da empresa e reflete as mesmas leituras da administração', async () => {
     const response = await api<ConsultaCampus>('/publico/campi/unisagrado/mapa');
-    expect(response.vagas).toHaveLength(92);
-    expect(response.vagasSemPosicao).toBe(0);
-    expect(new Set(response.vagas.map((v) => v.id)).size).toBe(92);
+    expect(response.vagas).toHaveLength(89);
+    expect(response.vagasSemPosicao).toBe(3);
+    expect(new Set(response.vagas.map((v) => v.id)).size).toBe(89);
     expect(JSON.stringify(response)).not.toMatch(/sensorId|senha|email|deviceKey/);
     simulateStatus('est-2-vaga-17', 'OCUPADA');
     expect(
@@ -58,12 +58,12 @@ describe('consulta do campus inteiro', () => {
   });
   it('não desenha vagas excluídas, não inventa posições novas e não empresta o mapa a outra empresa', async () => {
     const lot = store.estacionamentos[0];
-    lot.vagas.shift();
+    lot.vagas.splice(3, 1);
     lot.vagas.push({ ...lot.vagas[0], id: 'nova-sem-posicao' });
     const response = await api<ConsultaCampus>('/publico/campi/unisagrado/mapa');
-    expect(response.vagas).toHaveLength(91);
-    expect(response.vagas.some((v) => v.id === 'est-1-vaga-1')).toBe(false);
-    expect(response.vagasSemPosicao).toBe(1);
+    expect(response.vagas).toHaveLength(88);
+    expect(response.vagas.some((v) => v.id === 'est-1-vaga-4')).toBe(false);
+    expect(response.vagasSemPosicao).toBe(4);
     store.empresas.push({ id: 'outra', nome: 'Outra', slug: 'outra' });
     expect(await api('/publico/campi/outra/mapa')).toEqual({
       mapa: null,
@@ -75,8 +75,8 @@ describe('consulta do campus inteiro', () => {
     const legacy = createSeed();
     delete legacy.mapas;
     delete legacy.campusSchema;
-    legacy.estacionamentos[0].vagas[0].x = 321;
-    legacy.sessoes['sessao-existente'] = 'admin';
+    legacy.estacionamentos[0].nome = 'Nome preservado';
+    legacy.sessoes['sessao-existente'] = 'unisagrado';
     const migrated = migrateStore(legacy);
     expect(migrated.mapas?.unisagrado.predios.find((b) => b.id === 'j')).toBeDefined();
     expect(migrated.estacionamentos).toEqual(legacy.estacionamentos);
@@ -90,7 +90,7 @@ describe('consulta do campus inteiro', () => {
     const user = userEvent.setup();
     show();
     const scene = await screen.findByRole('region', { name: 'Mapa interativo do campus' });
-    expect(within(scene).getAllByRole('button', { name: /^Vaga / })).toHaveLength(92);
+    expect(within(scene).getAllByRole('button', { name: /^Vaga / })).toHaveLength(89);
     const building = within(scene).getByRole('button', { name: 'Localizar Bloco J' });
     building.focus();
     await user.keyboard('{Enter}');
@@ -135,7 +135,7 @@ describe('consulta do campus inteiro', () => {
     const client = show();
     await screen.findByRole('region', { name: 'Mapa interativo do campus' });
     server.use(
-      http.get(`${API_URL}/publico/campi/unisagrado/mapa`, () =>
+      http.get(`${API_URL}/public/empresas/unisagrado`, () =>
         HttpResponse.json({}, { status: 503 }),
       ),
     );
@@ -151,5 +151,19 @@ describe('consulta do campus inteiro', () => {
     show();
     expect(await screen.findByRole('heading', { name: 'Estacionamentos' })).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(3);
+  });
+  it('abre a área sem conta, oferece planta sem WebGL e volta ao campus', async () => {
+    const user = userEvent.setup();
+    show('/c/unisagrado?bloco=j');
+    await user.click(await screen.findByRole('button', { name: 'Ver de perto' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Em frente ao Bloco J', level: 1 }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Planta 2D de Em frente ao Bloco J')).toBeInTheDocument();
+    expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Voltar ao campus' }));
+    expect(
+      await screen.findByRole('region', { name: 'Mapa interativo do campus' }),
+    ).toBeInTheDocument();
   });
 });

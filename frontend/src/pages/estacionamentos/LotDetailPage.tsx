@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Bell, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLot, useStatuses } from '../../features/estacionamentos/queries';
-import { LotCanvas } from '../../components/lot/LotCanvas';
+import { SectorPlan } from '../../components/lot/SectorPlan';
 import {
   Badge,
   Button,
@@ -11,32 +11,33 @@ import {
   EmptyState,
   ErrorState,
   Legend,
-  LiveDot,
+  UpdatedAt,
   Loading,
   Sheet,
   SpotStatusBadge,
 } from '../../components/ui';
 import { tempoDesde } from '../../lib/utils';
 import type { Vaga } from '../../types';
+import { useAlertaDeVaga } from '../../features/visitante/hooks';
+import { publicCampusPath } from '../../lib/routes';
 
 export function LotDetailPage() {
   const { id = '', campusSlug } = useParams();
   const lot = useLot(id);
   const statuses = useStatuses(id);
   const [selected, setSelected] = useState<Vaga | null>(null);
-  const [alert, setAlert] = useState(false);
-  const previousFree = useRef<number | null>(null);
   const free = statuses.data?.filter((s) => s.status === 'LIVRE').length ?? 0;
-  useEffect(() => {
-    if (alert && previousFree.current === 0 && free > 0) {
+  const { ativo: alert, alternar: toggleAlert } = useAlertaDeVaga(
+    campusSlug ?? 'empresa',
+    `estacionamento:${id}`,
+    statuses.isError || !statuses.data ? null : free,
+    () => {
       toast.success('Abriu uma vaga!', {
         description: `${lot.data?.nome}: ${free} vaga(s) livre(s) agora.`,
         duration: 10000,
       });
-      setAlert(false);
-    }
-    if (statuses.data) previousFree.current = free;
-  }, [free, alert, lot.data?.nome, statuses.data]);
+    },
+  );
   if (lot.isPending || statuses.isPending) return <Loading />;
   if (lot.isError || statuses.isError)
     return (
@@ -50,7 +51,7 @@ export function LotDetailPage() {
   const status = statuses.data.find((s) => s.vagaId === selected?.id);
   return (
     <>
-      <Link className="back-link" to={campusSlug ? `/c/${campusSlug}` : '/admin'}>
+      <Link className="back-link" to={campusSlug ? publicCampusPath(campusSlug) : '/admin'}>
         <ArrowLeft size={16} />
         Estacionamentos
       </Link>
@@ -64,7 +65,7 @@ export function LotDetailPage() {
           </p>
         </div>
         <div className="heading-actions">
-          <LiveDot />
+          <UpdatedAt at={statuses.dataUpdatedAt} />
         </div>
       </div>
       <Card className="detail-card">
@@ -80,7 +81,7 @@ export function LotDetailPage() {
             variant={alert ? 'primary' : 'secondary'}
             disabled={free > 0 && !alert}
             onClick={() => {
-              setAlert(!alert);
+              toggleAlert();
               if (!alert) toast.info('Alerta ativado. Mantenha esta página aberta.');
             }}
           >
@@ -89,16 +90,16 @@ export function LotDetailPage() {
           </Button>
         </div>
         {lot.data.vagas.length ? (
-          <LotCanvas mode="view" {...lot.data} statuses={statuses.data} onSpotClick={setSelected} />
+          <SectorPlan id={id} />
         ) : (
           <EmptyState
-            title="Layout não cadastrado"
-            description="O administrador precisa configurar as vagas deste bolsão."
+            title="Nenhuma vaga posicionada"
+            description="A empresa ainda precisa posicionar as vagas deste bolsão."
           />
         )}
         <div className="canvas-caption">
           <span>Clique em uma vaga para ver os detalhes.</span>
-          <span>Arraste para mover · role para ampliar</span>
+          <span>Use Tab e Enter para consultar pelo teclado.</span>
         </div>
       </Card>
       <details className="accessible-spots">

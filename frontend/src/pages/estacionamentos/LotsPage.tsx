@@ -1,16 +1,21 @@
 import { Link, useSearchParams } from 'react-router-dom';
+import { useCampusSlug } from '../../features/estacionamentos/useCampusSlug';
 import { useRef, useState } from 'react';
-import { ArrowRight, Car, MapPin, Navigation } from 'lucide-react';
+import { ArrowRight, Bell, Car, MapPin, Navigation, Star } from 'lucide-react';
 import { useCampusScene } from '../../features/estacionamentos/queries';
-import { Button, EmptyState, ErrorState, Loading, Select } from '../../components/ui';
+import { Button, EmptyState, ErrorState, Loading, Select, UpdatedAt } from '../../components/ui';
 import { CampusScene } from '../../components/lot/CampusScene';
 import { ApiError } from '../../lib/api';
 import { campusStatus, distanceCampus, nearbySlots } from '../../lib/campus';
 import type { ConsultaCampus, TipoVaga } from '../../types';
+import { useFavoritos, useUltimoDestino, useAlertaDeVaga } from '../../features/visitante/hooks';
+import { toast } from 'sonner';
 import { SectorLotsPage } from './SectorLotsPage';
+import { AreaView } from './AreaView';
 
 export function LotsPage() {
   const query = useCampusScene();
+  const [params, setParams] = useSearchParams();
   if (query.isPending) return <Loading />;
   if (query.error instanceof ApiError && query.error.details.status === 404)
     return (
@@ -23,25 +28,47 @@ export function LotsPage() {
   if (!query.data) return <ErrorState retry={() => void query.refetch()} />;
   // Conserva a consulta existente nos campi que ainda não têm mapa cadastrado.
   if (!query.data.mapa) return <SectorLotsPage />;
+  if (params.get('area'))
+    return (
+      <AreaView
+        id={params.get('area')!}
+        onBack={() => {
+          const next = new URLSearchParams(params);
+          next.delete('area');
+          setParams(next, { replace: true });
+        }}
+      />
+    );
   return (
-    <CampusConsult data={query.data} failed={query.isError} retry={() => void query.refetch()} />
+    <CampusConsult
+      data={query.data}
+      updatedAt={query.dataUpdatedAt}
+      failed={query.isError}
+      retry={() => void query.refetch()}
+    />
   );
 }
 
 function CampusConsult({
   data,
+  updatedAt,
   failed,
   retry,
 }: {
   data: ConsultaCampus;
+  updatedAt: number;
   failed: boolean;
   retry: () => void;
 }) {
   const mapa = data.mapa!;
+  const campusSlug = useCampusSlug()!;
+  const { favoritos, alternar } = useFavoritos(campusSlug);
+  const [ultimoDestino, setUltimoDestino] = useUltimoDestino(campusSlug);
   const [params, setParams] = useSearchParams();
   const [freeOnly, setFreeOnly] = useState(true);
   const [type, setType] = useState<TipoVaga | ''>('');
   const [selectedId, setSelectedId] = useState('');
+  const [sheetExpanded, setSheetExpanded] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const mapPane = useRef<HTMLDivElement>(null);
   const selectSlot = (id: string) => {
@@ -52,7 +79,9 @@ function CampusConsult({
       );
     }
   };
-  const destination = mapa.predios.find((building) => building.id === params.get('bloco'));
+  const destination = mapa.predios.find(
+    (building) => building.id === (params.get('bloco') ?? ultimoDestino),
+  );
   const gate = mapa.portoes.find((entry) => entry.veiculos && entry.id === params.get('entrada'));
   const vagas = failed
     ? data.vagas.map((vaga) => ({ ...vaga, status: 'SEM_SINAL' as const }))
@@ -64,7 +93,25 @@ function CampusConsult({
   const nearby = filtered.filter(
     (vaga) => !destination || distanceCampus(vaga.ponto, destination.entrada) <= 220,
   );
+  const regionFree = vagas.filter(
+    (vaga) =>
+      vaga.status === 'LIVRE' &&
+      (!destination || distanceCampus(vaga.ponto, destination.entrada) <= 220),
+  ).length;
+  const alert = useAlertaDeVaga(
+    campusSlug,
+    destination?.id ?? 'campus',
+    failed ? null : regionFree,
+    () =>
+      toast.success(
+        `Abriu uma vaga ${destination ? 'perto de ' + destination.nome : 'no campus'}.`,
+      ),
+  );
   const ordered = nearbySlots(nearby, destination?.entrada);
+  const closestFree = nearbySlots(
+    nearby.filter((vaga) => vaga.status === 'LIVRE'),
+    destination?.entrada,
+  )[0];
   const shown = showAll ? ordered : ordered.slice(0, 6);
   const selected = vagas.find((vaga) => vaga.id === selectedId);
   const areaName = (id: string) => mapa.areas.find((area) => area.id === id)?.nome ?? 'Campus';
@@ -73,6 +120,7 @@ function CampusConsult({
     if (value) next.set(key, value);
     else next.delete(key);
     setParams(next, { replace: true });
+    if (key === 'bloco') setUltimoDestino(value);
     setSelectedId('');
     setShowAll(false);
   };
@@ -88,6 +136,7 @@ function CampusConsult({
           Leituras a cada 3 s
         </span>
       </header>
+      <h1 className="sr-only">Mapa do campus {mapa.nome}</h1>
       <div className="campus-planner">
         <label className="campus-destination">
           <span>
@@ -169,7 +218,18 @@ function CampusConsult({
         </div>
       )}
       <div className="campus-workspace">
-        <aside className="campus-nearby" aria-label="Vagas próximas ao destino">
+        <aside
+          className="campus-nearby"
+          data-expanded={sheetExpanded}
+          aria-label="Vagas próximas ao destino"
+        >
+          <button
+            className="campus-sheet-toggle"
+            aria-expanded={sheetExpanded}
+            onClick={() => setSheetExpanded(!sheetExpanded)}
+          >
+            {sheetExpanded ? 'Recolher vagas' : 'Mostrar vagas próximas'}
+          </button>
           <div className="campus-nearby-heading">
             <p className="eyebrow">{destination ? 'Destino selecionado' : 'Disponibilidade'}</p>
             <h2>{destination?.nome ?? 'Todo o campus'}</h2>
@@ -182,14 +242,70 @@ function CampusConsult({
             </div>
             <p>
               {destination
-                ? 'Ordenadas pela proximidade da entrada do bloco no desenho.'
-                : 'Selecione um bloco para localizar as vagas ao redor.'}
+                ? closestFree
+                  ? `Vaga ${closestFree.rotulo} livre · ${areaName(closestFree.areaId)}.`
+                  : `Ainda não há vagas livres perto de ${destination.nome} neste filtro.`
+                : 'Toque em um bloco para ver as vagas mais perto dele.'}
             </p>
             {gate && (
               <p className="campus-selected-gate">
                 <Navigation size={13} />
                 {gate.nome} destacado no mapa
               </p>
+            )}
+          </div>
+          <div className="campus-nearby-tools">
+            <UpdatedAt at={updatedAt} />
+            <Button
+              className="area-closeup"
+              onClick={() =>
+                changeParam(
+                  'area',
+                  selected?.areaId ??
+                    closestFree?.areaId ??
+                    ordered[0]?.areaId ??
+                    mapa.areas[0]?.id ??
+                    '',
+                )
+              }
+            >
+              Ver de perto <ArrowRight size={16} />
+            </Button>
+          </div>
+          <div className="visitor-actions">
+            {destination && (
+              <Button
+                variant="ghost"
+                aria-pressed={favoritos.includes(destination.id)}
+                onClick={() => alternar(destination.id)}
+              >
+                <Star size={16} />
+                {favoritos.includes(destination.id) ? 'Destino favorito' : 'Favoritar destino'}
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              disabled={regionFree > 0 && !alert.ativo}
+              onClick={alert.alternar}
+            >
+              <Bell size={16} />
+              {alert.ativo ? 'Cancelar aviso' : 'Avisar quando abrir vaga'}
+            </Button>
+            <small>O aviso funciona enquanto esta aba estiver aberta.</small>
+            {!!favoritos.length && (
+              <div>
+                {mapa.predios
+                  .filter((p) => favoritos.includes(p.id))
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      className="text-link"
+                      onClick={() => changeParam('bloco', p.id)}
+                    >
+                      {p.nome}
+                    </button>
+                  ))}
+              </div>
             )}
           </div>
           <div className="campus-nearby-list">
@@ -246,6 +362,7 @@ function CampusConsult({
             matches={matches}
             onDestination={(id) => changeParam('bloco', id)}
             onSelect={selectSlot}
+            onArea={(id) => changeParam('area', id)}
           />
           <div className="campus-legend" aria-label="Legenda das vagas">
             <span>
@@ -269,7 +386,7 @@ function CampusConsult({
       </div>
       <p className="campus-accuracy-note">
         {mapa.aproximado
-          ? 'Mapa aproximado a partir das áreas indicadas pelo grupo. Posições e leituras demonstrativas; sem escala, tempos ou rotas internas calculadas.'
+          ? 'Mapa aproximado a partir das áreas indicadas pelo grupo. Maquete sem escala. Posições e leituras são demonstrativas.'
           : 'A disponibilidade pode mudar durante o deslocamento.'}
         {data.vagasSemPosicao > 0 &&
           ` ${data.vagasSemPosicao} vagas cadastradas ainda não têm posição no mapa.`}

@@ -16,5 +16,11 @@
     "workerDirectory": [
       "frontend\\public"
     ]
+  },
+  "overrides": {
+    "@types/three": "0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.170.0"
   }
 }

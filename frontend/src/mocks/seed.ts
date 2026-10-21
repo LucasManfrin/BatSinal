@@ -5,19 +5,24 @@ import type {
   PontoOcupacao,
   Sensor,
   StatusVagaAtual,
-  Administrador,
   MapaCampus,
+  AreaEstacionamento,
+  Ancora,
 } from '../types';
-import { gerarGrid } from '../lib/utils';
 import { createCampusMap } from './campus';
+import { mappedPositions } from './positions';
 
 export interface MockStore {
+  positionSchema?: number;
+  areas: AreaEstacionamento[];
+  ancoras: Ancora[];
+  layoutsLegados?: Record<string, unknown>;
   navigationSchema?: number;
   empresas: Empresa[];
   accessSchema?: number;
   campusSchema?: number;
   mapas?: Record<string, MapaCampus>;
-  administradores: (Administrador & { senha: string })[];
+  contas: Record<string, { email: string; senha: string }>;
   estacionamentos: DetalheEstacionamento[];
   sensores: Sensor[];
   status: StatusVagaAtual[];
@@ -37,15 +42,12 @@ const demoAccess = [
 ];
 export function createSeed(): MockStore {
   const names = ['Estacionamento Central', 'Bloco Acadêmico', 'Complexo Esportivo'];
-  const estacionamentos = names.map((nome, index): DetalheEstacionamento => {
+  const initialLots = names.map((nome, index) => {
     const id = `est-${index + 1}`;
-    const vagas = gerarGrid(id, {
-      linhas: index === 2 ? 2 : 4,
-      colunas: index === 1 ? 8 : 10,
-      largura: 53,
-      altura: 86,
-      espacamento: 10,
-    }).map((vaga, i) => ({
+    const vagas = Array.from({ length: index === 0 ? 40 : index === 1 ? 32 : 20 }, (_, i) => ({
+      estacionamentoId: id,
+      rotulo: `${String.fromCharCode(65 + Math.floor(i / (index === 1 ? 8 : 10)))}${(i % (index === 1 ? 8 : 10)) + 1}`,
+    })).map((vaga, i) => ({
       ...vaga,
       id: `${id}-vaga-${i + 1}`,
       tipo: i % 15 === 0 ? ('PCD' as const) : i % 13 === 0 ? ('MOTO' as const) : ('COMUM' as const),
@@ -66,37 +68,27 @@ export function createSeed(): MockStore {
       largura: 780,
       altura: 680,
       vagas,
-      elementos: [
-        {
-          id: `${id}-via`,
-          estacionamentoId: id,
-          tipo: 'ENTRADA',
-          x: 48,
-          y: 628,
-          largura: 280,
-          altura: 24,
-          rotacao: 0,
-          texto: 'Entrada',
-        },
-        {
-          id: `${id}-saida`,
-          estacionamentoId: id,
-          tipo: 'SAIDA',
-          x: 490,
-          y: 628,
-          largura: 240,
-          altura: 24,
-          rotacao: 0,
-          texto: 'Saída',
-        },
-      ],
     };
   });
+  const mapa = createCampusMap();
+  const { estacionamentos, areas, ancoras } = mappedPositions(
+    initialLots as unknown as DetalheEstacionamento[],
+    { unisagrado: mapa },
+  );
+  // A demonstração nova tem três peças na bandeja; migrações não removem posições existentes.
+  estacionamentos
+    .flatMap((l) => l.vagas)
+    .slice(0, 3)
+    .forEach((v) => {
+      v.ancoraId = undefined;
+    });
   const status = estacionamentos.flatMap((lot, li) =>
     lot.vagas.map((vaga, i): StatusVagaAtual => ({
       vagaId: vaga.id,
       status: i === 18 ? 'SEM_SINAL' : i % (li === 0 ? 3 : 4) === 0 ? 'LIVRE' : 'OCUPADA',
-      atualizadoEm: new Date(Date.now() - (i === 18 ? 120000 : i * 200)).toISOString(),
+      atualizadoEm: new Date(
+        Date.now() - (i === 18 ? 120000 : (2 + (i % 23)) * 1000),
+      ).toISOString(),
     })),
   );
   const sensores = estacionamentos.flatMap((lot) =>
@@ -133,20 +125,15 @@ export function createSeed(): MockStore {
     ]),
   );
   return {
+    positionSchema: 1,
+    areas,
+    ancoras,
     navigationSchema: 1,
-    accessSchema: 3,
+    accessSchema: 4,
     campusSchema: 1,
     mapas: { unisagrado: createCampusMap() },
     empresas: [{ id: 'unisagrado', nome: 'Unisagrado', slug: 'unisagrado' }],
-    administradores: [
-      {
-        id: 'admin',
-        empresaId: 'unisagrado',
-        nome: 'Lucas Oliveira',
-        email: 'admin@unisagrado.demo',
-        senha: DEMO_PASSWORD,
-      },
-    ],
+    contas: { unisagrado: { email: 'admin@unisagrado.demo', senha: DEMO_PASSWORD } },
     estacionamentos,
     status,
     sensores,
@@ -155,37 +142,63 @@ export function createSeed(): MockStore {
   };
 }
 export const STORAGE_KEY = 'batsinal.mock.v1';
-interface LegacyStore extends Omit<MockStore, 'empresas' | 'administradores'> {
+interface LegacyStore extends Omit<MockStore, 'empresas' | 'contas' | 'areas' | 'ancoras'> {
   empresas: (Pick<Empresa, 'id' | 'nome'> & Partial<Empresa>)[];
-  administradores?: MockStore['administradores'];
-  usuarios?: (Administrador & { senha: string; role?: string })[];
+  contas?: MockStore['contas'];
+  areas?: AreaEstacionamento[];
+  ancoras?: Ancora[];
+  administradores?: { id: string; empresaId: string; email: string; senha: string }[];
+  usuarios?: { id: string; empresaId: string; email: string; senha: string; role?: string }[];
 }
 export function migrateStore(saved: LegacyStore): MockStore {
-  const administradores =
-    saved.administradores ??
-    (saved.usuarios ?? [])
-      .filter((u) => u.role === 'ADMIN')
-      .map(({ id, empresaId, nome, email, senha }) => ({ id, empresaId, nome, email, senha }));
+  const antigos = saved.administradores ?? (saved.usuarios ?? []).filter((u) => u.role === 'ADMIN');
+  const contas =
+    saved.contas ??
+    Object.fromEntries(antigos.map((u) => [u.empresaId, { email: u.email, senha: u.senha }]));
+  const empresas = saved.empresas.map((e) => ({
+    id: e.id,
+    nome: e.nome,
+    slug: e.slug ?? (e.id === 'unisagrado' ? 'unisagrado' : 'campus-' + e.id),
+  }));
+  const sessoes = Object.fromEntries(
+    Object.entries(saved.sessoes).flatMap(([token, id]) => {
+      const empresaId = saved.contas ? id : antigos.find((u) => u.id === id)?.empresaId;
+      return empresaId && contas[empresaId] && empresas.some((e) => e.id === empresaId)
+        ? [[token, empresaId]]
+        : [];
+    }),
+  );
+  const mapas =
+    saved.mapas ??
+    (empresas.some((e) => e.id === 'unisagrado') ? { unisagrado: createCampusMap() } : {});
+  const positions =
+    saved.positionSchema === 1 && saved.areas && saved.ancoras
+      ? { areas: saved.areas, ancoras: saved.ancoras, estacionamentos: saved.estacionamentos }
+      : mappedPositions(saved.estacionamentos, mapas);
   return {
+    positionSchema: 1,
+    areas: positions.areas,
+    ancoras: positions.ancoras,
+    layoutsLegados:
+      saved.layoutsLegados ??
+      (saved.positionSchema !== 1
+        ? Object.fromEntries(
+            saved.estacionamentos.map((lot) => [lot.id, JSON.parse(JSON.stringify(lot))]),
+          )
+        : undefined),
     navigationSchema: saved.navigationSchema,
-    accessSchema: 3,
+    accessSchema: 4,
     campusSchema: 1,
     mapas:
       saved.mapas ??
-      (saved.empresas.some((e) => e.id === 'unisagrado') ? { unisagrado: createCampusMap() } : {}),
-    empresas: saved.empresas.map((e) => ({
-      id: e.id,
-      nome: e.nome,
-      slug: e.slug ?? (e.id === 'unisagrado' ? 'unisagrado' : 'campus-' + e.id),
-    })),
-    administradores,
-    estacionamentos: saved.estacionamentos,
+      (empresas.some((e) => e.id === 'unisagrado') ? { unisagrado: createCampusMap() } : {}),
+    empresas,
+    contas,
+    sessoes,
+    estacionamentos: positions.estacionamentos,
     sensores: saved.sensores,
     status: saved.status,
     historico: saved.historico,
-    sessoes: Object.fromEntries(
-      Object.entries(saved.sessoes).filter(([, id]) => administradores.some((a) => a.id === id)),
-    ),
   };
 }
 function loadStore(): MockStore {
@@ -206,7 +219,12 @@ function loadStore(): MockStore {
         });
         saved.navigationSchema = 1;
       }
-      if (legacy.accessSchema !== 3 || legacy.navigationSchema !== 1 || legacy.campusSchema !== 1) {
+      if (
+        legacy.accessSchema !== 4 ||
+        legacy.navigationSchema !== 1 ||
+        legacy.campusSchema !== 1 ||
+        legacy.positionSchema !== 1
+      ) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
         } catch {
@@ -221,11 +239,15 @@ function loadStore(): MockStore {
   return createSeed();
 }
 export const store = loadStore();
-export function persist() {
+export function persist(strict = false) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   } catch {
-    /* Demo continua em memória. */
+    if (strict)
+      throw new Error(
+        'O armazenamento local está cheio ou bloqueado. Libere espaço e tente salvar novamente.',
+      );
+    /* Leituras do simulador podem continuar em memória. */
   }
 }
 export function heatmap(id: string): CelulaHeatmap[] {

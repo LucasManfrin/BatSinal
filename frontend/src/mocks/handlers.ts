@@ -1,27 +1,20 @@
 import { delay, http, HttpResponse } from 'msw';
 import { API_URL } from '../lib/api';
-import { gerarGrid, ocupacao, tendencia } from '../lib/utils';
+import { ocupacao, tendencia } from '../lib/utils';
 import type {
   DetalheEstacionamento,
   Estacionamento,
   EstacionamentoResumo,
-  GridOptions,
-  Layout,
-  Administrador,
   Vaga,
   ConsultaCampus,
+  DetalheArea,
 } from '../types';
 import { heatmap, persist, store } from './seed';
+import { slugValido } from '../lib/slug';
+import { MockError } from './errors';
+import { areaSummary, changeArea, changeSlot, changePosition } from './areaMutations';
+type ScopedCompany = { id: string; empresaId: string };
 
-class MockError extends Error {
-  constructor(
-    public status: number,
-    mensagem: string,
-    public campos?: Record<string, string>,
-  ) {
-    super(mensagem);
-  }
-}
 type Body = Record<string, unknown>;
 function text(body: Body, key: string, min = 1) {
   const value = typeof body[key] === 'string' ? (body[key] as string).trim() : '';
@@ -73,33 +66,38 @@ function email(body: Body, exceptId?: string) {
   const value = text(body, 'email').toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
     throw new MockError(422, 'E-mail inválido.', { email: 'Informe um e-mail válido.' });
-  if (store.administradores.some((u) => u.email === value && u.id !== exceptId))
+  if (Object.entries(store.contas).some(([id, u]) => u.email === value && id !== exceptId))
     throw new MockError(409, 'Este e-mail já está cadastrado.', { email: 'E-mail já cadastrado.' });
   return value;
 }
 function password(body: Body) {
   const value = text(body, 'senha', 8);
-  if (!/[a-z]/.test(value) || !/[A-Z]/.test(value) || !/\d/.test(value))
-    throw new MockError(422, 'Use uma senha com minúscula, maiúscula e número.', {
-      senha: 'Senha fraca.',
-    });
   return value;
 }
-function publicUser(user: Administrador): Administrador {
-  return {
-    id: user.id,
-    empresaId: user.empresaId,
-    nome: user.nome,
-    email: user.email,
-  };
+function account(empresaId: string) {
+  const company = store.empresas.find((e) => e.id === empresaId)!;
+  return { ...company, email: store.contas[empresaId].email };
 }
-function authenticated(request: Request): Administrador {
+function authenticated(request: Request): ScopedCompany {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-  const user = store.administradores.find((u) => token && u.id === store.sessoes[token]);
-  if (!user) throw new MockError(401, 'Sua sessão expirou. Entre novamente.');
-  return publicUser(user);
+  const id = token && store.sessoes[token];
+  if (!id || !store.contas[id] || !store.empresas.some((e) => e.id === id))
+    throw new MockError(401, 'Entre na conta da empresa para continuar.');
+  return { id, empresaId: id };
 }
-function getLot(id: string, user: Administrador): DetalheEstacionamento {
+function availableSlug(body: Body, exceptId?: string) {
+  const slug = text(body, 'slug', 3);
+  if (!slugValido(slug))
+    throw new MockError(422, 'Confira o endereço do mapa.', {
+      slug: 'Use de 3 a 60 letras minúsculas, números e hífens.',
+    });
+  if (store.empresas.some((e) => e.slug === slug && e.id !== exceptId))
+    throw new MockError(409, 'Este endereço já está em uso.', {
+      slug: 'Escolha outro endereço para o mapa.',
+    });
+  return slug;
+}
+function getLot(id: string, user: ScopedCompany): DetalheEstacionamento {
   const lot = store.estacionamentos.find((l) => l.id === id && l.empresaId === user.empresaId);
   if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
   return lot;
@@ -142,25 +140,49 @@ function resumo(lot: DetalheEstacionamento): EstacionamentoResumo {
   };
 }
 function publicLot(lot: DetalheEstacionamento, summary = false) {
-  const { vagas, elementos, ...base } = lot;
+  const { vagas, ...base } = lot;
   if (summary) {
-    const { totalVagas, vagasLivres, tendencia, livresPorTipo } = resumo(lot);
+    const { totalVagas, vagasLivres, tendencia, livresPorTipo } = resumo({
+      ...lot,
+      vagas: lot.vagas.filter((v) => v.ancoraId),
+    });
     return { ...base, totalVagas, vagasLivres, tendencia, livresPorTipo };
   }
   return {
     ...base,
-    elementos,
-    vagas: vagas.map(({ id, estacionamentoId, rotulo, tipo, x, y, largura, altura, rotacao }) => ({
-      id,
-      estacionamentoId,
-      rotulo,
-      tipo,
-      x,
-      y,
-      largura,
-      altura,
-      rotacao,
-    })),
+    vagas: vagas
+      .filter((v) => v.ancoraId)
+      .map(({ id, estacionamentoId, areaId, rotulo, tipo, ancoraId }) => ({
+        id,
+        estacionamentoId,
+        areaId,
+        rotulo,
+        tipo,
+        ancoraId,
+      })),
+  };
+}
+function areaDetail(id: string, empresaId?: string): DetalheArea {
+  const area = store.areas.find((a) => a.id === id && (!empresaId || a.empresaId === empresaId));
+  if (!area) throw new MockError(404, 'Área não encontrada.');
+  const lot = store.estacionamentos.find(
+    (l) => l.id === area.estacionamentoId && l.empresaId === area.empresaId,
+  )!;
+  const statuses = lotStatus(lot);
+  return {
+    area,
+    mapa: store.mapas?.[area.empresaId] ?? null,
+    ancoras: store.ancoras.filter((a) => a.areaId === id),
+    vagas: lot.vagas
+      .filter((v) => v.areaId === id && (empresaId || v.ancoraId))
+      .map((v) => {
+        const { sensorId, ...base } = v;
+        return {
+          ...base,
+          ...(empresaId && sensorId ? { sensorId } : {}),
+          ...statuses.find((s) => s.vagaId === v.id)!,
+        };
+      }),
   };
 }
 function publicCampus(empresaId: string): ConsultaCampus {
@@ -168,9 +190,10 @@ function publicCampus(empresaId: string): ConsultaCampus {
   const lots = store.estacionamentos.filter((lot) => lot.empresaId === empresaId);
   const slots = new Map(lots.flatMap((lot) => lot.vagas).map((v) => [v.id, v]));
   const statuses = new Map(lots.flatMap(lotStatus).map((s) => [s.vagaId, s]));
-  const vagas = (mapa?.posicoes ?? []).flatMap((position) => {
-    const slot = slots.get(position.vagaId);
-    if (!slot) return [];
+  const vagas = [...slots.values()].flatMap((slot) => {
+    const anchor = store.ancoras.find((a) => a.id === slot.ancoraId && a.areaId === slot.areaId);
+    if (!anchor || !store.areas.some((a) => a.id === slot.areaId && a.empresaId === empresaId))
+      return [];
     return [
       {
         id: slot.id,
@@ -178,82 +201,18 @@ function publicCampus(empresaId: string): ConsultaCampus {
         tipo: slot.tipo,
         status: statuses.get(slot.id)!.status,
         atualizadoEm: statuses.get(slot.id)!.atualizadoEm,
-        areaId: position.areaId,
-        ponto: position.ponto,
-        rotacao: position.rotacao,
+        areaId: slot.areaId,
+        ponto: [anchor.x * 10, anchor.z * 10] as [number, number],
+        rotacao: anchor.rotacao,
       },
     ];
   });
   return { mapa, vagas, vagasSemPosicao: slots.size - vagas.length };
 }
-function validateLayout(layout: Layout, lot: DetalheEstacionamento, user: Administrador) {
-  if (!Array.isArray(layout.vagas) || !Array.isArray(layout.elementos))
-    throw new MockError(422, 'Layout inválido.');
-  const labels = new Set<string>();
-  const ids = new Set<string>();
-  const sensors = new Set<string>();
-  for (const v of layout.vagas) {
-    if (!v.rotulo?.trim() || labels.has(v.rotulo.trim().toUpperCase()))
-      throw new MockError(422, 'Use rótulos únicos e não vazios.');
-    labels.add(v.rotulo.trim().toUpperCase());
-    if (
-      !v.id ||
-      ids.has(v.id) ||
-      !['COMUM', 'PCD', 'MOTO'].includes(v.tipo) ||
-      ![v.x, v.y, v.largura, v.altura, v.rotacao].every(Number.isFinite) ||
-      v.largura < 20 ||
-      v.altura < 20 ||
-      v.estacionamentoId !== lot.id
-    )
-      throw new MockError(422, 'Uma vaga possui dimensões ou dados inválidos.');
-    ids.add(v.id);
-    if (v.sensorId) {
-      const s = store.sensores.find((s) => s.id === v.sensorId && s.empresaId === user.empresaId);
-      if (!s || sensors.has(s.id) || (s.vagaId && !lot.vagas.some((old) => old.id === s.vagaId)))
-        throw new MockError(422, 'Sensor indisponível ou vinculado em outro estacionamento.');
-      sensors.add(s.id);
-    }
-  }
-  for (const e of layout.elementos) {
-    if (
-      !e.id ||
-      ids.has(e.id) ||
-      e.estacionamentoId !== lot.id ||
-      !['VIA', 'ENTRADA', 'SAIDA', 'TEXTO'].includes(e.tipo) ||
-      ![e.x, e.y, e.largura, e.altura, e.rotacao].every(Number.isFinite) ||
-      e.largura <= 0 ||
-      e.altura <= 0
-    )
-      throw new MockError(422, 'Um elemento decorativo é inválido.');
-    ids.add(e.id);
-  }
-}
-function saveLayout(lot: DetalheEstacionamento, layout: Layout) {
-  const oldIds = new Set(lot.vagas.map((v) => v.id));
-  store.status = store.status.filter(
-    (s) => !oldIds.has(s.vagaId) || layout.vagas.some((v) => v.id === s.vagaId),
-  );
-  store.sensores
-    .filter((s) => s.vagaId && oldIds.has(s.vagaId))
-    .forEach((s) => {
-      s.vagaId = undefined;
-    });
-  lot.vagas = layout.vagas;
-  lot.elementos = layout.elementos;
-  for (const v of layout.vagas) {
-    if (!store.status.some((s) => s.vagaId === v.id))
-      store.status.push({
-        vagaId: v.id,
-        status: 'SEM_SINAL',
-        atualizadoEm: new Date().toISOString(),
-      });
-    const sensor = store.sensores.find((s) => s.id === v.sensorId);
-    if (sensor) sensor.vagaId = v.id;
-  }
-}
 export const handlers = [
   http.all(`${API_URL}/*`, async ({ request }) => {
     await delay(140);
+    const before = request.method === 'GET' ? undefined : structuredClone(store);
     try {
       const url = new URL(request.url);
       const path = url.pathname.slice(new URL(API_URL).pathname.length).split('/').filter(Boolean);
@@ -285,56 +244,110 @@ export const handlers = [
             );
             if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
             if (!detail) result = publicLot(lot);
-            else if (detail === 'status' && path.length === 6) result = lotStatus(lot);
+            else if (detail === 'status' && path.length === 6)
+              result = lotStatus(lot).filter((status) =>
+                lot.vagas.some((v) => v.id === status.vagaId && v.ancoraId),
+              );
             else throw new MockError(404, 'Rota não encontrada.');
           }
         }
+      } else if (resource === 'public') {
+        if (method !== 'GET')
+          throw new MockError(405, 'A consulta pública permite apenas leitura.');
+        if (id === 'slugs' && path[3] === 'disponivel' && path.length === 4) {
+          result = {
+            slug: action,
+            disponivel: slugValido(action ?? '') && !store.empresas.some((e) => e.slug === action),
+          };
+        } else if (id === 'empresas' && !action) result = store.empresas;
+        else if (id === 'empresas') {
+          const company = store.empresas.find((e) => e.slug === action);
+          if (!company) throw new MockError(404, 'Campus não encontrado.');
+          if (path.length === 3) result = { ...publicCampus(company.id), empresa: company };
+          else if (path[3] === 'estacionamentos' && path.length === 4)
+            result = store.estacionamentos
+              .filter((l) => l.empresaId === company.id)
+              .map((l) => publicLot(l, true));
+          else throw new MockError(404, 'Rota não encontrada.');
+        } else if (id === 'estacionamentos') {
+          const lot = store.estacionamentos.find((l) => l.id === action);
+          if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
+          if (path.length === 3) result = publicLot(lot);
+          else if (path[3] === 'status' && path.length === 4)
+            result = lotStatus(lot).filter((status) =>
+              lot.vagas.some((v) => v.id === status.vagaId && v.ancoraId),
+            );
+          else throw new MockError(404, 'Rota não encontrada.');
+        } else if (id === 'areas' && action && path.length === 3) result = areaDetail(action);
+        else throw new MockError(404, 'Rota não encontrada.');
       } else if (resource === 'auth' && id === 'login' && method === 'POST') {
-        const user = store.administradores.find(
-          (u) => u.email === String(body.email).toLowerCase() && u.senha === body.senha,
+        const entry = Object.entries(store.contas).find(
+          ([, c]) => c.email === String(body.email).toLowerCase() && c.senha === body.senha,
         );
-        if (!user) throw new MockError(401, 'E-mail ou senha incorretos.');
+        if (!entry) throw new MockError(401, 'E-mail ou senha incorretos.');
         const token = crypto.randomUUID();
-        store.sessoes[token] = user.id;
-        result = { token, administrador: publicUser(user) };
+        store.sessoes[token] = entry[0];
+        result = { token, empresa: account(entry[0]) };
       } else if (resource === 'auth' && id === 'cadastro-empresa' && method === 'POST') {
-        const nomeEmpresa = text(body, 'nomeEmpresa', 2);
         const nome = text(body, 'nome', 2);
+        const slug = availableSlug(body);
         const userEmail = email(body);
         const senha = password(body);
-        const idEmpresa = crypto.randomUUID();
-        const baseSlug =
-          nomeEmpresa
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '')
-            .slice(0, 60) || 'campus';
-        const slug = store.empresas.some((e) => e.slug === baseSlug)
-          ? baseSlug + '-' + idEmpresa.slice(0, 8)
-          : baseSlug;
-        const empresa = { id: idEmpresa, nome: nomeEmpresa, slug };
-        const user = {
-          id: crypto.randomUUID(),
-          empresaId: empresa.id,
-          nome,
-          email: userEmail,
-          senha,
-        };
+        const empresa = { id: crypto.randomUUID(), nome, slug };
         store.empresas.push(empresa);
-        store.administradores.push(user);
+        store.contas[empresa.id] = { email: userEmail, senha };
         const token = crypto.randomUUID();
-        store.sessoes[token] = user.id;
-        result = { token, administrador: publicUser(user) };
+        store.sessoes[token] = empresa.id;
+        result = { token, empresa: account(empresa.id) };
       } else {
         const user = authenticated(request);
         const admin = () => authenticated(request);
-        if (resource === 'auth' && id === 'me' && method === 'GET') result = user;
-        else if (resource === 'empresa' && !id) {
-          const empresa = store.empresas.find((e) => e.id === user.empresaId)!;
-          if (method !== 'GET') throw new MockError(405, 'Método não permitido.');
-          result = empresa;
+        if (resource === 'areas' && method === 'GET')
+          result = id
+            ? areaDetail(id, user.id)
+            : store.areas
+                .filter(
+                  (a) =>
+                    a.empresaId === user.id &&
+                    (!url.searchParams.get('estacionamentoId') ||
+                      a.estacionamentoId === url.searchParams.get('estacionamentoId')),
+                )
+                .map(areaSummary);
+        else if (resource === 'areas') {
+          const changed = changeArea(user.id, method, id, action, body);
+          result = changed && action ? areaDetail(changed.id, user.id) : changed;
+        } else if (resource === 'vagas' && method === 'PUT' && action === 'posicao' && id)
+          result = areaDetail(changePosition(user.id, id, body), user.id);
+        else if (resource === 'vagas' && method === 'GET' && !id)
+          result = store.estacionamentos
+            .filter((l) => l.empresaId === user.id)
+            .flatMap((l) => l.vagas)
+            .filter(
+              (v) => !url.searchParams.get('areaId') || v.areaId === url.searchParams.get('areaId'),
+            );
+        else if (resource === 'vagas') result = changeSlot(user.id, method, id, body);
+        else if (resource === 'auth' && id === 'me' && method === 'GET') result = account(user.id);
+        else if (resource === 'empresa' && id === 'senha' && method === 'PUT') {
+          if (body.senhaAtual !== store.contas[user.id].senha)
+            throw new MockError(422, 'A senha atual não confere.');
+          store.contas[user.id].senha = password({ senha: body.novaSenha });
+          const currentToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+          store.sessoes = Object.fromEntries(
+            Object.entries(store.sessoes).filter(
+              ([token, empresaId]) => empresaId !== user.id || token === currentToken,
+            ),
+          );
+          result = null;
+        } else if (resource === 'empresa' && !id) {
+          if (method === 'PUT') {
+            const nome = text(body, 'nome', 2);
+            const slug = availableSlug(body, user.id);
+            Object.assign(
+              store.empresas.find((e) => e.id === user.id)!,
+              { nome, slug },
+            );
+          } else if (method !== 'GET') throw new MockError(405, 'Método não permitido.');
+          result = account(user.id);
         } else if (resource === 'estacionamentos') {
           if (!id) {
             if (method === 'GET')
@@ -354,7 +367,6 @@ export const handlers = [
                 largura: num(body, 'largura', 780, 200, 10000),
                 altura: num(body, 'altura', 680, 200, 10000),
                 vagas: [],
-                elementos: [],
               };
               store.estacionamentos.push(lot);
               store.historico[lot.id] = [];
@@ -406,26 +418,6 @@ export const handlers = [
             } else if (action === 'heatmap' && method === 'GET') {
               admin();
               result = heatmap(id);
-            } else if (action === 'layout-padrao' && method === 'POST') {
-              admin();
-              const options: GridOptions = {
-                linhas: Number(body.linhas),
-                colunas: Number(body.colunas),
-                largura: num(body, 'largura', 53, 20, 300),
-                altura: num(body, 'altura', 86, 20, 300),
-                espacamento: num(body, 'espacamento', 10, 0, 200),
-              };
-              const vagas = gerarGrid(id, options);
-              if (vagas.some((v) => v.x + v.largura > lot.largura || v.y + v.altura > lot.altura))
-                throw new MockError(422, 'O grid não cabe no tamanho do estacionamento.');
-              saveLayout(lot, { vagas, elementos: [] });
-              result = lot;
-            } else if (action === 'layout' && method === 'PUT') {
-              admin();
-              const layout = body as unknown as Layout;
-              validateLayout(layout, lot, user);
-              saveLayout(lot, layout);
-              result = lot;
             } else if (!action && method === 'PUT') {
               admin();
               Object.assign(lot, {
@@ -440,8 +432,17 @@ export const handlers = [
               result = lot;
             } else if (!action && method === 'DELETE') {
               admin();
-              saveLayout(lot, { vagas: [], elementos: [] });
+              const ids = new Set(lot.vagas.map((v) => v.id));
+              store.sensores.forEach((sensor) => {
+                if (sensor.vagaId && ids.has(sensor.vagaId)) sensor.vagaId = undefined;
+              });
+              store.status = store.status.filter((s) => !ids.has(s.vagaId));
               store.estacionamentos = store.estacionamentos.filter((l) => l.id !== id);
+              const areas = new Set(
+                store.areas.filter((a) => a.estacionamentoId === id).map((a) => a.id),
+              );
+              store.areas = store.areas.filter((a) => !areas.has(a.id));
+              store.ancoras = store.ancoras.filter((a) => !areas.has(a.areaId));
               delete store.historico[id];
               result = null;
             }
@@ -499,7 +500,17 @@ export const handlers = [
         }
         if (result === undefined) throw new MockError(404, 'Rota não encontrada.');
       }
-      if (method !== 'GET') persist();
+      if (method !== 'GET') {
+        try {
+          persist(true);
+        } catch (error) {
+          Object.assign(store, before);
+          throw new MockError(
+            507,
+            error instanceof Error ? error.message : 'Não foi possível salvar no aparelho.',
+          );
+        }
+      }
       return new HttpResponse(JSON.stringify(result), {
         status: method === 'POST' ? 201 : 200,
         headers: { 'Content-Type': 'application/json' },
@@ -517,7 +528,7 @@ export const handlers = [
   }),
 ];
 
-// Somente o simulador escreve no store. A interface real continua usando HTTP.
+// O simulador representa os dispositivos; as telas escrevem somente por HTTP.
 export function simulateStatus(vagaId: string, status: 'LIVRE' | 'OCUPADA' | 'SEM_SINAL') {
   const sensor = store.sensores.find((s) => s.vagaId === vagaId);
   if (!sensor) return;
@@ -539,10 +550,10 @@ export function simulateStatus(vagaId: string, status: 'LIVRE' | 'OCUPADA' | 'SE
   persist();
 }
 export function heartbeat() {
-  store.sensores.forEach((s) => {
+  store.sensores.forEach((s, index) => {
     const current = store.status.find((v) => v.vagaId === s.vagaId);
     if (current && current.status !== 'SEM_SINAL') {
-      s.ultimoSinalEm = new Date().toISOString();
+      s.ultimoSinalEm = new Date(Date.now() - (2 + (index % 19)) * 1000).toISOString();
       current.atualizadoEm = s.ultimoSinalEm;
     }
   });

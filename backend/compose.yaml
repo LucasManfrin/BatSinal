@@ -1,0 +1,19 @@
+name: batsinal
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: batsinal
+      POSTGRES_PASSWORD: batsinal_dev
+      POSTGRES_DB: batsinal
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U batsinal -d batsinal"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  database:

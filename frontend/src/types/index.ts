@@ -6,10 +6,7 @@ export interface Empresa {
   slug: string;
 }
 export type CampusPublico = Pick<Empresa, 'id' | 'nome' | 'slug'>;
-export interface Administrador {
-  id: string;
-  empresaId: string;
-  nome: string;
+export interface ContaEmpresa extends Empresa {
   email: string;
 }
 export interface Estacionamento {
@@ -36,23 +33,29 @@ export interface Vaga {
   estacionamentoId: string;
   rotulo: string;
   tipo: TipoVaga;
-  x: number;
-  y: number;
-  largura: number;
-  altura: number;
-  rotacao: number;
+  areaId: string;
+  ancoraId?: string;
   sensorId?: string;
 }
-export interface ElementoLayout {
+export interface Ancora {
   id: string;
-  estacionamentoId: string;
-  tipo: 'VIA' | 'ENTRADA' | 'SAIDA' | 'TEXTO';
+  areaId: string;
   x: number;
-  y: number;
-  largura: number;
-  altura: number;
+  z: number;
   rotacao: number;
-  texto?: string;
+  largura: number;
+  profundidade: number;
+  tiposAceitos: TipoVaga[];
+  vagaPadraoId?: string;
+}
+export interface AreaEstacionamento {
+  id: string;
+  empresaId: string;
+  estacionamentoId: string;
+  nome: string;
+  contorno: PontoCampus[];
+  versao: number;
+  progresso?: { posicionadas: number; total: number };
 }
 export interface StatusVagaAtual {
   vagaId: string;
@@ -66,14 +69,22 @@ export interface Sensor {
   vagaId?: string;
   ultimoSinalEm?: string;
 }
-export interface Layout {
+export interface DetalheEstacionamento extends Estacionamento {
   vagas: Vaga[];
-  elementos: ElementoLayout[];
 }
-export interface DetalheEstacionamento extends Estacionamento, Layout {}
+export interface VagaComStatus extends Vaga {
+  status: StatusVaga;
+  atualizadoEm: string;
+}
+export interface DetalheArea {
+  area: AreaEstacionamento;
+  ancoras: Ancora[];
+  vagas: VagaComStatus[];
+  mapa: MapaCampus | null;
+}
 export interface Sessao {
   token: string;
-  administrador: Administrador;
+  empresa: ContaEmpresa;
 }
 export interface ErroApi {
   status: number;
@@ -90,14 +101,6 @@ export interface CelulaHeatmap {
   hora: number;
   ocupacao: number;
 }
-export interface GridOptions {
-  linhas: number;
-  colunas: number;
-  largura: number;
-  altura: number;
-  espacamento: number;
-}
-
 // Coordenadas locais da cena, sem pressupor escala ou georreferenciamento.
 export type PontoCampus = [number, number];
 export interface PredioCampus {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useCampusSlug } from '../../features/estacionamentos/useCampusSlug';
+import { publicCampusPath, publicLotPath } from '../../lib/routes';
 import { ArrowRight, Car, LogOut, MapPin, Moon, Search, Sun, UserRound } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../features/ui/useTheme';
@@ -17,7 +19,7 @@ import { Simulator } from '../../features/sensores/Simulator';
 const adminLinks = [
   { to: '/admin', label: 'Visão geral', end: true },
   { to: '/admin/estacionamentos', label: 'Estacionamentos' },
-  { to: '/admin/editor', label: 'Editor de layout' },
+  { to: '/admin/posicionar', label: 'Posicionar vagas' },
   { to: '/admin/sensores', label: 'Sensores' },
   { to: '/empresa', label: 'Minha empresa' },
 ];
@@ -28,7 +30,7 @@ export function AppLayout() {
   const scene = useCampusScene();
   const company = useCompany();
   const campi = usePublicCampi();
-  const { campusSlug } = useParams();
+  const campusSlug = useCampusSlug();
   const navigate = useNavigate();
   const location = useLocation();
   const [accountOpen, setAccountOpen] = useState(false);
@@ -49,13 +51,12 @@ export function AppLayout() {
   const campus = campusSlug
     ? (campi.data?.find((c) => c.slug === campusSlug)?.nome ?? 'Campus indisponível')
     : (company.data?.nome ?? 'Minha empresa');
-  const home = campusSlug ? `/c/${campusSlug}` : '/';
+  const home = campusSlug ? publicCampusPath(campusSlug) : '/';
   const initials = user?.nome
     .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
     .join('');
-  const total = lots.data?.reduce((sum, lot) => sum + lot.vagasLivres, 0);
   const searchResults =
     lots.data?.filter((lot) => lot.nome.toLowerCase().includes(search.toLowerCase())) ?? [];
   const mapped = Boolean(campusSlug && scene.data?.mapa);
@@ -64,7 +65,7 @@ export function AppLayout() {
       building.nome.toLowerCase().includes(search.toLowerCase()),
     ) ?? [];
   const detailPath = (id: string) =>
-    campusSlug ? `/c/${campusSlug}/${id}` : `/admin/consulta/${id}`;
+    campusSlug ? publicLotPath(campusSlug, id) : `/admin/consulta/${id}`;
   return (
     <div className={`app-shell ${admin ? 'admin-shell' : 'user-shell'}`}>
       <header className="mobility-header">
@@ -78,7 +79,7 @@ export function AppLayout() {
               <select
                 aria-label="Selecionar campus"
                 value={campusSlug}
-                onChange={(event) => navigate(`/c/${event.target.value}`)}
+                onChange={(event) => navigate(publicCampusPath(event.target.value))}
               >
                 {!campi.data?.some((c) => c.slug === campusSlug) && (
                   <option value={campusSlug}>Campus indisponível</option>
@@ -93,15 +94,6 @@ export function AppLayout() {
               <span>{campus}</span>
             )}
           </span>
-          <div
-            className="header-availability"
-            role="status"
-            aria-label="Total de vagas livres no campus"
-          >
-            <Car size={18} />
-            <strong>{lots.isError ? '—' : (total ?? '…')}</strong>
-            <span>{lots.isError ? 'indisponível' : 'vagas livres'}</span>
-          </div>
           <button
             className="account-trigger"
             aria-label="Abrir menu"
@@ -120,7 +112,7 @@ export function AppLayout() {
               {label}
             </NavLink>
           ))}
-          <Link to={company.data ? `/c/${company.data.slug}` : '/'}>
+          <Link to={company.data ? publicCampusPath(company.data.slug) : '/'}>
             Consultar vagas
             <ArrowRight size={14} />
           </Link>
@@ -161,11 +153,11 @@ export function AppLayout() {
             </>
           ) : (
             <>
-              <Link to="/login" onClick={() => setAccountOpen(false)}>
+              <Link to="/entrar" onClick={() => setAccountOpen(false)}>
                 <UserRound size={18} />
                 Acesso para empresas
               </Link>
-              <Link to="/cadastro" onClick={() => setAccountOpen(false)}>
+              <Link to="/cadastrar-empresa" onClick={() => setAccountOpen(false)}>
                 <ArrowRight size={18} />
                 Cadastrar empresa
               </Link>
@@ -217,7 +209,7 @@ export function AppLayout() {
             ? destinations.map((building) => (
                 <Link
                   key={building.id}
-                  to={`/c/${campusSlug}?bloco=${building.id}`}
+                  to={`${publicCampusPath(campusSlug!)}?bloco=${building.id}`}
                   onClick={() => setSearchOpen(false)}
                 >
                   <MapPin size={17} />
