@@ -50,7 +50,7 @@ O desenho completo está em [schema.proposta.sql](../backend/database/schema.pro
 | --- | --- |
 | empresas | Nome e slug |
 | administradores | Responsável, e-mail e hash da senha; sem role |
-| mapas_campus | GeoJSON, versão e atualização; um mapa por empresa |
+| mapas_campus | Cena local 2,5D, GeoJSON opcional para levantamento, versão e atualização; um mapa por empresa |
 | estacionamentos | Bolsões, acesso, caminhada, coordenadas e dimensões do layout |
 | vagas | Rótulo, tipo, posição, tamanho e rotação |
 | elementos_layout | Vias, entradas, saídas e textos do bolsão |
@@ -98,6 +98,17 @@ O grupo ainda levantará e validará portões, vias, blocos e bolsões reais. O 
 as coordenadas do seed não substituem esse levantamento. Tempos a pé e acessos devem ser conferidos.
 O importador/editor do mapa completo ainda será implementado.
 
+A consulta agora também demonstra uma **cena 2,5D em coordenadas locais**, aproximada da imagem
+marcada pelo grupo. `mapas_campus.cena` (JSONB) guardará polígonos, alturas ilustrativas, vias,
+portões e posições individuais vinculadas por `vagaId`. O mock já persiste esse objeto e o entrega
+por HTTP; a geometria é projetada em SVG pelo frontend. Não exige tiles, WebGL ou um modelo 3D externo.
+O GeoJSON acima permanece vazio até um levantamento geográfico real: não é o sistema de coordenadas
+da ilustração. Implementação, limites e validações adicionais estão em [MAPA_CAMPUS.md](MAPA_CAMPUS.md).
+
+O visitante vê um campus contínuo, sem escolher bolsões. Os grupos e o editor existentes permanecem
+na administração para preservar cadastros e vínculos dos sensores. Vagas ainda sem posição na cena
+devem ser informadas como não mapeadas, sem gerar uma localização automaticamente.
+
 Validações previstas: JSON Schema, IDs únicos, pontos dentro dos limites de longitude/latitude,
 anéis fechados dos polígonos e `estacionamentoId` pertencente à empresa. Limitar tamanho do arquivo
 e quantidade de pontos. O JSON Schema cobre a forma; as demais regras pertencem ao serviço.
@@ -110,10 +121,13 @@ O [contrato atual](api-contract.md) separa rotas públicas de rotas da empresa. 
 retorna nome, geometria e disponibilidade dos campi cadastrados. Não retorna e-mail, senha/hash,
 sensorId ou chaves. Escritas públicas, analytics e cadastro de sensores são bloqueados.
 
-Rotas planejadas para o mapa, ainda ausentes do mock:
+Consulta já implementada no mock:
 
-- GET/PUT `/empresa/mapa`: ler/salvar o próprio mapa; PUT recebe versão e GeoJSON.
-- GET `/publico/campi/{slug}/mapa`: mapa do campus cadastrado, sempre aberto para consulta.
+- GET `/publico/campi/{slug}/mapa`: `{ mapa, vagas, vagasSemPosicao }`, cena e disponibilidade de toda a empresa.
+
+Escrita planejada para a API real, ainda ausente do mock:
+
+- GET/PUT `/empresa/mapa`: ler/salvar o próprio mapa; PUT recebe versão, cena e GeoJSON.
 
 Cadastro de empresa, responsável e mapa vazio será uma transação. Login real usará hash Argon2 e
 token de acesso com prazo curto, seguindo a abordagem documentada pelo
@@ -133,4 +147,6 @@ leitura há mais de 60 segundos, a consulta calcula SEM_SINAL. Não há lançame
 5. Dispositivos, expiração de sinal, histórico e analytics.
 6. Trocar `VITE_USE_MOCK=false`, validar o contrato e testar com os sensores reais.
 
-Reservas, pagamentos, cadastro de motoristas e cálculo de rotas internas ficam fora deste MVP.
+Reservas, pagamentos e cadastro de motoristas ficam fora deste MVP. Rotas internas dependem de
+levantamento de entradas, sentidos de circulação e caminhos de pedestres. A demonstração atual
+somente destaca o portão e ordena proximidade no desenho, sem calcular percursos.

@@ -25,6 +25,8 @@ CREATE UNIQUE INDEX administrador_email_unico ON batsinal.administradores(lower(
 CREATE TABLE batsinal.mapas_campus (
     empresa_id UUID PRIMARY KEY REFERENCES batsinal.empresas(id),
     geojson JSONB NOT NULL DEFAULT '{"type":"FeatureCollection","features":[]}'::jsonb,
+    -- Cena 2,5D em coordenadas locais; disponibilidade é consultada nas tabelas de vagas/sensores.
+    cena JSONB CHECK (cena IS NULL OR jsonb_typeof(cena) = 'object'),
     versao INTEGER NOT NULL DEFAULT 1 CHECK (versao >= 1),
     atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT mapa_feature_collection CHECK (

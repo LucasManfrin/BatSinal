@@ -260,3 +260,46 @@ A IA conferiu visualmente Minha empresa sem a opção removida e atualizou [a ca
 README, contrato e planejamento do backend/banco refletem a nova regra. Não houve implementação da API
 real nem aplicação do SQL. As etapas anteriores deste registro permanecem como histórico da decisão substituída.
 
+## Mapa contínuo — referência marcada pelo grupo
+
+O usuário enviou a imagem do campus com marcações das áreas onde é possível estacionar,
+aceitando uma primeira versão aproximada. A IA verificou o Git limpo e preservou a administração,
+os layouts, sensores e leituras existentes. A imagem foi interpretada para criar dados vetoriais
+locais; não foi feito levantamento topográfico nem reconstrução fotogramétrica.
+
+Nesta fase, a IA produziu:
+
+- Consulta da Unisagrado como campus inteiro, sem seleção de estacionamento, com prédios em
+  volume por projeção SVG isométrica (2,5D), alternativa 2D, zoom, deslocamento e enquadramento.
+- Seleção de bloco/serviço, busca Ctrl+K por destino e indicação de portão de veículos.
+  Portão 2 permanece identificado como pedestre segundo a legenda da primeira referência.
+- Distribuição das 92 vagas já existentes no seed em 11 trechos das áreas indicadas. Quantidades,
+  posições individuais, alturas e entradas são ilustrativas; não foram medidas ou contadas no local.
+- Proximidade pela distância no desenho até a entrada ilustrativa do prédio. Não representa rota,
+  metros ou tempo a pé. O portão é destacado, sem calcular percurso dirigido ou de pedestres.
+- Endpoint público `/publico/campi/{slug}/mapa`, combinando cena e status dos mesmos sensores.
+  Não retorna credenciais ou identificação de sensores. Falha HTTP mostra vagas sem sinal.
+- Persistência da cena e migração local sem reset de layouts, sensores, histórico ou sessões.
+  Vagas excluídas somem da consulta; vagas novas sem posição são contabilizadas como não mapeadas.
+  Outros campi sem cena conservam a consulta por setores.
+- Proposta de `mapas_campus.cena` em JSONB, mantendo o GeoJSON vazio para um futuro levantamento
+  geográfico. API real e banco continuam não implementados; SQL não foi aplicado.
+
+Verificação automatizada: 41 testes em oito arquivos, lint/Prettier e build de produção aprovados.
+Sete casos novos cobrem consulta integrada e privacidade, isolamento, vagas removidas/sem posição,
+migração, seleção do J por teclado, filtros, atualização HTTP, erro de leitura, 2D/zoom e fallback.
+Uma asserção inicial de atualização foi corrigida para aguardar a renderização após a resposta HTTP.
+Na compilação, duas opções incompatíveis com os tipos das consultas da biblioteca de testes foram removidas.
+Os testes de setores foram preservados sobre o componente usado pelos campi ainda sem cena.
+
+Conferência visual pela IA em desktop e 360 px: mapa completo, destino J, seleção de portão,
+busca de blocos por Ctrl+K e ausência de rolagem horizontal no celular. O enquadramento foi ajustado
+para exibir o campus ao escolher portão e destino; selecionar vaga aproxima sua posição.
+Capturas estão em [DESIGN.md](DESIGN.md). Funcionamento, origem e limites dos dados estão em
+[MAPA_CAMPUS.md](MAPA_CAMPUS.md).
+
+Pendente de levantamento/revisão do grupo: localização e quantidade reais de vagas, entradas dos
+blocos, sentidos de circulação, acessibilidade dos percursos e vínculo físico dos sensores.
+O editor atual continua sendo o de layout local: editar a cena do campus requer implementação futura.
+Não houve revisão humana nem validação da geometria pela instituição registrada pela IA.
+

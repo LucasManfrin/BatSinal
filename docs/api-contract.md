@@ -20,6 +20,7 @@ Cadastro cria empresa e responsável; a resposta não tem campo `role`.
 | Método / rota | Resposta |
 | --- | --- |
 | GET `/publico/campi` | `{ id, nome, slug }[]` de todos os campi cadastrados |
+| GET `/publico/campi/{slug}/mapa` | `ConsultaCampus`: `{ mapa, vagas, vagasSemPosicao }` |
 | GET `/publico/campi/{slug}/estacionamentos` | `EstacionamentoResumo[]` sem layouts internos ou sensores |
 | GET `/publico/campi/{slug}/estacionamentos/{id}` | Layout de consulta, sem `sensorId` nas vagas |
 | GET `/publico/campi/{slug}/estacionamentos/{id}/status` | `{ vagaId, status, atualizadoEm }[]` |
@@ -27,6 +28,12 @@ Cadastro cria empresa e responsável; a resposta não tem campo `role`.
 Essas rotas nunca retornam e-mails de responsáveis, senhas, hashes, IDs ou chaves dos sensores.
 O ID do bolsão deve pertencer ao campus indicado. A consulta é sempre aberta, sem aprovação ou
 controle de visibilidade. Escritas em `/publico/*` devolvem 405. Analytics e sensores não são públicos.
+
+`mapa` é a cena em coordenadas locais (`MapaCampus`) ou `null` se ainda não cadastrada.
+Inclui polígonos dos blocos/áreas, alturas, portões, vias e posições vinculadas por `vagaId`.
+`vagas` contém somente as vagas existentes da empresa que têm posição, com tipo, rótulo e status
+atual, sem identificação de sensor. `vagasSemPosicao` conta os cadastros sem localização.
+O seed Unisagrado é aproximado. Detalhes em [MAPA_CAMPUS.md](MAPA_CAMPUS.md).
 
 ## Empresa e autenticação
 
@@ -89,8 +96,7 @@ Ocupação significa indisponibilidade: (total − livres)/total; inclui sem sin
 
 ## Planejado para a API real — ainda não implementado no mock
 
-- GET/PUT `/empresa/mapa`: mapa GeoJSON, PUT com `{ versao, geojson }`; conflito de versão: 409.
-- GET `/publico/campi/{slug}/mapa`: GeoJSON do campus cadastrado, sem dados internos.
+- GET/PUT `/empresa/mapa`: cena e GeoJSON, PUT com `{ versao, cena, geojson }`; conflito de versão: 409.
 - PUT `/dispositivo/vagas/{id}/status`: chave do sensor vinculado em `X-Device-Key`;
   `{ status: "LIVRE" | "OCUPADA" }`; hora de recebimento definida pelo servidor.
 - Controle `layoutVersao` ao salvar o layout na API real.

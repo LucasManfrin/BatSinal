@@ -29,6 +29,20 @@ Conta fictícia para administrar o seed: **admin@unisagrado.demo / Demo@123**.
 O botão de demonstração preenche os campos; clique em **Entrar**. Nunca use senhas ou dados pessoais reais no mock.
 O seed Unisagrado contém dados apenas demonstrativos.
 
+## Mapa do campus
+
+Na Unisagrado, a consulta abre o **campus inteiro em uma cena isométrica**, com alternativa 2D,
+zoom e deslocamento. Selecione **Bloco J** ou clique no prédio para destacar as vagas próximas;
+o portão escolhido também fica destacado. A busca Ctrl+K encontra blocos e serviços.
+
+O desenho aproxima as áreas marcadas pelo grupo. As 92 vagas do seed foram distribuídas em
+fileiras nas frentes/laterais dos blocos e canteiros, mantendo as mesmas leituras dos sensores.
+Não é capacidade real, mapa em escala nem cálculo de rota/tempo. Geometria e vínculos ficam
+persistidos no mock; o banco real continua planejado. Veja [MAPA_CAMPUS.md](docs/MAPA_CAMPUS.md).
+
+Campi sem cena cadastrada conservam a consulta por setores. A administração existente permanece
+disponível; o editor atual altera o layout local, não a posição da vaga no mapa do campus.
+
 ## Simulador
 
 Copie opcionalmente `frontend/.env.example` para `frontend/.env`:
@@ -52,7 +66,7 @@ O mock repete leituras a cada 10 s; as telas consultam status a cada 3 s. Sem le
 5. Abra o endereço da consulta em outra aba, sem login. A gestão de uma empresa nova não acessa os dados do seed.
 6. Use o simulador na aba administrativa e observe os contadores/cores na consulta pública.
 7. No detalhe de um bolsão lotado, ative **Avisar quando abrir vaga** e libere uma vaga. O aviso exige a página aberta.
-8. Teste busca, tipo de vaga, seleção de setor, planta e lista de vagas por teclado.
+8. No campus, escolha Bloco J e um portão, filtre o tipo de vaga e teste 2D/3D, zoom e seleção por teclado.
 9. Saia da conta: a consulta permanece disponível e as rotas administrativas passam a exigir login.
 
 Editor: Ctrl+Z desfaz, Ctrl+Shift+Z refaz, Ctrl+D duplica e Delete exclui. Setas movem 1 unidade;
@@ -61,8 +75,9 @@ Rótulos vazios/duplicados impedem salvar; sobreposição é aviso. Gerar layout
 
 ## Interface e dados
 
-Lista e planta do bolsão ficam lado a lado no desktop e empilhadas no celular. O nome seleciona o setor;
-a planta usa a geometria do layout salvo. Verde indica livre; cinza, ocupada; hachura e ícone indicam sem sinal.
+Na consulta do campus, o mapa completo mostra prédios, portões, vias e vagas. Verde indica livre;
+cinza, ocupada; contorno tracejado indica sem sinal. A lista ordena vagas pela proximidade visual
+da entrada do bloco, sem estimar metros ou tempo. Campi sem cena usam a lista/planta existente.
 Barras da lista representam vagas indisponíveis (ocupadas + sem sinal). A busca global abre com Ctrl+K.
 Plus Jakarta Sans e JetBrains Mono são locais. Ícones são SVGs Lucide e o logo é original.
 
@@ -96,7 +111,7 @@ npm run preview
 ```
 
 `lint` inclui ESLint sem warnings e Prettier. Formatação: `npm run format`.
-Última suíte: **34 testes em sete arquivos**. Cobertura de consulta anônima, cadastro e acesso público imediato,
+Última suíte: **41 testes em oito arquivos**. Cobertura de mapa contínuo, destino, leituras e falhas, consulta anônima, cadastro e acesso público imediato,
 isolamento, proteção administrativa, DTO público, migração, seleção, teclado, acesso, sensores e geometria.
 O worker MSW já está versionado; ao atualizar a dependência, regenere com `npx msw init frontend/public`.
 
