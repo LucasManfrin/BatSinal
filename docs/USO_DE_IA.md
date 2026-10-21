@@ -23,3 +23,8 @@ Preencher após a leitura e demonstração individual:
 | A preencher pelo grupo | | | | |
 
 Não declarar revisões humanas que ainda não aconteceram. Código gerado por IA precisa ser compreendido pelo grupo.
+
+### Fase 1 — Estrutura do frontend
+A IA configurou React 18, Vite, TypeScript estrito, Tailwind, fontes locais e ferramentas de qualidade. Dependências do editor, mapas e mock instaladas pelo npm.
+Revisão do grupo: entender os scripts e os tokens; fontes e logo não dependem de CDN.
+
