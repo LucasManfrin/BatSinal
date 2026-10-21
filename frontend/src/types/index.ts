@@ -97,3 +97,39 @@ export interface GridOptions {
   altura: number;
   espacamento: number;
 }
+
+// Coordenadas locais da cena, sem pressupor escala ou georreferenciamento.
+export type PontoCampus = [number, number];
+export interface PredioCampus {
+  id: string;
+  nome: string;
+  contorno: PontoCampus[];
+  altura: number;
+  entrada: PontoCampus;
+}
+export interface MapaCampus {
+  versao: number;
+  nome: string;
+  aproximado: boolean;
+  limite: PontoCampus[];
+  predios: PredioCampus[];
+  portoes: { id: string; nome: string; ponto: PontoCampus; veiculos: boolean }[];
+  vias: { id: string; pontos: PontoCampus[]; largura: number }[];
+  areas: { id: string; nome: string; contorno: PontoCampus[] }[];
+  posicoes: { vagaId: string; areaId: string; ponto: PontoCampus; rotacao: number }[];
+}
+export interface VagaCampus {
+  id: string;
+  rotulo: string;
+  tipo: TipoVaga;
+  status: StatusVaga;
+  atualizadoEm: string;
+  areaId: string;
+  ponto: PontoCampus;
+  rotacao: number;
+}
+export interface ConsultaCampus {
+  mapa: MapaCampus | null;
+  vagas: VagaCampus[];
+  vagasSemPosicao: number;
+}

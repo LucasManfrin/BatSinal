@@ -6,13 +6,17 @@ import type {
   Sensor,
   StatusVagaAtual,
   Administrador,
+  MapaCampus,
 } from '../types';
 import { gerarGrid } from '../lib/utils';
+import { createCampusMap } from './campus';
 
 export interface MockStore {
   navigationSchema?: number;
   empresas: Empresa[];
   accessSchema?: number;
+  campusSchema?: number;
+  mapas?: Record<string, MapaCampus>;
   administradores: (Administrador & { senha: string })[];
   estacionamentos: DetalheEstacionamento[];
   sensores: Sensor[];
@@ -131,6 +135,8 @@ export function createSeed(): MockStore {
   return {
     navigationSchema: 1,
     accessSchema: 3,
+    campusSchema: 1,
+    mapas: { unisagrado: createCampusMap() },
     empresas: [{ id: 'unisagrado', nome: 'Unisagrado', slug: 'unisagrado' }],
     administradores: [
       {
@@ -163,6 +169,10 @@ export function migrateStore(saved: LegacyStore): MockStore {
   return {
     navigationSchema: saved.navigationSchema,
     accessSchema: 3,
+    campusSchema: 1,
+    mapas:
+      saved.mapas ??
+      (saved.empresas.some((e) => e.id === 'unisagrado') ? { unisagrado: createCampusMap() } : {}),
     empresas: saved.empresas.map((e) => ({
       id: e.id,
       nome: e.nome,
@@ -196,7 +206,7 @@ function loadStore(): MockStore {
         });
         saved.navigationSchema = 1;
       }
-      if (legacy.accessSchema !== 3 || legacy.navigationSchema !== 1) {
+      if (legacy.accessSchema !== 3 || legacy.navigationSchema !== 1 || legacy.campusSchema !== 1) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
         } catch {

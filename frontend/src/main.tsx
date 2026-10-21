@@ -8,6 +8,7 @@ import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/500.css';
 import './styles.css';
 import './mobility.css';
+import './campus.css';
 
 async function start() {
   if (import.meta.env.VITE_USE_MOCK !== 'false') {

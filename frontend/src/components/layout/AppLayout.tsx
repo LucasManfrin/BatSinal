@@ -3,7 +3,12 @@ import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'reac
 import { ArrowRight, Car, LogOut, MapPin, Moon, Search, Sun, UserRound } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../features/ui/useTheme';
-import { useCompany, useLots, usePublicCampi } from '../../features/estacionamentos/queries';
+import {
+  useCampusScene,
+  useCompany,
+  useLots,
+  usePublicCampi,
+} from '../../features/estacionamentos/queries';
 import { Logo } from './Logo';
 import { Button, Dialog, EmptyState, Input } from '../ui';
 import { USE_MOCK } from '../../lib/api';
@@ -20,6 +25,7 @@ export function AppLayout() {
   const { user, logout } = useAuth();
   const { light, changeTheme } = useTheme();
   const lots = useLots();
+  const scene = useCampusScene();
   const company = useCompany();
   const campi = usePublicCampi();
   const { campusSlug } = useParams();
@@ -52,6 +58,11 @@ export function AppLayout() {
   const total = lots.data?.reduce((sum, lot) => sum + lot.vagasLivres, 0);
   const searchResults =
     lots.data?.filter((lot) => lot.nome.toLowerCase().includes(search.toLowerCase())) ?? [];
+  const mapped = Boolean(campusSlug && scene.data?.mapa);
+  const destinations =
+    scene.data?.mapa?.predios.filter((building) =>
+      building.nome.toLowerCase().includes(search.toLowerCase()),
+    ) ?? [];
   const detailPath = (id: string) =>
     campusSlug ? `/c/${campusSlug}/${id}` : `/admin/consulta/${id}`;
   return (
@@ -167,7 +178,7 @@ export function AppLayout() {
             }}
           >
             <Search size={18} />
-            Buscar estacionamentos <kbd>Ctrl K</kbd>
+            {mapped ? 'Buscar no campus' : 'Buscar estacionamentos'} <kbd>Ctrl K</kbd>
           </button>
           <button onClick={() => changeTheme(!light)}>
             {light ? <Moon size={18} /> : <Sun size={18} />}Usar tema {light ? 'escuro' : 'claro'}
@@ -188,32 +199,47 @@ export function AppLayout() {
       <Dialog
         open={searchOpen}
         onOpenChange={setSearchOpen}
-        title="Buscar estacionamento"
-        description={`Estacionamentos de ${campus}`}
+        title={mapped ? 'Buscar no campus' : 'Buscar estacionamento'}
+        description={mapped ? `Blocos e serviços de ${campus}` : `Estacionamentos de ${campus}`}
       >
         <div className="search-input">
           <Search size={17} />
           <Input
             autoFocus
-            aria-label="Nome do estacionamento"
-            placeholder="Nome do estacionamento"
+            aria-label={mapped ? 'Bloco ou serviço' : 'Nome do estacionamento'}
+            placeholder={mapped ? 'Ex.: Bloco J' : 'Nome do estacionamento'}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
         <div className="quick-search-results">
-          {searchResults.map((lot) => (
-            <Link key={lot.id} to={detailPath(lot.id)} onClick={() => setSearchOpen(false)}>
-              <MapPin size={17} />
-              <span>
-                <strong>{lot.nome}</strong>
-                <small>
-                  {lot.vagasLivres}/{lot.totalVagas} vagas livres
-                </small>
-              </span>
-              <ArrowRight size={16} />
-            </Link>
-          ))}
+          {mapped
+            ? destinations.map((building) => (
+                <Link
+                  key={building.id}
+                  to={`/c/${campusSlug}?bloco=${building.id}`}
+                  onClick={() => setSearchOpen(false)}
+                >
+                  <MapPin size={17} />
+                  <span>
+                    <strong>{building.nome}</strong>
+                    <small>Localizar vagas próximas</small>
+                  </span>
+                  <ArrowRight size={16} />
+                </Link>
+              ))
+            : searchResults.map((lot) => (
+                <Link key={lot.id} to={detailPath(lot.id)} onClick={() => setSearchOpen(false)}>
+                  <MapPin size={17} />
+                  <span>
+                    <strong>{lot.nome}</strong>
+                    <small>
+                      {lot.vagasLivres}/{lot.totalVagas} vagas livres
+                    </small>
+                  </span>
+                  <ArrowRight size={16} />
+                </Link>
+              ))}
           {lots.isPending ? (
             <p role="status">Carregando estacionamentos…</p>
           ) : lots.isError ? (
@@ -223,9 +249,9 @@ export function AppLayout() {
               </Button>
             </EmptyState>
           ) : (
-            !searchResults.length && (
+            !(mapped ? destinations.length : searchResults.length) && (
               <EmptyState
-                title="Nenhum estacionamento encontrado"
+                title={mapped ? 'Nenhum destino encontrado' : 'Nenhum estacionamento encontrado'}
                 description="Tente outro nome."
               />
             )

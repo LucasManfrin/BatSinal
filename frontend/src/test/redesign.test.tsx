@@ -9,7 +9,7 @@ import { handlers, simulateStatus } from '../mocks/handlers';
 import { createSeed, store } from '../mocks/seed';
 import { TOKEN_KEY } from '../lib/api';
 import { CompanyPage } from '../pages/empresa/CompanyPage';
-import { LotsPage } from '../pages/estacionamentos/LotsPage';
+import { SectorLotsPage as LotsPage } from '../pages/estacionamentos/SectorLotsPage';
 import type { Administrador } from '../types';
 import { AppLayout } from '../components/layout/AppLayout';
 

@@ -4,6 +4,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../auth/AuthContext';
 import type {
   CampusPublico,
+  ConsultaCampus,
   DetalheEstacionamento,
   Empresa,
   EstacionamentoResumo,
@@ -41,6 +42,15 @@ export function useLots() {
     queryFn: () => api<EstacionamentoResumo[]>(`${scope.prefix}/estacionamentos`),
     refetchInterval: 3000,
     enabled: scope.enabled,
+  });
+}
+export function useCampusScene() {
+  const { campusSlug } = useParams();
+  return useQuery({
+    queryKey: ['mapa-campus', campusSlug],
+    queryFn: () => api<ConsultaCampus>(`/publico/campi/${encodeURIComponent(campusSlug!)}/mapa`),
+    refetchInterval: 3000,
+    enabled: Boolean(campusSlug),
   });
 }
 export function useLot(id: string) {

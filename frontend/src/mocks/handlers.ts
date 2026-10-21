@@ -9,6 +9,7 @@ import type {
   Layout,
   Administrador,
   Vaga,
+  ConsultaCampus,
 } from '../types';
 import { heatmap, persist, store } from './seed';
 
@@ -162,6 +163,29 @@ function publicLot(lot: DetalheEstacionamento, summary = false) {
     })),
   };
 }
+function publicCampus(empresaId: string): ConsultaCampus {
+  const mapa = store.mapas?.[empresaId] ?? null;
+  const lots = store.estacionamentos.filter((lot) => lot.empresaId === empresaId);
+  const slots = new Map(lots.flatMap((lot) => lot.vagas).map((v) => [v.id, v]));
+  const statuses = new Map(lots.flatMap(lotStatus).map((s) => [s.vagaId, s]));
+  const vagas = (mapa?.posicoes ?? []).flatMap((position) => {
+    const slot = slots.get(position.vagaId);
+    if (!slot) return [];
+    return [
+      {
+        id: slot.id,
+        rotulo: slot.rotulo,
+        tipo: slot.tipo,
+        status: statuses.get(slot.id)!.status,
+        atualizadoEm: statuses.get(slot.id)!.atualizadoEm,
+        areaId: position.areaId,
+        ponto: position.ponto,
+        rotacao: position.rotacao,
+      },
+    ];
+  });
+  return { mapa, vagas, vagasSemPosicao: slots.size - vagas.length };
+}
 function validateLayout(layout: Layout, lot: DetalheEstacionamento, user: Administrador) {
   if (!Array.isArray(layout.vagas) || !Array.isArray(layout.elementos))
     throw new MockError(422, 'Layout inválido.');
@@ -248,8 +272,10 @@ export const handlers = [
           const empresa = store.empresas.find((e) => e.slug === action);
           if (!empresa) throw new MockError(404, 'Campus não encontrado.');
           const [, , , collection, lotId, detail] = path;
-          if (collection !== 'estacionamentos') throw new MockError(404, 'Rota não encontrada.');
-          if (!lotId)
+          if (collection === 'mapa' && path.length === 4) result = publicCampus(empresa.id);
+          else if (collection !== 'estacionamentos')
+            throw new MockError(404, 'Rota não encontrada.');
+          else if (!lotId)
             result = store.estacionamentos
               .filter((l) => l.empresaId === empresa.id)
               .map((l) => publicLot(l, true));
