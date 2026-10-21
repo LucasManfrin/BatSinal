@@ -317,3 +317,12 @@ A consulta continua sempre pública conforme a decisão anterior do usuário. N�
 Os testes de autenticação e migração foram adaptados, com novos casos de slug e hooks do visitante.
 Uma asserção antiga foi limitada ao card da lista para evitar ambiguidade com o título da planta.
 O backend real continua não implementado. Revisão humana ainda não foi registrada.
+
+## V2 — Fase B: retirada do editor livre
+
+A IA conferiu dependências com busca textual antes de excluir editor, store de undo/redo 2D,
+canvas Konva, gerador de grid, snap e detecção de sobreposição. O detalhe e o painel passaram
+à visualização SVG existente; nenhum outro consumidor de Konva permaneceu.
+Konva, react-konva e Zustand foram retirados. Foram removidos endpoints e testes do editor livre,
+preservando testes de ocupação e leituras. A rota Posicionar vagas começa como consulta das posições
+existentes, antes da implantação da cena/encaixe nas fases D/E. A geometria do campus não foi alterada.

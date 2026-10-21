@@ -51,7 +51,7 @@ export function SectorPlan({ id }: { id: string }) {
           <h2>{data.nome}</h2>
         </div>
         <Link
-          to={campusSlug ? `/c/${campusSlug}/${id}` : `/admin/editor/${id}`}
+          to={campusSlug ? `/c/${campusSlug}/${id}` : `/admin/posicionar/${id}`}
           aria-label={`Detalhes de ${data.nome}`}
         >
           Detalhes <ArrowRight size={14} />

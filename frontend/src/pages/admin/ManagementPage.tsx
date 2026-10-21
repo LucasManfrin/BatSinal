@@ -250,8 +250,8 @@ export function ManagementPage({ resource }: { resource: Resource }) {
                         <td className="mono green-text">{row.vagasLivres}</td>
                         <td className="mono">{row.totalVagas}</td>
                         <td>
-                          <Link className="table-link" to={`/admin/editor/${row.id}`}>
-                            Editar layout <Edit3 size={13} />
+                          <Link className="table-link" to={`/admin/posicionar/${row.id}`}>
+                            Posicionar vagas <Edit3 size={13} />
                           </Link>
                         </td>
                       </>

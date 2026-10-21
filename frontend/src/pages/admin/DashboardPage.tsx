@@ -36,7 +36,7 @@ import {
   Loading,
   Select,
 } from '../../components/ui';
-import { LotCanvas } from '../../components/lot/LotCanvas';
+import { SectorPlan } from '../../components/lot/SectorPlan';
 
 export function DashboardPage() {
   const lots = useLots();
@@ -309,19 +309,15 @@ export function DashboardPage() {
         <Card className="live-map-card">
           <div className="card-heading">
             <div>
-              <h2>Layout e disponibilidade</h2>
+              <h2>Área e disponibilidade</h2>
               <p>{current.nome}</p>
             </div>
-            <Link className="table-link" to={`/admin/editor/${id}`}>
-              Editar layout <ArrowRight size={15} />
+            <Link className="table-link" to={`/admin/posicionar/${id}`}>
+              Posicionar vagas <ArrowRight size={15} />
             </Link>
           </div>
           <Legend />
-          {lot.data && statuses.data ? (
-            <LotCanvas mode="view" {...lot.data} statuses={statuses.data} />
-          ) : (
-            <Loading />
-          )}
+          {lot.data && statuses.data ? <SectorPlan id={id} /> : <Loading />}
           <Link className="dashboard-detail-link" to={`/admin/consulta/${id}`}>
             Abrir mapa interativo <ArrowRight size={15} />
           </Link>
@@ -403,7 +399,7 @@ export function DashboardPage() {
         ) : !related.length ? (
           <EmptyState
             title="Nenhum sensor vinculado"
-            description="Vincule o primeiro sensor no editor de layout."
+            description="Vincule o primeiro sensor ao cadastrar as vagas."
           />
         ) : (
           <div className="table-scroll">

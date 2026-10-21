@@ -21,7 +21,7 @@ export function CompanyChecklist() {
     {
       done: lots.data.some((lot) => lot.totalVagas > 0),
       label: 'Posicionar as vagas',
-      to: '/admin/editor',
+      to: '/admin/posicionar',
     },
   ];
   if (steps.every((s) => s.done) && copied) return null;

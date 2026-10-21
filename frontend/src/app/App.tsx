@@ -7,6 +7,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { AuthPage } from '../pages/auth/AuthPage';
 import { CompanyPage } from '../pages/empresa/CompanyPage';
 import { CampusEntry } from '../pages/estacionamentos/HomePage';
+import { PositionPage } from '../pages/admin/PositionPage';
 import { Button, EmptyState, Loading } from '../components/ui';
 
 // Bibliotecas de mapa, canvas e gráficos só carregam quando a tela precisa delas.
@@ -22,10 +23,6 @@ const DashboardPage = lazy(() =>
 const ManagementPage = lazy(() =>
   import('../pages/admin/ManagementPage').then((m) => ({ default: m.ManagementPage })),
 );
-const EditorPage = lazy(() =>
-  import('../pages/editor/EditorPage').then((m) => ({ default: m.EditorPage })),
-);
-
 const client = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 1000, refetchOnWindowFocus: true } },
 });
@@ -62,6 +59,8 @@ const router = createBrowserRouter([
               { path: '/empresa', element: <CompanyPage /> },
               { path: '/perfil', element: <Navigate to="/empresa" replace /> },
               { path: '/admin', element: <DashboardPage /> },
+              { path: '/admin/posicionar', element: <PositionPage /> },
+              { path: '/admin/posicionar/:id', element: <PositionPage /> },
               { path: '/admin/consulta/:id', element: <LotDetailPage /> },
               {
                 path: '/admin/estacionamentos',
@@ -71,8 +70,6 @@ const router = createBrowserRouter([
                 path: '/admin/sensores',
                 element: <ManagementPage key="sensores" resource="sensores" />,
               },
-              { path: '/admin/editor', element: <EditorPage /> },
-              { path: '/admin/editor/:id', element: <EditorPage /> },
             ],
           },
         ],

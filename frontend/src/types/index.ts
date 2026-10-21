@@ -87,14 +87,6 @@ export interface CelulaHeatmap {
   hora: number;
   ocupacao: number;
 }
-export interface GridOptions {
-  linhas: number;
-  colunas: number;
-  largura: number;
-  altura: number;
-  espacamento: number;
-}
-
 // Coordenadas locais da cena, sem pressupor escala ou georreferenciamento.
 export type PontoCampus = [number, number];
 export interface PredioCampus {

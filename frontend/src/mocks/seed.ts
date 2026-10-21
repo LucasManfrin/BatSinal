@@ -7,7 +7,6 @@ import type {
   StatusVagaAtual,
   MapaCampus,
 } from '../types';
-import { gerarGrid } from '../lib/utils';
 import { createCampusMap } from './campus';
 
 export interface MockStore {
@@ -38,13 +37,15 @@ export function createSeed(): MockStore {
   const names = ['Estacionamento Central', 'Bloco Acadêmico', 'Complexo Esportivo'];
   const estacionamentos = names.map((nome, index): DetalheEstacionamento => {
     const id = `est-${index + 1}`;
-    const vagas = gerarGrid(id, {
-      linhas: index === 2 ? 2 : 4,
-      colunas: index === 1 ? 8 : 10,
+    const vagas = Array.from({ length: index === 0 ? 40 : index === 1 ? 32 : 20 }, (_, i) => ({
+      estacionamentoId: id,
+      rotulo: `${String.fromCharCode(65 + Math.floor(i / (index === 1 ? 8 : 10)))}${(i % (index === 1 ? 8 : 10)) + 1}`,
+      x: 48 + (i % (index === 1 ? 8 : 10)) * 63,
+      y: 48 + Math.floor(i / (index === 1 ? 8 : 10)) * 138,
       largura: 53,
       altura: 86,
-      espacamento: 10,
-    }).map((vaga, i) => ({
+      rotacao: 0,
+    })).map((vaga, i) => ({
       ...vaga,
       id: `${id}-vaga-${i + 1}`,
       tipo: i % 15 === 0 ? ('PCD' as const) : i % 13 === 0 ? ('MOTO' as const) : ('COMUM' as const),

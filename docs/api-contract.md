@@ -126,3 +126,5 @@ Ocupação significa indisponibilidade: (total − livres)/total; inclui sem sin
 Mapas, esquema SQL e limites estão em [ARQUITETURA_BACKEND.md](ARQUITETURA_BACKEND.md).
 O frontend só acessa HTTP/JSON. Backend real precisará de CORS para as origens locais,
 hash de senha, validade de token, autenticação de dispositivo e testes de isolamento.
+
+V2 — Fase B: removidos POST `/estacionamentos/{id}/layout-padrao` e PUT `/estacionamentos/{id}/layout`. As descrições antigas desses endpoints abaixo são históricas e serão substituídas pelo contrato de âncoras na fase D/E.

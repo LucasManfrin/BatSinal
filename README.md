@@ -69,9 +69,8 @@ O mock repete leituras a cada 10 s; as telas consultam status a cada 3 s. Sem le
 8. No campus, escolha Bloco J e um portão, filtre o tipo de vaga e teste 2D/3D, zoom e seleção por teclado.
 9. Saia da conta: a consulta permanece disponível e as rotas administrativas passam a exigir login.
 
-Editor: Ctrl+Z desfaz, Ctrl+Shift+Z refaz, Ctrl+D duplica e Delete exclui. Setas movem 1 unidade;
-Shift+setas, 10. Existem controles HTML equivalentes. Alterações pendentes têm aviso de saída.
-Rótulos vazios/duplicados impedem salvar; sobreposição é aviso. Gerar layout padrão substitui as vagas e desvincula sensores.
+O editor livre 2D e o gerador de layout foram removidos. A página **Posicionar vagas** usa as posições
+mapeadas; as âncoras e o encaixe 3D entram nas próximas fases v2. Os IDs e as leituras existentes são preservados.
 
 ## Interface e dados
 

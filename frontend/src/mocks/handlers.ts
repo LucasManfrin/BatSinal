@@ -1,12 +1,10 @@
 import { delay, http, HttpResponse } from 'msw';
 import { API_URL } from '../lib/api';
-import { gerarGrid, ocupacao, tendencia } from '../lib/utils';
+import { ocupacao, tendencia } from '../lib/utils';
 import type {
   DetalheEstacionamento,
   Estacionamento,
   EstacionamentoResumo,
-  GridOptions,
-  Layout,
   Vaga,
   ConsultaCampus,
 } from '../types';
@@ -192,71 +190,6 @@ function publicCampus(empresaId: string): ConsultaCampus {
   });
   return { mapa, vagas, vagasSemPosicao: slots.size - vagas.length };
 }
-function validateLayout(layout: Layout, lot: DetalheEstacionamento, user: ScopedCompany) {
-  if (!Array.isArray(layout.vagas) || !Array.isArray(layout.elementos))
-    throw new MockError(422, 'Layout inválido.');
-  const labels = new Set<string>();
-  const ids = new Set<string>();
-  const sensors = new Set<string>();
-  for (const v of layout.vagas) {
-    if (!v.rotulo?.trim() || labels.has(v.rotulo.trim().toUpperCase()))
-      throw new MockError(422, 'Use rótulos únicos e não vazios.');
-    labels.add(v.rotulo.trim().toUpperCase());
-    if (
-      !v.id ||
-      ids.has(v.id) ||
-      !['COMUM', 'PCD', 'MOTO'].includes(v.tipo) ||
-      ![v.x, v.y, v.largura, v.altura, v.rotacao].every(Number.isFinite) ||
-      v.largura < 20 ||
-      v.altura < 20 ||
-      v.estacionamentoId !== lot.id
-    )
-      throw new MockError(422, 'Uma vaga possui dimensões ou dados inválidos.');
-    ids.add(v.id);
-    if (v.sensorId) {
-      const s = store.sensores.find((s) => s.id === v.sensorId && s.empresaId === user.empresaId);
-      if (!s || sensors.has(s.id) || (s.vagaId && !lot.vagas.some((old) => old.id === s.vagaId)))
-        throw new MockError(422, 'Sensor indisponível ou vinculado em outro estacionamento.');
-      sensors.add(s.id);
-    }
-  }
-  for (const e of layout.elementos) {
-    if (
-      !e.id ||
-      ids.has(e.id) ||
-      e.estacionamentoId !== lot.id ||
-      !['VIA', 'ENTRADA', 'SAIDA', 'TEXTO'].includes(e.tipo) ||
-      ![e.x, e.y, e.largura, e.altura, e.rotacao].every(Number.isFinite) ||
-      e.largura <= 0 ||
-      e.altura <= 0
-    )
-      throw new MockError(422, 'Um elemento decorativo é inválido.');
-    ids.add(e.id);
-  }
-}
-function saveLayout(lot: DetalheEstacionamento, layout: Layout) {
-  const oldIds = new Set(lot.vagas.map((v) => v.id));
-  store.status = store.status.filter(
-    (s) => !oldIds.has(s.vagaId) || layout.vagas.some((v) => v.id === s.vagaId),
-  );
-  store.sensores
-    .filter((s) => s.vagaId && oldIds.has(s.vagaId))
-    .forEach((s) => {
-      s.vagaId = undefined;
-    });
-  lot.vagas = layout.vagas;
-  lot.elementos = layout.elementos;
-  for (const v of layout.vagas) {
-    if (!store.status.some((s) => s.vagaId === v.id))
-      store.status.push({
-        vagaId: v.id,
-        status: 'SEM_SINAL',
-        atualizadoEm: new Date().toISOString(),
-      });
-    const sensor = store.sensores.find((s) => s.id === v.sensorId);
-    if (sensor) sensor.vagaId = v.id;
-  }
-}
 export const handlers = [
   http.all(`${API_URL}/*`, async ({ request }) => {
     await delay(140);
@@ -435,26 +368,6 @@ export const handlers = [
             } else if (action === 'heatmap' && method === 'GET') {
               admin();
               result = heatmap(id);
-            } else if (action === 'layout-padrao' && method === 'POST') {
-              admin();
-              const options: GridOptions = {
-                linhas: Number(body.linhas),
-                colunas: Number(body.colunas),
-                largura: num(body, 'largura', 53, 20, 300),
-                altura: num(body, 'altura', 86, 20, 300),
-                espacamento: num(body, 'espacamento', 10, 0, 200),
-              };
-              const vagas = gerarGrid(id, options);
-              if (vagas.some((v) => v.x + v.largura > lot.largura || v.y + v.altura > lot.altura))
-                throw new MockError(422, 'O grid não cabe no tamanho do estacionamento.');
-              saveLayout(lot, { vagas, elementos: [] });
-              result = lot;
-            } else if (action === 'layout' && method === 'PUT') {
-              admin();
-              const layout = body as unknown as Layout;
-              validateLayout(layout, lot, user);
-              saveLayout(lot, layout);
-              result = lot;
             } else if (!action && method === 'PUT') {
               admin();
               Object.assign(lot, {
@@ -469,7 +382,11 @@ export const handlers = [
               result = lot;
             } else if (!action && method === 'DELETE') {
               admin();
-              saveLayout(lot, { vagas: [], elementos: [] });
+              const ids = new Set(lot.vagas.map((v) => v.id));
+              store.sensores.forEach((sensor) => {
+                if (sensor.vagaId && ids.has(sensor.vagaId)) sensor.vagaId = undefined;
+              });
+              store.status = store.status.filter((s) => !ids.has(s.vagaId));
               store.estacionamentos = store.estacionamentos.filter((l) => l.id !== id);
               delete store.historico[id];
               result = null;

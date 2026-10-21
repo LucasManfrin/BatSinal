@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Bell, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLot, useStatuses } from '../../features/estacionamentos/queries';
-import { LotCanvas } from '../../components/lot/LotCanvas';
+import { SectorPlan } from '../../components/lot/SectorPlan';
 import {
   Badge,
   Button,
@@ -89,7 +89,7 @@ export function LotDetailPage() {
           </Button>
         </div>
         {lot.data.vagas.length ? (
-          <LotCanvas mode="view" {...lot.data} statuses={statuses.data} onSpotClick={setSelected} />
+          <SectorPlan id={id} />
         ) : (
           <EmptyState
             title="Layout não cadastrado"
