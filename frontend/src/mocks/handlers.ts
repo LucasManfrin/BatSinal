@@ -100,7 +100,8 @@ export const handlers = [http.all(`${API_URL}/*`, async ({ request }) => {
     const url = new URL(request.url);
     const path = url.pathname.slice(new URL(API_URL).pathname.length).split('/').filter(Boolean);
     const method = request.method;
-    const body = ['POST', 'PUT'].includes(method) ? await request.json() as Body : {};
+    const body = ['POST', 'PUT', 'DELETE'].includes(method) && request.headers.get('content-length') !== '0'
+      ? await request.json().catch(() => ({})) as Body : {};
     const [resource, id, action] = path;
     let result: unknown;
     if (resource === 'auth' && id === 'login' && method === 'POST') {

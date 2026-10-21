@@ -38,3 +38,11 @@ Revisão do grupo: comparar contrato e futuros schemas FastAPI; o mock não subs
 A IA implementou cadastro de empresa, login, validação de campos, força/visibilidade de senha e guardas por role. A interface inclui logo original de holofote, shell administrativo e navegação móvel.
 Revisão do grupo: testar ADMIN e USER, entender Context e guardas; nunca usar dados pessoais ou senhas reais no mock.
 
+
+### Retomada — auditoria do estado existente
+A IA verificou o Git limpo e os quatro commits já existentes, preservando a autenticação, os tipos, os handlers e os componentes de UI. Encontrou e corrigiu a leitura do corpo em DELETE /favoritos.
+
+### Fase 4 — Consulta de vagas
+Telas de lista, mapa com fallback, favoritos, perfil e detalhe foram ligadas aos hooks HTTP existentes. Canvas de consulta com polling, zoom, pan, status e lista HTML equivalente; alerta in-app na transição de zero para alguma vaga livre.
+Revisão do grupo: conferir significado dos status, teste sem internet e uso por teclado. Alertas só funcionam com a página aberta.
+
