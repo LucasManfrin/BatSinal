@@ -55,9 +55,7 @@ export function ProfilePage() {
       <div className="page-heading">
         <div>
           <p className="section-kicker">Sua conta</p>
-          <h1>
-            Perfil e preferências<span className="heading-dot">.</span>
-          </h1>
+          <h1>Perfil e preferências</h1>
           <p>Configure como você consulta os estacionamentos.</p>
         </div>
         <Badge className="local-storage-badge">Preferências neste navegador</Badge>

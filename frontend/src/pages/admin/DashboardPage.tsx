@@ -113,9 +113,7 @@ export function DashboardPage() {
       <div className="page-heading">
         <div>
           <div className="eyebrow">Administração do campus</div>
-          <h1>
-            Visão geral<span className="heading-dot">.</span>
-          </h1>
+          <h1>Visão geral</h1>
           <p>Disponibilidade, ocupação e leituras dos sensores.</p>
         </div>
         <div className="dashboard-select">
@@ -237,8 +235,8 @@ export function DashboardPage() {
                 >
                   <defs>
                     <linearGradient id="occupancyGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FFC800" stopOpacity={0.22} />
-                      <stop offset="100%" stopColor="#FFC800" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#9CA5B3" stopOpacity={0.22} />
+                      <stop offset="100%" stopColor="#9CA5B3" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 5" />
@@ -277,7 +275,7 @@ export function DashboardPage() {
                   <Area
                     dataKey="ocupacao"
                     type="monotone"
-                    stroke="#FFC800"
+                    stroke="#9CA5B3"
                     strokeWidth={2.5}
                     fill="url(#occupancyGradient)"
                     isAnimationActive={false}
@@ -381,7 +379,7 @@ export function DashboardPage() {
                           title={`${day} ${cell.hora}h: ${cell.ocupacao}%`}
                           aria-label={`${day}, ${cell.hora} horas: ${cell.ocupacao}% de ocupação`}
                           style={{
-                            background: `rgba(255,200,0,${0.08 + (cell.ocupacao / 100) * 0.92})`,
+                            background: `rgba(156,165,179,${0.08 + (cell.ocupacao / 100) * 0.92})`,
                           }}
                         />
                       ))}
@@ -391,7 +389,7 @@ export function DashboardPage() {
               <div className="heatmap-legend">
                 <span>Menos movimento</span>
                 {[0.1, 0.3, 0.5, 0.7, 1].map((opacity) => (
-                  <i key={opacity} style={{ background: `rgba(255,200,0,${opacity})` }} />
+                  <i key={opacity} style={{ background: `rgba(156,165,179,${opacity})` }} />
                 ))}
                 <span>Mais</span>
               </div>

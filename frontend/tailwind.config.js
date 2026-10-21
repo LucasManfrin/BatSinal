@@ -22,7 +22,7 @@ export default {
         display: ['Plus Jakarta Sans', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
-      borderRadius: { card: '16px' },
+      borderRadius: { card: '6px' },
     },
   },
   plugins: [],

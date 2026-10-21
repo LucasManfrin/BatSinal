@@ -4,7 +4,6 @@ import { ArrowRight, Eye, EyeOff, MapPin, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Button, Field, Input } from '../../components/ui';
 import { Logo } from '../../components/layout/Logo';
-import { UrbanDrawing } from '../../components/lot/UrbanDrawing';
 import { ApiError, USE_MOCK } from '../../lib/api';
 import { mensagemErro } from '../../lib/utils';
 
@@ -62,42 +61,6 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   );
   return (
     <div className="auth-page">
-      <section className="auth-story">
-        <header className="auth-brand-row">
-          <Logo />
-          <span>Mobilidade no campus</span>
-        </header>
-        <div className="auth-editorial">
-          <span className="section-kicker">Estacionamentos conectados</span>
-          <h1>
-            Vagas do campus.
-            <br />
-            <span>Em tempo real.</span>
-          </h1>
-          <p>
-            Consulte a disponibilidade antes de chegar.
-            <br />A detecção de veículos é automática.
-          </p>
-        </div>
-        <div className="login-visual">
-          <UrbanDrawing beam />
-          <span className="visual-location">
-            <MapPin size={14} />
-            Campus Unisagrado<small>Representação ilustrativa</small>
-          </span>
-          <span className="visual-bearing">
-            N <span>↗</span>
-          </span>
-          <div className="visual-coordinate">
-            <span>01 / Monitoramento de vagas</span>
-            <span>BatSinal</span>
-          </div>
-        </div>
-        <footer>
-          <span>Projeto acadêmico · Unisagrado</span>
-          <span>2026</span>
-        </footer>
-      </section>
       <section className="auth-form-side" id="conteudo">
         <div className="auth-mobile-brand">
           <Logo />
@@ -205,5 +168,5 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   );
 }
 function BadgeLabel({ text }: { text: string }) {
-  return <div className="eyebrow accent-text">{text}</div>;
+  return <div className="eyebrow">{text}</div>;
 }

@@ -103,8 +103,8 @@ export function LotDetailPage() {
           <LotCanvas mode="view" {...lot.data} statuses={statuses.data} onSpotClick={setSelected} />
         ) : (
           <EmptyState
-            title="Este espaço ainda está sendo preparado"
-            description="O administrador está configurando o layout do estacionamento."
+            title="Layout não cadastrado"
+            description="O administrador precisa configurar as vagas deste bolsão."
           />
         )}
         <div className="canvas-caption">

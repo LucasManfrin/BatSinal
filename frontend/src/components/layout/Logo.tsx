@@ -5,7 +5,6 @@ export function Logo({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span>
           BatSinal<span className="brand-period">.</span>
-          <small>Estacionamento conectado</small>
         </span>
       )}
     </div>

@@ -1,38 +1,12 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Accessibility,
-  ArrowDownRight,
-  ArrowRight,
-  ArrowUpRight,
-  Bike,
-  CarFront,
-  Check,
-  ListFilter,
-  Map,
-  MapPin,
-  Minus,
-  Search,
-  Star,
-  X,
-} from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Car, Clock, MapPin, Navigation, Search, Star, X } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useFavorites, useLots } from '../../features/estacionamentos/queries';
 import { usePreferences } from '../../features/profile/preferences';
-import {
-  Badge,
-  Button,
-  EmptyState,
-  ErrorState,
-  Input,
-  LiveDot,
-  Loading,
-  OccupancyBar,
-  Select,
-  Tabs,
-} from '../../components/ui';
-import { CampusMap } from '../../components/lot/CampusMap';
-import { CampusPlan } from '../../components/lot/CampusPlan';
+import { Button, EmptyState, ErrorState, Input, Loading, Select } from '../../components/ui';
+import { SectorPlan } from '../../components/lot/SectorPlan';
+import { directionsUrl } from '../../lib/navigation';
+import { USE_MOCK } from '../../lib/api';
 import type { EstacionamentoResumo, TipoVaga } from '../../types';
 
 export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
@@ -40,13 +14,12 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
   const query = useLots();
   const favorites = useFavorites();
   const { preferences } = usePreferences(user?.id ?? '');
-  const [mode, setMode] = useState<'esquema' | 'mapa'>('esquema');
-  const [mobilePane, setMobilePane] = useState<'lista' | 'mapa'>('lista');
   const [search, setSearch] = useState('');
   const [freeOnly, setFreeOnly] = useState(false);
   const [starred, setStarred] = useState(false);
   const [type, setType] = useState<TipoVaga | ''>(preferences.tipo);
   const [selectedId, setSelectedId] = useState('');
+  const sectorRef = useRef<HTMLDivElement>(null);
   if (query.isPending || favorites.isPending) return <Loading />;
   if (query.isError || favorites.isError)
     return (
@@ -59,11 +32,11 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
     );
   const lots = query.data
     .filter(
-      (l) =>
-        l.nome.toLowerCase().includes(search.toLowerCase()) &&
-        (!freeOnly || l.vagasLivres > 0) &&
-        (!(favoritesOnly || starred) || favorites.data.includes(l.id)) &&
-        (!type || l.livresPorTipo[type] > 0),
+      (lot) =>
+        lot.nome.toLowerCase().includes(search.toLowerCase()) &&
+        (!freeOnly || lot.vagasLivres > 0) &&
+        (!(favoritesOnly || starred) || favorites.data.includes(lot.id)) &&
+        (!type || lot.livresPorTipo[type] > 0),
     )
     .sort((a, b) => {
       if (preferences.favoritosPrimeiro) {
@@ -73,10 +46,7 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
       }
       return b.vagasLivres - a.vagasLivres;
     });
-  const totalFree = query.data.reduce((n, l) => n + l.vagasLivres, 0);
-  const currentId = lots.some((l) => l.id === selectedId) ? selectedId : (lots[0]?.id ?? '');
-  const bestId = [...lots].sort((a, b) => b.vagasLivres - a.vagasLivres)[0]?.id;
-  const campus = user?.empresaId === 'unisagrado' ? 'Unisagrado' : 'Meu campus';
+  const currentId = lots.some((lot) => lot.id === selectedId) ? selectedId : lots[0]?.id;
   const hasFilters = search || freeOnly || starred || type;
   function clear() {
     setSearch('');
@@ -85,94 +55,66 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
     setType('');
   }
   return (
-    <div className="parking-page">
-      <div className="parking-page-heading">
-        <div>
-          <p className="section-kicker">Disponibilidade no campus</p>
-          <h1>
-            {favoritesOnly ? 'Estacionamentos\nfavoritos' : `Estacionamentos\n${campus}`}
-            <span className="heading-dot">.</span>
-          </h1>
-        </div>
-        <div className="campus-availability" aria-live="polite">
-          <div>
-            <strong>{String(totalFree).padStart(2, '0')}</strong>
-            <span>
-              vagas disponíveis
-              <br />
-              agora no campus
-            </span>
+    <div className="mobility-page">
+      <div className="mobility-page-title">
+        <h1>{favoritesOnly ? 'Estacionamentos favoritos' : 'Estacionamentos'}</h1>
+        <span>{query.data.length} bolsões · leituras a cada 3 s</span>
+      </div>
+      <div className="mobility-workspace">
+        <section className="lot-results" id="bolsoes" aria-label="Bolsões de estacionamento">
+          <div className="lot-filters">
+            <div className="search-input">
+              <Search size={17} />
+              <Input
+                aria-label="Buscar estacionamento"
+                placeholder="Buscar bolsão"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+              {search && (
+                <button
+                  className="icon-button"
+                  aria-label="Limpar busca"
+                  onClick={() => setSearch('')}
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            <div className="lot-filter-row">
+              <Button
+                variant="secondary"
+                aria-pressed={freeOnly}
+                onClick={() => setFreeOnly(!freeOnly)}
+              >
+                <Car size={14} />
+                Com vagas
+              </Button>
+              {!favoritesOnly && (
+                <Button
+                  variant="secondary"
+                  aria-pressed={starred}
+                  onClick={() => setStarred(!starred)}
+                  aria-label="Favoritos"
+                >
+                  <Star size={14} />
+                </Button>
+              )}
+              <Select
+                aria-label="Tipo de vaga"
+                value={type}
+                onChange={(event) => setType(event.target.value as TipoVaga | '')}
+              >
+                <option value="">Todos os tipos</option>
+                <option value="COMUM">Carro</option>
+                <option value="PCD">PCD</option>
+                <option value="MOTO">Moto</option>
+              </Select>
+            </div>
           </div>
-          <LiveDot label={`Atualização a cada 3 s · ${query.data.length} estacionamentos`} />
-        </div>
-      </div>
-      <div className="parking-filters">
-        <div className="search-input">
-          <Search size={17} />
-          <Input
-            aria-label="Buscar estacionamento"
-            placeholder="Nome ou setor do estacionamento"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button
-              className="search-clear"
-              aria-label="Limpar busca"
-              onClick={() => setSearch('')}
-            >
-              <X size={15} />
-            </button>
-          )}
-        </div>
-        <div className="filter-group">
-          <Button
-            variant="secondary"
-            className="filter-button"
-            aria-pressed={freeOnly}
-            onClick={() => setFreeOnly(!freeOnly)}
-          >
-            {freeOnly ? <Check size={15} /> : <ListFilter size={15} />}Com vagas
-          </Button>
-          {!favoritesOnly && (
-            <Button
-              variant="secondary"
-              className="filter-button"
-              aria-pressed={starred}
-              onClick={() => setStarred(!starred)}
-            >
-              <Star size={15} />
-              Favoritos
-            </Button>
-          )}
-          <Select
-            aria-label="Tipo de vaga"
-            value={type}
-            onChange={(e) => setType(e.target.value as TipoVaga | '')}
-          >
-            <option value="">Todos os tipos</option>
-            <option value="COMUM">Carro</option>
-            <option value="PCD">PCD</option>
-            <option value="MOTO">Moto</option>
-          </Select>
-        </div>
-      </div>
-      <div className="mobile-view-toggle">
-        <Tabs
-          value={mobilePane}
-          onChange={setMobilePane}
-          options={[
-            { value: 'lista', label: 'Lista' },
-            { value: 'mapa', label: 'Ver mapa' },
-          ]}
-        />
-      </div>
-      <div className="parking-workspace" data-mobile-pane={mobilePane}>
-        <section className="parking-results" aria-label="Estacionamentos disponíveis">
-          <div className="results-heading">
+          <div className="lot-results-summary">
             <span>
-              {lots.length} {lots.length === 1 ? 'estacionamento' : 'estacionamentos'}
-              {favoritesOnly ? ' nos favoritos' : ' encontrados'}
+              {lots.length} {lots.length === 1 ? 'bolsão' : 'bolsões'}
             </span>
             {hasFilters ? (
               <button onClick={clear}>
@@ -184,205 +126,151 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
               </span>
             )}
           </div>
-          {!lots.length ? (
-            <EmptyState
-              title={favoritesOnly ? 'Nenhum estacionamento favorito' : 'Nenhum resultado'}
-              description={
-                favoritesOnly
-                  ? 'Adicione estacionamentos usando a estrela ao lado do nome.'
-                  : 'Tente outro nome ou ajuste os filtros.'
-              }
-            >
-              {hasFilters ? (
-                <Button variant="secondary" onClick={clear}>
-                  Limpar filtros
-                </Button>
-              ) : (
-                <Link className="btn btn-secondary" to="/estacionamentos">
-                  Ver todos
-                </Link>
-              )}
-            </EmptyState>
-          ) : (
-            lots.map((lot, index) => (
+          <div className="lot-result-list">
+            {lots.map((lot) => (
               <ParkingRow
                 key={lot.id}
                 lot={lot}
-                index={index}
-                selected={lot.id === currentId}
-                best={lot.id === bestId && lot.vagasLivres > 0}
+                selected={currentId === lot.id}
                 onSelect={() => {
                   setSelectedId(lot.id);
-                  setMobilePane('mapa');
+                  if (window.matchMedia?.('(max-width: 760px)').matches) {
+                    requestAnimationFrame(() =>
+                      sectorRef.current?.scrollIntoView({
+                        block: 'start',
+                        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                          ? 'auto'
+                          : 'smooth',
+                      }),
+                    );
+                  }
                 }}
                 favorite={favorites.data.includes(lot.id)}
                 onFavorite={() => void favorites.toggle(lot.id)}
               />
-            ))
-          )}
-          <p className="results-footnote">
-            <span className="sensor-symbol" />
-            Detecção automática por sensores. A disponibilidade pode mudar durante o trajeto.
+            ))}
+            {!lots.length && (
+              <EmptyState
+                title={favoritesOnly ? 'Nenhum estacionamento favorito' : 'Nenhum resultado'}
+                description="Ajuste os filtros ou busque outro bolsão."
+              >
+                {hasFilters && (
+                  <Button variant="secondary" onClick={clear}>
+                    Limpar filtros
+                  </Button>
+                )}
+              </EmptyState>
+            )}
+          </div>
+          <p className="lot-data-note">
+            {USE_MOCK
+              ? 'Demonstração: acessos, trajetos e coordenadas ilustrativos.'
+              : 'A disponibilidade pode mudar durante o trajeto.'}
           </p>
         </section>
-        <aside className="parking-map-pane">
-          <div className="map-view-bar">
-            <span>
-              <MapPin size={14} />
-              Visão do campus
-            </span>
-            <Tabs
-              value={mode}
-              onChange={setMode}
-              options={[
-                { value: 'esquema', label: 'Esquema' },
-                {
-                  value: 'mapa',
-                  label: (
-                    <>
-                      <Map size={13} />
-                      Mapa
-                    </>
-                  ),
-                },
-              ]}
-            />
-          </div>
-          {mode === 'mapa' ? (
-            <CampusMap lots={lots} onFail={() => setMode('esquema')} />
+        <div className="sector-pane" ref={sectorRef}>
+          <a className="return-to-lots" href="#bolsoes">
+            Voltar aos bolsões
+          </a>
+          {currentId ? (
+            <SectorPlan key={currentId} id={currentId} />
           ) : (
-            <CampusPlan
-              lots={lots}
-              lotOrder={query.data.map((lot) => lot.id)}
-              selectedId={currentId}
-              onSelect={setSelectedId}
-              campus={campus}
-            />
+            <div className="sector-placeholder">
+              <MapPin size={24} />
+              <p>Nenhum bolsão selecionado.</p>
+            </div>
           )}
-        </aside>
+        </div>
       </div>
     </div>
   );
 }
+
 function ParkingRow({
   lot,
-  index,
   selected,
-  best,
   favorite,
   onFavorite,
   onSelect,
 }: {
   lot: EstacionamentoResumo;
-  index: number;
   selected: boolean;
-  best: boolean;
   favorite: boolean;
   onFavorite: () => void;
   onSelect: () => void;
 }) {
-  const Trend =
-    lot.tendencia === 'SUBINDO'
-      ? ArrowUpRight
-      : lot.tendencia === 'CAINDO'
-        ? ArrowDownRight
-        : Minus;
-  const low = lot.vagasLivres > 0 && lot.vagasLivres / Math.max(1, lot.totalVagas) <= 0.2;
+  const unavailable = Math.max(0, lot.totalVagas - lot.vagasLivres);
+  const percentage = lot.totalVagas ? Math.round((unavailable / lot.totalVagas) * 100) : 0;
+  const url = directionsUrl(lot);
   return (
-    <article className={`parking-row ${selected ? 'selected' : ''}`}>
+    <article className={`lot-row ${selected ? 'lot-selected' : ''}`}>
       <header>
+        <h2>
+          <button
+            onClick={onSelect}
+            aria-pressed={selected}
+            aria-label={`Ver planta de ${lot.nome}`}
+          >
+            {lot.nome}
+          </button>
+        </h2>
         <button
-          className="parking-index"
-          onClick={onSelect}
-          aria-label={`Localizar ${lot.nome} no esquema`}
-          aria-pressed={selected}
-        >
-          {String(index + 1).padStart(2, '0')}
-        </button>
-        <div>
-          <Link to={`/estacionamentos/${lot.id}`}>
-            <h2>{lot.nome}</h2>
-          </Link>
-          <p>{lot.descricao || 'Sem descrição de acesso'}</p>
-        </div>
-        <button
-          className={`icon-button favorite-button ${favorite ? 'is-favorite' : ''}`}
+          className="icon-button"
           aria-label={`${favorite ? 'Remover' : 'Adicionar'} ${lot.nome} ${favorite ? 'dos' : 'aos'} favoritos`}
           aria-pressed={favorite}
           onClick={onFavorite}
         >
-          <Star size={18} fill={favorite ? 'currentColor' : 'none'} />
+          <Star size={16} fill={favorite ? 'currentColor' : 'none'} />
         </button>
       </header>
-      <div className="parking-row-main">
+      <p className="lot-access">
+        <MapPin size={13} />
+        {lot.portao || 'Acesso não informado'}
+      </p>
+      <div className="lot-capacity">
+        <span className={lot.vagasLivres ? 'lot-free' : ''}>
+          <strong>{lot.vagasLivres}</strong>
+          <span>/{lot.totalVagas}</span>
+        </span>
+        <span>vagas livres</span>
+        <span className="lot-state">
+          {!lot.totalVagas ? 'Sem layout' : lot.vagasLivres ? 'Disponível' : 'Sem vagas livres'}
+        </span>
+      </div>
+      <p className="lot-walk">
+        <Clock size={13} />
+        {lot.caminhadaMinutos != null && lot.caminhadaDestino
+          ? `${lot.caminhadaMinutos} min a pé até ${lot.caminhadaDestino}`
+          : 'Tempo a pé não informado'}
+      </p>
+      <div className="lot-occupancy">
         <div
-          className={`parking-row-count ${!lot.vagasLivres ? 'count-zero' : ''}`}
-          aria-live="polite"
+          role="meter"
+          aria-label={`Vagas indisponíveis em ${lot.nome}`}
+          aria-valuenow={unavailable}
+          aria-valuemin={0}
+          aria-valuemax={lot.totalVagas || 1}
         >
-          <strong>{String(lot.vagasLivres).padStart(2, '0')}</strong>
-          <span>
-            vagas livres<small>de {lot.totalVagas} no total</small>
-          </span>
+          <span style={{ width: `${percentage}%` }} />
         </div>
-        <div className="parking-capacity">
-          <Badge
-            className={
-              !lot.totalVagas
-                ? ''
-                : !lot.vagasLivres
-                  ? 'badge-red'
-                  : low
-                    ? 'badge-amber'
-                    : 'badge-green'
-            }
-          >
-            <span className="badge-dot" />
-            {!lot.totalVagas
-              ? 'Sem layout'
-              : !lot.vagasLivres
-                ? 'Lotado'
-                : low
-                  ? 'Quase cheio'
-                  : 'Disponível'}
-          </Badge>
-          <span>
-            {lot.totalVagas ? Math.round((lot.vagasLivres / lot.totalVagas) * 100) : 0}% disponíveis
-          </span>
-        </div>
+        <span>{percentage}% indisponíveis</span>
       </div>
-      <OccupancyBar total={lot.totalVagas} livres={lot.vagasLivres} />
-      <div className="parking-row-details">
-        <span title="Vagas comuns livres">
-          <CarFront size={14} />
-          {lot.livresPorTipo.COMUM} carro
-        </span>
-        <span title="Vagas para moto livres">
-          <Bike size={14} />
-          {lot.livresPorTipo.MOTO} moto
-        </span>
-        <span title="Vagas PCD livres">
-          <Accessibility size={14} />
-          {lot.livresPorTipo.PCD} PCD
-        </span>
-        <span className="parking-trend">
-          <Trend size={13} />
-          {lot.tendencia === 'SUBINDO'
-            ? 'Mais vagas'
-            : lot.tendencia === 'CAINDO'
-              ? 'Menos vagas'
-              : 'Estável'}
-        </span>
-      </div>
-      <footer>
-        {best ? (
-          <span className="best-option-label">Mais vagas agora</span>
-        ) : (
-          <span className="parking-period">Tendência nos últimos 15 min</span>
-        )}
-        <Link to={`/estacionamentos/${lot.id}`}>
-          Ver vagas <ArrowRight size={15} />
-        </Link>
-      </footer>
+      {url ? (
+        <a
+          className={`btn ${selected ? 'btn-primary' : 'btn-secondary'} lot-navigate`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Navegar até o bolsão ${lot.nome} (Google Maps, nova aba)`}
+        >
+          <Navigation size={15} />
+          Navegar até o bolsão
+        </a>
+      ) : (
+        <Button variant="secondary" disabled>
+          Coordenadas não informadas
+        </Button>
+      )}
     </article>
   );
 }

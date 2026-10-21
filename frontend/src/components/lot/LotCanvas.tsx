@@ -19,7 +19,7 @@ interface Props extends Layout {
   onChange?: (layout: Layout) => void;
   onDropItem?: (tipo: string, x: number, y: number) => void;
 }
-const colors = { LIVRE: '#78C59E', OCUPADA: '#DF8984', SEM_SINAL: '#8B99AA' };
+const colors = { LIVRE: '#7CB89D', OCUPADA: '#727B89', SEM_SINAL: '#9399A4' };
 export function LotCanvas({
   vagas,
   elementos,
@@ -247,7 +247,7 @@ export function LotCanvas({
                 width={el.largura}
                 height={el.altura}
                 fill={el.tipo === 'VIA' ? '#2a323d' : '#141c23'}
-                stroke={selected.includes(el.id) ? '#EFC54B' : '#3b4854'}
+                stroke={selected.includes(el.id) ? '#FBBF24' : '#3b4854'}
                 strokeWidth={1}
                 cornerRadius={4}
               />
@@ -274,7 +274,7 @@ export function LotCanvas({
           ))}
           {vagas.map((vaga) => {
             const status = statuses.find((s) => s.vagaId === vaga.id)?.status ?? 'SEM_SINAL';
-            const color = mode === 'edit' ? '#EFC54B' : colors[status];
+            const color = mode === 'edit' ? '#FBBF24' : colors[status];
             const w = vaga.largura;
             const h = vaga.altura;
             return (
@@ -357,7 +357,7 @@ export function LotCanvas({
                     text={
                       mode === 'edit'
                         ? vaga.tipo === 'PCD'
-                          ? '♿'
+                          ? 'PCD'
                           : vaga.tipo === 'MOTO'
                             ? 'M'
                             : 'P'
@@ -400,8 +400,8 @@ export function LotCanvas({
               rotateEnabled
               rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
               flipEnabled={false}
-              borderStroke="#EFC54B"
-              anchorStroke="#EFC54B"
+              borderStroke="#FBBF24"
+              anchorStroke="#FBBF24"
               anchorFill="#14181D"
               boundBoxFunc={(oldBox, newBox) =>
                 newBox.width < 20 || newBox.height < 20 ? oldBox : newBox
@@ -414,8 +414,8 @@ export function LotCanvas({
               y={Math.min(box.y, box.endY)}
               width={Math.abs(box.endX - box.x)}
               height={Math.abs(box.endY - box.y)}
-              fill="#EFC54B20"
-              stroke="#EFC54B"
+              fill="#FBBF2420"
+              stroke="#FBBF24"
               listening={false}
             />
           )}
