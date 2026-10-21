@@ -33,3 +33,8 @@ Revisão do grupo: entender os scripts e os tokens; fontes e logo não dependem 
 A IA criou tipos, cliente HTTP, MSW com CRUD, seed de 14 dias e permissões por empresa e perfil. O armazenamento opcional local guarda apenas dados fictícios da demo.
 Revisão do grupo: comparar contrato e futuros schemas FastAPI; o mock não substitui segurança real (JWT, hash de senhas e chaves).
 
+
+### Fase 3 — Autenticação
+A IA implementou cadastro de empresa, login, validação de campos, força/visibilidade de senha e guardas por role. A interface inclui logo original de holofote, shell administrativo e navegação móvel.
+Revisão do grupo: testar ADMIN e USER, entender Context e guardas; nunca usar dados pessoais ou senhas reais no mock.
+
