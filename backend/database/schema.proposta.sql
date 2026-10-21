@@ -7,7 +7,6 @@ CREATE TABLE batsinal.empresas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(120) NOT NULL CHECK (length(trim(nome)) >= 2),
     slug VARCHAR(80) NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
-    publicado BOOLEAN NOT NULL DEFAULT FALSE,
     criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

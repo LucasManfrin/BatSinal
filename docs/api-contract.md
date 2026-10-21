@@ -10,7 +10,7 @@ Cadastro cria empresa e responsável; a resposta não tem campo `role`.
 
 - GET/PUT/DELETE: 200; POST: 201; DELETE retorna `null`.
 - Erro: `{ "status": 422, "mensagem": "Confira os campos.", "campos": { "email": "E-mail inválido." } }`.
-- 401: sem sessão; 404: ausente, de outra empresa ou campus não publicado; 405: escrita em consulta pública;
+- 401: sem sessão; 404: recurso ausente ou de outra empresa; 405: método não permitido;
   409: conflito; 422: validação. Backend real também pode retornar 400 com o mesmo formato.
 - Rotas da empresa filtram pelo `empresaId` resolvido da sessão, nunca pelo corpo enviado pelo navegador.
 - Tipos completos: `frontend/src/types/index.ts`. `StatusVaga`: LIVRE, OCUPADA, SEM_SINAL.
@@ -19,14 +19,14 @@ Cadastro cria empresa e responsável; a resposta não tem campo `role`.
 
 | Método / rota | Resposta |
 | --- | --- |
-| GET `/publico/campi` | `{ id, nome, slug }[]` somente de empresas publicadas |
+| GET `/publico/campi` | `{ id, nome, slug }[]` de todos os campi cadastrados |
 | GET `/publico/campi/{slug}/estacionamentos` | `EstacionamentoResumo[]` sem layouts internos ou sensores |
 | GET `/publico/campi/{slug}/estacionamentos/{id}` | Layout de consulta, sem `sensorId` nas vagas |
 | GET `/publico/campi/{slug}/estacionamentos/{id}/status` | `{ vagaId, status, atualizadoEm }[]` |
 
 Essas rotas nunca retornam e-mails de responsáveis, senhas, hashes, IDs ou chaves dos sensores.
-O ID do bolsão deve pertencer ao campus indicado. Campus fechado devolve 404, inclusive para
-quem conhece o ID. Escritas em `/publico/*` devolvem 405. Analytics e sensores não são públicos.
+O ID do bolsão deve pertencer ao campus indicado. A consulta é sempre aberta, sem aprovação ou
+controle de visibilidade. Escritas em `/publico/*` devolvem 405. Analytics e sensores não são públicos.
 
 ## Empresa e autenticação
 
@@ -35,12 +35,11 @@ quem conhece o ID. Escritas em `/publico/*` devolvem 405. Analytics e sensores n
 | POST `/auth/cadastro-empresa` | Público | `{ nomeEmpresa, nome, email, senha }` | `{ token, administrador }` |
 | POST `/auth/login` | Público | `{ email, senha }` | `{ token, administrador }` |
 | GET `/auth/me` | Responsável | — | `{ id, empresaId, nome, email }` |
-| GET `/empresa` | Responsável | — | `{ id, nome, slug, publicado }` |
-| PUT `/empresa` | Responsável | `{ publicado: boolean }` | Empresa atualizada |
+| GET `/empresa` | Responsável | — | `{ id, nome, slug }` |
 
 Senha demonstrativa exige 8 caracteres, minúscula, maiúscula e número. E-mail é único.
-Slug é criado a partir do nome, com sufixo se já existir. Empresa nova inicia com `publicado: false`.
-O seed Unisagrado é publicado. Sessões mock usam tokens opacos e senhas fictícias; segurança real
+Slug é criado a partir do nome, com sufixo se já existir. Empresa nova já pode ser consultada sem login.
+Não existe campo `publicado` nem endpoint para fechar a consulta. Sessões mock usam tokens opacos e senhas fictícias; segurança real
 está no [planejamento do backend](ARQUITETURA_BACKEND.md).
 
 Não existem cadastro/login de visitante, roles USER/ADMIN, CRUD de usuários ou favoritos no contrato atual.
@@ -91,7 +90,7 @@ Ocupação significa indisponibilidade: (total − livres)/total; inclui sem sin
 ## Planejado para a API real — ainda não implementado no mock
 
 - GET/PUT `/empresa/mapa`: mapa GeoJSON, PUT com `{ versao, geojson }`; conflito de versão: 409.
-- GET `/publico/campi/{slug}/mapa`: GeoJSON do campus publicado, sem dados internos.
+- GET `/publico/campi/{slug}/mapa`: GeoJSON do campus cadastrado, sem dados internos.
 - PUT `/dispositivo/vagas/{id}/status`: chave do sensor vinculado em `X-Device-Key`;
   `{ status: "LIVRE" | "OCUPADA" }`; hora de recebimento definida pelo servidor.
 - Controle `layoutVersao` ao salvar o layout na API real.

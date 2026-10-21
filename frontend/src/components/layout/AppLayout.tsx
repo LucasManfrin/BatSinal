@@ -109,8 +109,8 @@ export function AppLayout() {
               {label}
             </NavLink>
           ))}
-          <Link to={company.data?.publicado ? `/c/${company.data.slug}` : '/empresa'}>
-            {company.data?.publicado ? 'Consultar vagas' : 'Publicar consulta'}
+          <Link to={company.data ? `/c/${company.data.slug}` : '/'}>
+            Consultar vagas
             <ArrowRight size={14} />
           </Link>
         </nav>

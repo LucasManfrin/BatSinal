@@ -25,8 +25,8 @@ export function CampusEntry() {
       </div>
       {!campi.data.length && (
         <EmptyState
-          title="Nenhum campus publicado"
-          description="A empresa precisa publicar a consulta para disponibilizar suas vagas."
+          title="Nenhum campus cadastrado"
+          description="Os campi aparecerão aqui quando as empresas se cadastrarem."
         />
       )}
       <Link className="text-link" to="/login">

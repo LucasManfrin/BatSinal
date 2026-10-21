@@ -20,7 +20,7 @@ export function LotsPage() {
     return (
       <EmptyState
         title="Campus não disponível"
-        description="A consulta está fechada ou o endereço não existe."
+        description="O endereço informado não corresponde a um campus cadastrado."
       >
         <Link className="btn btn-secondary" to="/">
           Escolher campus

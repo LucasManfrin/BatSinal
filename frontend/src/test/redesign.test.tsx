@@ -129,7 +129,7 @@ describe('consulta e perfil redesenhados', () => {
     ).not.toBeInTheDocument();
     expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
   });
-  it('permite ao responsável publicar e fechar a consulta de sua empresa', async () => {
+  it('mostra o endereço público da empresa sem controle de visibilidade', async () => {
     auth.user = {
       id: 'admin',
       empresaId: 'unisagrado',
@@ -138,17 +138,12 @@ describe('consulta e perfil redesenhados', () => {
     };
     store.sessoes['teste-ui'] = 'admin';
     localStorage.setItem(TOKEN_KEY, 'teste-ui');
-    const user = userEvent.setup();
     show(<CompanyPage />, '/empresa');
-    const toggle = await screen.findByRole('switch', { name: 'Publicar consulta de vagas' });
-    expect(toggle).toBeChecked();
-    await user.click(toggle);
-    await waitFor(() => expect(store.empresas[0].publicado).toBe(false));
-    expect(await screen.findByText('Consulta fechada')).toBeInTheDocument();
-    await user.click(toggle);
-    expect(await screen.findByRole('link', { name: 'Abrir consulta pública' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: '/c/unisagrado' })).toHaveAttribute(
       'href',
       '/c/unisagrado',
     );
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+    expect(screen.queryByText('Consulta fechada')).not.toBeInTheDocument();
   });
 });

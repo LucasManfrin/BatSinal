@@ -130,8 +130,8 @@ export function createSeed(): MockStore {
   );
   return {
     navigationSchema: 1,
-    accessSchema: 2,
-    empresas: [{ id: 'unisagrado', nome: 'Unisagrado', slug: 'unisagrado', publicado: true }],
+    accessSchema: 3,
+    empresas: [{ id: 'unisagrado', nome: 'Unisagrado', slug: 'unisagrado' }],
     administradores: [
       {
         id: 'admin',
@@ -162,12 +162,11 @@ export function migrateStore(saved: LegacyStore): MockStore {
       .map(({ id, empresaId, nome, email, senha }) => ({ id, empresaId, nome, email, senha }));
   return {
     navigationSchema: saved.navigationSchema,
-    accessSchema: 2,
+    accessSchema: 3,
     empresas: saved.empresas.map((e) => ({
       id: e.id,
       nome: e.nome,
       slug: e.slug ?? (e.id === 'unisagrado' ? 'unisagrado' : 'campus-' + e.id),
-      publicado: e.publicado ?? e.id === 'unisagrado',
     })),
     administradores,
     estacionamentos: saved.estacionamentos,
@@ -197,7 +196,7 @@ function loadStore(): MockStore {
         });
         saved.navigationSchema = 1;
       }
-      if (legacy.accessSchema !== 2 || legacy.navigationSchema !== 1) {
+      if (legacy.accessSchema !== 3 || legacy.navigationSchema !== 1) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
         } catch {

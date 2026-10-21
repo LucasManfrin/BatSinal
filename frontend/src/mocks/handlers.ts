@@ -243,13 +243,10 @@ export const handlers = [
       if (resource === 'publico') {
         if (method !== 'GET') throw new MockError(405, 'Consulta pública permite somente leitura.');
         if (id !== 'campi') throw new MockError(404, 'Rota não encontrada.');
-        if (!action)
-          result = store.empresas
-            .filter((e) => e.publicado)
-            .map(({ id, nome, slug }) => ({ id, nome, slug }));
+        if (!action) result = store.empresas.map(({ id, nome, slug }) => ({ id, nome, slug }));
         else {
-          const empresa = store.empresas.find((e) => e.slug === action && e.publicado);
-          if (!empresa) throw new MockError(404, 'Campus não disponível para consulta.');
+          const empresa = store.empresas.find((e) => e.slug === action);
+          if (!empresa) throw new MockError(404, 'Campus não encontrado.');
           const [, , , collection, lotId, detail] = path;
           if (collection !== 'estacionamentos') throw new MockError(404, 'Rota não encontrada.');
           if (!lotId)
@@ -291,7 +288,7 @@ export const handlers = [
         const slug = store.empresas.some((e) => e.slug === baseSlug)
           ? baseSlug + '-' + idEmpresa.slice(0, 8)
           : baseSlug;
-        const empresa = { id: idEmpresa, nome: nomeEmpresa, slug, publicado: false };
+        const empresa = { id: idEmpresa, nome: nomeEmpresa, slug };
         const user = {
           id: crypto.randomUUID(),
           empresaId: empresa.id,
@@ -310,13 +307,8 @@ export const handlers = [
         if (resource === 'auth' && id === 'me' && method === 'GET') result = user;
         else if (resource === 'empresa' && !id) {
           const empresa = store.empresas.find((e) => e.id === user.empresaId)!;
-          if (method === 'GET') result = empresa;
-          else if (method === 'PUT') {
-            if (typeof body.publicado !== 'boolean')
-              throw new MockError(422, 'Informe se a consulta está publicada.');
-            empresa.publicado = body.publicado;
-            result = empresa;
-          }
+          if (method !== 'GET') throw new MockError(405, 'Método não permitido.');
+          result = empresa;
         } else if (resource === 'estacionamentos') {
           if (!id) {
             if (method === 'GET')

@@ -241,3 +241,22 @@ Revisão humana pendente: confirmar portões/percursos reais, desenhar o mapa do
 e relações, testar celulares e tecnologias assistivas e conferir segurança antes de implementar a API real.
 O plano não equivale a um backend pronto. Nenhuma revisão humana foi registrada pela IA.
 
+## Ajuste — consulta de vagas sempre aberta
+
+O usuário corrigiu a regra da fase anterior: vagas e layouts devem ser consultados por qualquer
+pessoa, sem cadastro, login ou liberação da empresa. A IA removeu o controle de publicação da tela
+Minha empresa, o campo `publicado`, a atualização de visibilidade da API mock e a coluna correspondente
+do SQL proposto. O endereço da consulta continua disponível na área da empresa.
+
+Todas as empresas cadastradas aparecem na consulta pública, inclusive as novas. A migração local
+descarta flags antigas de publicação e preserva cadastros, layouts, sensores, histórico e sessões
+administrativas. Painel, editor e gestão continuam exigindo login e filtrando os dados por empresa.
+Os dados internos de contas e sensores continuam fora das respostas públicas.
+
+Os testes foram ajustados para consulta imediata de empresa nova sem token, acesso mesmo com uma
+flag antiga de consulta fechada, preservação dos dados na migração e ausência do controle na tela.
+A suíte completa aprovou 34 testes em sete arquivos; lint/Prettier e build de produção também aprovaram.
+A IA conferiu visualmente Minha empresa sem a opção removida e atualizou [a captura](minha-empresa.png).
+README, contrato e planejamento do backend/banco refletem a nova regra. Não houve implementação da API
+real nem aplicação do SQL. As etapas anteriores deste registro permanecem como histórico da decisão substituída.
+

@@ -4,7 +4,6 @@ export interface Empresa {
   id: string;
   nome: string;
   slug: string;
-  publicado: boolean;
 }
 export type CampusPublico = Pick<Empresa, 'id' | 'nome' | 'slug'>;
 export interface Administrador {

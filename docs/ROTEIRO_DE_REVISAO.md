@@ -8,7 +8,7 @@ Cada integrante deve conseguir seguir uma requisição desde a tela até o mock 
 | Consulta | queryKey por campus/empresa, cache e polling de 3 s | Contador e cores mudam sem recarregar; visitante não envia token ou altera dados |
 | Lista e planta | seleção e geometria retornada pela API | Filtrar por nome e tipo; trocar bolsão; consultar vaga pelo teclado; verificar ocupada e sem sinal separadamente |
 | Acesso e rota | campos opcionais e coordenadas cadastradas | Editar portão/minutos/destino; conferir estados sem informação; validar destino do link antes de usar dados reais |
-| Empresa | responsável, slug e publicação | Cadastrar empresa; começar fechada; publicar e consultar sem sessão; fechar novamente |
+| Empresa | responsável e slug | Cadastrar empresa e consultar suas vagas imediatamente sem sessão; sair e conferir que só a administração exige login |
 | Cabeçalho e busca | consulta compartilhada, menu e navegação | Visitante acessa consulta e cadastro de empresa; responsável acessa administração e Minha empresa; buscar com Ctrl+K |
 | Mock | empresa da sessão, handlers e seed | Nova empresa não enxerga o campus seed; CRUD persiste ao recarregar |
 | Canvas | coordenadas lógicas e escala | Zoom, pan, centralizar, clicar numa vaga e consultar pela lista HTML |

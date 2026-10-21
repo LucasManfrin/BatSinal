@@ -36,7 +36,7 @@ Erros de formulário continuam tendo texto explícito e cor de erro.
 - Desktop com lista e planta lado a lado; mobile empilhado, com acesso direto à planta e retorno aos bolsões.
 - Simulador apenas na administração autenticada. Visitantes não alteram dados.
 - Cadastro exclusivo de empresas. Não há perfil, favoritos ou veículos de motoristas.
-- Minha empresa reúne responsável, endereço do campus e publicação da consulta.
+- Minha empresa reúne responsável e link da consulta, sempre pública. Não há controle de visibilidade.
 
 ## Origem dos dados
 
@@ -52,7 +52,7 @@ rotas externas e tiles opcionais do cadastro exigem internet.
 
 - [Cadastro exclusivo de empresa](cadastro-empresa.png)
 - [Menu da consulta sem conta](consulta-sem-conta.png)
-- [Minha empresa e publicação](minha-empresa.png)
+- [Minha empresa](minha-empresa.png)
 
 - [Consulta desktop](mobility-estacionamentos.png)
 - [Lista em 360 px](mobility-mobile.png)

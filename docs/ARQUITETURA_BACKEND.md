@@ -9,9 +9,9 @@ a API real e o banco ainda não foram implementados. O SQL proposto não foi apl
 - Empresa: cadastra seu responsável, que gerencia mapa, bolsões, vagas e sensores.
 
 Um responsável e um campus por empresa no MVP. Sem tabela de motoristas ou sistema de convites.
-Cada empresa tem endereço `/c/{slug}`. O cadastro inicia com `publicado = false`; o responsável
-revisa o mapa e libera a consulta em **Minha empresa**. Fechar devolve 404 nas rotas públicas,
-preservando os cadastros. O seed Unisagrado já é publicado, com dados apenas demonstrativos.
+Cada empresa tem endereço `/c/{slug}`. A consulta de todos os campi é livre desde o cadastro,
+sem aprovação ou controle de visibilidade. Login é exigido para o painel, cadastro/edição de espaços,
+mapas e sensores. O seed Unisagrado tem dados apenas demonstrativos.
 
 ## Tecnologia e organização
 
@@ -48,7 +48,7 @@ O desenho completo está em [schema.proposta.sql](../backend/database/schema.pro
 
 | Tabela | Guarda |
 | --- | --- |
-| empresas | Nome, slug e publicação |
+| empresas | Nome e slug |
 | administradores | Responsável, e-mail e hash da senha; sem role |
 | mapas_campus | GeoJSON, versão e atualização; um mapa por empresa |
 | estacionamentos | Bolsões, acesso, caminhada, coordenadas e dimensões do layout |
@@ -107,13 +107,13 @@ Na API real, fazer o mesmo com `layoutVersao` para evitar sobrescrita entre abas
 ## API e proteção
 
 O [contrato atual](api-contract.md) separa rotas públicas de rotas da empresa. A consulta pública só
-retorna nome, geometria e disponibilidade de campus publicado. Não retorna e-mail, senha/hash,
+retorna nome, geometria e disponibilidade dos campi cadastrados. Não retorna e-mail, senha/hash,
 sensorId ou chaves. Escritas públicas, analytics e cadastro de sensores são bloqueados.
 
 Rotas planejadas para o mapa, ainda ausentes do mock:
 
 - GET/PUT `/empresa/mapa`: ler/salvar o próprio mapa; PUT recebe versão e GeoJSON.
-- GET `/publico/campi/{slug}/mapa`: mapa do campus publicado.
+- GET `/publico/campi/{slug}/mapa`: mapa do campus cadastrado, sempre aberto para consulta.
 
 Cadastro de empresa, responsável e mapa vazio será uma transação. Login real usará hash Argon2 e
 token de acesso com prazo curto, seguindo a abordagem documentada pelo
@@ -128,7 +128,7 @@ leitura há mais de 60 segundos, a consulta calcula SEM_SINAL. Não há lançame
 
 1. FastAPI, configuração por ambiente, PostgreSQL de desenvolvimento e primeira migração.
 2. Cadastro/login do responsável e testes de isolamento de empresa.
-3. Publicação e consultas públicas com DTOs sem dados internos.
+3. Consultas públicas permanentes com DTOs sem dados internos.
 4. CRUDs, layout atômico e importação do mapa GeoJSON com controle de versão.
 5. Dispositivos, expiração de sinal, histórico e analytics.
 6. Trocar `VITE_USE_MOCK=false`, validar o contrato e testar com os sensores reais.

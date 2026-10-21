@@ -44,6 +44,7 @@ it('migra apenas administradores antigos e invalida sessões de visitantes', () 
   const { administradores, ...legacy } = seed;
   const migrated = migrateStore({
     ...legacy,
+    empresas: legacy.empresas.map((e) => ({ ...e, publicado: false })),
     usuarios: [
       { ...administradores[0], role: 'ADMIN' },
       { ...administradores[0], id: 'visitante', role: 'USER' },
@@ -53,5 +54,7 @@ it('migra apenas administradores antigos e invalida sessões de visitantes', () 
   expect(migrated.administradores.map((a) => a.id)).toEqual(['admin']);
   expect(migrated.administradores[0]).not.toHaveProperty('role');
   expect(migrated.sessoes).toEqual({ empresa: 'admin' });
+  expect(migrated.empresas[0]).not.toHaveProperty('publicado');
+  expect(migrated.accessSchema).toBe(3);
   expect(migrated.estacionamentos[0].vagas).toEqual(seed.estacionamentos[0].vagas);
 });

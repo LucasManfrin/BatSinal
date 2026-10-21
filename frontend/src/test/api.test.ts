@@ -54,6 +54,7 @@ describe('fluxos HTTP da demonstração', () => {
     expect(cleared.caminhadaDestino).toBeUndefined();
   });
   it('permite consulta sem token e bloqueia escrita e administração', async () => {
+    Object.assign(store.empresas[0], { publicado: false });
     localStorage.removeItem(TOKEN_KEY);
     const lots = await api<EstacionamentoResumo[]>('/publico/campi/unisagrado/estacionamentos');
     expect(lots).toHaveLength(3);
@@ -86,7 +87,7 @@ describe('fluxos HTTP da demonstração', () => {
     expect(await api('/publico/campi')).toHaveLength(1);
     expect(localStorage.getItem(TOKEN_KEY)).toBe('token-antigo');
   });
-  it('empresa começa fechada, publica somente seus espaços e pode fechar novamente', async () => {
+  it('empresa nova já tem consulta aberta sem login, mantendo a gestão protegida', async () => {
     const session = await api<import('../types').Sessao>('/auth/cadastro-empresa', {
       method: 'POST',
       body: json({
@@ -98,21 +99,23 @@ describe('fluxos HTTP da demonstração', () => {
     });
     localStorage.setItem(TOKEN_KEY, session.token);
     const company = await api<import('../types').Empresa>('/empresa');
-    expect(company.publicado).toBe(false);
+    expect(company).not.toHaveProperty('publicado');
     expect(session.administrador).not.toHaveProperty('role');
     await api('/estacionamentos', { method: 'POST', body: json({ nome: 'Bolsão novo' }) });
-    await expect(api('/publico/campi/' + company.slug + '/estacionamentos')).rejects.toMatchObject({
-      details: { status: 404 },
+    localStorage.removeItem(TOKEN_KEY);
+    expect(await api('/publico/campi')).toContainEqual({
+      id: company.id,
+      nome: company.nome,
+      slug: company.slug,
     });
-    await api('/empresa', { method: 'PUT', body: json({ publicado: true }) });
     expect(await api('/publico/campi/' + company.slug + '/estacionamentos')).toHaveLength(1);
     await expect(
       api('/publico/campi/' + company.slug + '/estacionamentos/est-1'),
     ).rejects.toMatchObject({ details: { status: 404 } });
-    await api('/empresa', { method: 'PUT', body: json({ publicado: false }) });
-    await expect(api('/publico/campi/' + company.slug + '/estacionamentos')).rejects.toMatchObject({
-      details: { status: 404 },
-    });
+    await expect(api('/empresa')).rejects.toMatchObject({ details: { status: 401 } });
+    await expect(
+      api('/estacionamentos', { method: 'POST', body: json({ nome: 'Indevido' }) }),
+    ).rejects.toMatchObject({ details: { status: 401 } });
   });
   it('isola empresas nas consultas e nos IDs conhecidos', async () => {
     store.administradores.push({

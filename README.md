@@ -16,18 +16,18 @@ O mock funciona sem backend, chave ou `.env`. Fontes são empacotadas, sem CDN.
 
 ## Visitantes e empresas
 
-- Alunos/professores consultam **sem cadastro e sem login**. A entrada abre o único campus publicado
+- Alunos/professores consultam **sem cadastro e sem login**. A entrada abre o único campus cadastrado
   ou mostra uma escolha de campi. Exemplo: `/c/unisagrado`.
 - Somente empresas se cadastram em `/cadastro`: nome da empresa, responsável, e-mail e senha.
   O responsável entra em `/login` e administra seus estacionamentos, layouts e sensores.
 - Cada empresa tem um responsável no MVP. Não existem roles USER/ADMIN, cadastro de motorista,
   gerenciamento de usuários, veículos ou favoritos.
-- Empresa nova começa com consulta fechada. Revise os dados e publique em **Minha empresa**.
-  Fechar a consulta bloqueia o endereço público e preserva os cadastros.
+- A consulta de todos os campi é sempre pública, desde o cadastro da empresa. Não há controle de visibilidade.
+  Login é exigido apenas para acessar e alterar dados administrativos.
 
 Conta fictícia para administrar o seed: **admin@unisagrado.demo / Demo@123**.
 O botão de demonstração preenche os campos; clique em **Entrar**. Nunca use senhas ou dados pessoais reais no mock.
-O seed Unisagrado já é publicado, apenas para a demonstração.
+O seed Unisagrado contém dados apenas demonstrativos.
 
 ## Simulador
 
@@ -49,11 +49,11 @@ O mock repete leituras a cada 10 s; as telas consultam status a cada 3 s. Sem le
 2. Entre como empresa e explore painel, sensores e **Minha empresa**.
 3. Cadastre estacionamento com nome, posição e dimensões. Portão e caminhada são opcionais.
 4. Abra o editor, gere um grid e configure vagas/sensores. Salve o layout.
-5. Publique a consulta e abra seu endereço em outra aba. Uma empresa nova não enxerga os dados do seed.
+5. Abra o endereço da consulta em outra aba, sem login. A gestão de uma empresa nova não acessa os dados do seed.
 6. Use o simulador na aba administrativa e observe os contadores/cores na consulta pública.
 7. No detalhe de um bolsão lotado, ative **Avisar quando abrir vaga** e libere uma vaga. O aviso exige a página aberta.
 8. Teste busca, tipo de vaga, seleção de setor, planta e lista de vagas por teclado.
-9. Feche a consulta em **Minha empresa** e confira que o endereço público passa a negar acesso.
+9. Saia da conta: a consulta permanece disponível e as rotas administrativas passam a exigir login.
 
 Editor: Ctrl+Z desfaz, Ctrl+Shift+Z refaz, Ctrl+D duplica e Delete exclui. Setas movem 1 unidade;
 Shift+setas, 10. Existem controles HTML equivalentes. Alterações pendentes têm aviso de saída.
@@ -96,7 +96,7 @@ npm run preview
 ```
 
 `lint` inclui ESLint sem warnings e Prettier. Formatação: `npm run format`.
-Última suíte: **34 testes em sete arquivos**. Cobertura de consulta anônima, cadastro, publicação,
+Última suíte: **34 testes em sete arquivos**. Cobertura de consulta anônima, cadastro e acesso público imediato,
 isolamento, proteção administrativa, DTO público, migração, seleção, teclado, acesso, sensores e geometria.
 O worker MSW já está versionado; ao atualizar a dependência, regenere com `npx msw init frontend/public`.
 
