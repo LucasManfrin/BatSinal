@@ -206,7 +206,11 @@ function ParkingRow({
         </span>
         <span>vagas livres</span>
         <span className="lot-state">
-          {!lot.totalVagas ? 'Sem layout' : lot.vagasLivres ? 'Disponível' : 'Sem vagas livres'}
+          {!lot.totalVagas
+            ? 'Sem vagas posicionadas'
+            : lot.vagasLivres
+              ? 'Disponível'
+              : 'Sem vagas livres'}
         </span>
       </div>
       <div className="lot-occupancy">

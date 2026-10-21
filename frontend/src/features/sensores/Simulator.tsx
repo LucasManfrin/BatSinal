@@ -92,7 +92,9 @@ export function Simulator() {
             })}
           </div>
           {!lot.data?.vagas.length && (
-            <p>Nenhuma vaga para simular. Crie e vincule sensores no editor.</p>
+            <p>
+              Nenhuma vaga para simular. Cadastre uma vaga e vincule um sensor em Posicionar vagas.
+            </p>
           )}
           <Button
             variant="secondary"

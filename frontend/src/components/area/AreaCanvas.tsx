@@ -475,7 +475,7 @@ function Scene(props: AreaSceneProps) {
               >
                 <meshLambertMaterial color={colorOf(vaga.status)} flatShading />
               </mesh>
-              <Html center position={[0, 0.2, 0]} distanceFactor={undefined} zIndexRange={[3, 0]}>
+              <Html center position={[0, 0.2, 0]} distanceFactor={0.05} zIndexRange={[3, 0]}>
                 <VagaTile
                   key={vaga.status}
                   vaga={vaga}
@@ -549,7 +549,10 @@ export default function AreaCanvas(props: AreaSceneProps) {
         <Scene {...props} />
       </Canvas>
       <p className="area-camera-note">
-        Arraste para girar · botão direito para mover · rolagem para aproximar
+        <span className="camera-desktop">
+          Arraste para girar · botão direito para mover · rolagem para aproximar
+        </span>
+        <span className="camera-touch">Arraste para girar · dois dedos para mover e aproximar</span>
       </p>
     </div>
   );

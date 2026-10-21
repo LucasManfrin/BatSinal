@@ -2,10 +2,13 @@
 
 ## Ferramenta e modelo
 
-- Codex, agente baseado em GPT-6.1, em 21/10/2026.
+- Codex, em 21/10/2026. O nome exato do modelo não foi confirmado pela ferramenta nesta rodada.
 - Pedido: implementação de uma demonstração local do BatSinal conforme o documento do grupo.
 - Uso: geração de código, documentação, dados sintéticos e testes; revisão automatizada de tipos e lint.
 - Não foram usados dados reais de alunos, sensores reais ou credenciais de serviços.
+
+O registro abaixo preserva a evolução do projeto. As fases antigas citam papéis e editor que
+foram removidos; a especificação vigente é a v2, registrada ao final deste documento.
 
 ## Registro por fase
 
@@ -382,3 +385,26 @@ A compilação detectou uma opção de consulta inválida nos testes; ela foi co
 Revisão de textos sem depender do logo e de desktop/celular realizada pela IA. O grupo ainda precisa
 validar o mapeamento, os tipos aceitos em cada posição e os vínculos dos sensores na maquete física.
 Não foi registrada revisão humana nem implantada uma API/banco reais.
+
+## V2 — Polimento e documentação final
+
+A IA removeu instruções antigas de editor/arraste da consulta por lista e do simulador;
+o aviso do detalhe de estacionamento também passou a usar o hook local compartilhado.
+Foram conferidos desktop e celular, consulta pública, abertura da área, persistência após
+recarregar e arraste real. Os controles de atualização/Ver de perto têm agrupamento responsivo.
+Capturas v2 documentam o estado atual; capturas sem esse prefixo registram versões anteriores.
+
+README, contrato HTTP, guia de revisão e mapa foram alinhados à implementação. O guia antigo
+de design aponta à referência vigente em `frontend/DESIGN.md`, evitando duas direções conflitantes.
+A proposta SQL foi reconciliada com conta única da empresa, sessões, áreas, âncoras e vínculos,
+sem tabela de motorista ou elementos de editor livre. Foram descritos controle de versão,
+transação de troca e importação do levantamento. Esse SQL não foi executado nem aplicado.
+
+Validação da rodada: 53 testes em 12 arquivos, ESLint/Prettier e compilação de produção.
+Há aviso de tamanho do chunk Three.js (~688 kB antes de gzip), carregado somente quando se abre
+a área 3D; não foi mascarado o aviso nem alegado teste de desempenho em hardware do grupo.
+Durante a revisão, a atualização do mock em desenvolvimento perdeu conexão com o worker;
+recarregar a página recuperou as consultas sem apagar dados. O teste de histórico também foi
+ajustado para esperar o botão habilitar após a gravação e atualização, sem atrasos fixos.
+O grupo ainda deve validar o levantamento real, explicar o código e preencher a avaliação humana
+no início deste documento. Nenhuma correção humana não informada foi atribuída aos integrantes.

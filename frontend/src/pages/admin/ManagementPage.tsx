@@ -28,7 +28,7 @@ const labels = {
   estacionamentos: [
     'Estacionamentos',
     'estacionamento',
-    'Cadastre áreas, configure acessos e edite os layouts.',
+    'Cadastre os estacionamentos e informe seus acessos. Posicione as vagas nas áreas mapeadas.',
   ],
   sensores: ['Sensores', 'sensor', 'Consulte as leituras e vincule os dispositivos às vagas.'],
 };
@@ -55,7 +55,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
     refetchInterval: resource === 'sensores' ? 3000 : false,
   });
   const details = useQuery({
-    queryKey: ['all-layouts', lots.data?.map((l) => l.id).join('|')],
+    queryKey: ['vagas-estacionamentos', lots.data?.map((l) => l.id).join('|')],
     queryFn: () =>
       Promise.all(
         (lots.data ?? []).map((l) => api<DetalheEstacionamento>(`/estacionamentos/${l.id}`)),

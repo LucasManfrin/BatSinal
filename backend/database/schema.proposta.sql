@@ -1,41 +1,36 @@
--- Proposta para PostgreSQL. Ainda não é uma migração aplicada.
--- Executar somente em um banco vazio de desenvolvimento, após revisão.
+-- Proposta PostgreSQL para revisão. Não é migração aplicada nem banco em execução.
+-- Uma conta por empresa; visitantes não possuem registros de autenticação.
 BEGIN;
 CREATE SCHEMA batsinal;
 
 CREATE TABLE batsinal.empresas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR(120) NOT NULL CHECK (length(trim(nome)) >= 2),
-    slug VARCHAR(80) NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Um responsável por empresa no MVP. Não existe papel de motorista/USER.
-CREATE TABLE batsinal.administradores (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    empresa_id UUID NOT NULL UNIQUE REFERENCES batsinal.empresas(id),
-    nome VARCHAR(120) NOT NULL,
+    slug VARCHAR(60) NOT NULL UNIQUE
+        CHECK (length(slug) >= 3 AND slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
     email VARCHAR(254) NOT NULL,
     senha_hash TEXT NOT NULL,
     criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE UNIQUE INDEX administrador_email_unico ON batsinal.administradores(lower(email));
+CREATE UNIQUE INDEX empresas_email_unico ON batsinal.empresas(lower(email));
 
--- O mapa real do campus fica no banco, não nos componentes React nem nos tiles externos.
+CREATE TABLE batsinal.sessoes (
+    token_hash TEXT PRIMARY KEY,
+    empresa_id UUID NOT NULL REFERENCES batsinal.empresas(id) ON DELETE CASCADE,
+    expira_em TIMESTAMPTZ NOT NULL
+);
+
 CREATE TABLE batsinal.mapas_campus (
     empresa_id UUID PRIMARY KEY REFERENCES batsinal.empresas(id),
-    geojson JSONB NOT NULL DEFAULT '{"type":"FeatureCollection","features":[]}'::jsonb,
-    -- Cena 2,5D em coordenadas locais; disponibilidade é consultada nas tabelas de vagas/sensores.
+    -- Blocos, portões, vias e contornos locais, sem credenciais nem leituras.
     cena JSONB CHECK (cena IS NULL OR jsonb_typeof(cena) = 'object'),
+    geojson JSONB NOT NULL DEFAULT '{"type":"FeatureCollection","features":[]}'::jsonb,
     versao INTEGER NOT NULL DEFAULT 1 CHECK (versao >= 1),
     atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT mapa_feature_collection CHECK (
-        jsonb_typeof(geojson) = 'object'
-        AND geojson ? 'type'
+    CHECK (jsonb_typeof(geojson) = 'object'
+        AND geojson ? 'type' AND geojson ? 'features'
         AND COALESCE(geojson->>'type' = 'FeatureCollection', FALSE)
-        AND geojson ? 'features'
-        AND jsonb_typeof(geojson->'features') = 'array'
-    )
+        AND jsonb_typeof(geojson->'features') = 'array')
 );
 
 CREATE TABLE batsinal.estacionamentos (
@@ -44,50 +39,67 @@ CREATE TABLE batsinal.estacionamentos (
     nome VARCHAR(120) NOT NULL,
     descricao TEXT,
     portao VARCHAR(100),
-    caminhada_minutos SMALLINT CHECK (caminhada_minutos BETWEEN 1 AND 120),
-    caminhada_destino VARCHAR(100),
-    latitude NUMERIC(10,7) NOT NULL CHECK (latitude BETWEEN -90 AND 90),
-    longitude NUMERIC(10,7) NOT NULL CHECK (longitude BETWEEN -180 AND 180),
-    largura INTEGER NOT NULL CHECK (largura BETWEEN 200 AND 10000),
-    altura INTEGER NOT NULL CHECK (altura BETWEEN 200 AND 10000),
-    layout_versao INTEGER NOT NULL DEFAULT 1 CHECK (layout_versao >= 1),
-    UNIQUE (id, empresa_id),
-    CHECK ((caminhada_minutos IS NULL) = (caminhada_destino IS NULL)),
-    CHECK (caminhada_destino IS NULL OR length(trim(caminhada_destino)) > 0)
+    latitude NUMERIC(10,7) CHECK (latitude BETWEEN -90 AND 90),
+    longitude NUMERIC(10,7) CHECK (longitude BETWEEN -180 AND 180),
+    UNIQUE (id, empresa_id)
 );
 CREATE INDEX estacionamentos_empresa ON batsinal.estacionamentos(empresa_id);
+
+CREATE TABLE batsinal.areas (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    empresa_id UUID NOT NULL,
+    estacionamento_id UUID NOT NULL,
+    nome VARCHAR(120) NOT NULL,
+    contorno JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(contorno) = 'array'),
+    versao INTEGER NOT NULL DEFAULT 1 CHECK (versao >= 1),
+    UNIQUE (id, empresa_id),
+    UNIQUE (id, estacionamento_id, empresa_id),
+    FOREIGN KEY (estacionamento_id, empresa_id)
+        REFERENCES batsinal.estacionamentos(id, empresa_id) ON DELETE CASCADE
+);
+
+CREATE TABLE batsinal.ancoras (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    empresa_id UUID NOT NULL,
+    area_id UUID NOT NULL,
+    x DOUBLE PRECISION NOT NULL CHECK (x BETWEEN -10000 AND 10000),
+    z DOUBLE PRECISION NOT NULL CHECK (z BETWEEN -10000 AND 10000),
+    largura DOUBLE PRECISION NOT NULL CHECK (largura > 0 AND largura <= 1000),
+    profundidade DOUBLE PRECISION NOT NULL CHECK (profundidade > 0 AND profundidade <= 1000),
+    rotacao DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK (rotacao BETWEEN -360 AND 360),
+    tipos_aceitos TEXT[] NOT NULL CHECK (
+        cardinality(tipos_aceitos) > 0
+        AND array_position(tipos_aceitos, NULL) IS NULL
+        AND tipos_aceitos <@ ARRAY['COMUM','PCD','MOTO']::TEXT[]),
+    vaga_padrao_id UUID,
+    UNIQUE (vaga_padrao_id),
+    UNIQUE (id, area_id, empresa_id),
+    FOREIGN KEY (area_id, empresa_id) REFERENCES batsinal.areas(id, empresa_id) ON DELETE CASCADE
+);
+CREATE INDEX ancoras_area ON batsinal.ancoras(area_id);
 
 CREATE TABLE batsinal.vagas (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     empresa_id UUID NOT NULL,
     estacionamento_id UUID NOT NULL,
-    rotulo VARCHAR(30) NOT NULL CHECK (length(trim(rotulo)) > 0),
+    area_id UUID NOT NULL,
+    rotulo VARCHAR(100) NOT NULL CHECK (length(trim(rotulo)) > 0),
     tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('COMUM','PCD','MOTO')),
-    x DOUBLE PRECISION NOT NULL,
-    y DOUBLE PRECISION NOT NULL,
-    largura DOUBLE PRECISION NOT NULL CHECK (largura >= 20 AND largura <= 10000),
-    altura DOUBLE PRECISION NOT NULL CHECK (altura >= 20 AND altura <= 10000),
-    rotacao DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK (rotacao BETWEEN -360 AND 360),
+    ancora_id UUID,
     UNIQUE (id, empresa_id),
-    FOREIGN KEY (estacionamento_id, empresa_id)
-        REFERENCES batsinal.estacionamentos(id, empresa_id) ON DELETE CASCADE
+    UNIQUE (id, area_id, empresa_id),
+    -- A unicidade é conferida ao final da transação para permitir troca de duas peças.
+    UNIQUE (ancora_id) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (area_id, estacionamento_id, empresa_id)
+        REFERENCES batsinal.areas(id, estacionamento_id, empresa_id) ON DELETE CASCADE,
+    FOREIGN KEY (ancora_id, area_id, empresa_id)
+        REFERENCES batsinal.ancoras(id, area_id, empresa_id) DEFERRABLE INITIALLY DEFERRED
 );
 CREATE UNIQUE INDEX vagas_rotulo_unico ON batsinal.vagas(estacionamento_id, upper(trim(rotulo)));
-
-CREATE TABLE batsinal.elementos_layout (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    empresa_id UUID NOT NULL,
-    estacionamento_id UUID NOT NULL,
-    tipo VARCHAR(10) NOT NULL CHECK (tipo IN ('VIA','ENTRADA','SAIDA','TEXTO')),
-    x DOUBLE PRECISION NOT NULL,
-    y DOUBLE PRECISION NOT NULL,
-    largura DOUBLE PRECISION NOT NULL CHECK (largura > 0 AND largura <= 10000),
-    altura DOUBLE PRECISION NOT NULL CHECK (altura > 0 AND altura <= 10000),
-    rotacao DOUBLE PRECISION NOT NULL DEFAULT 0 CHECK (rotacao BETWEEN -360 AND 360),
-    texto VARCHAR(200),
-    FOREIGN KEY (estacionamento_id, empresa_id)
-        REFERENCES batsinal.estacionamentos(id, empresa_id) ON DELETE CASCADE
-);
+CREATE INDEX vagas_area ON batsinal.vagas(area_id);
+ALTER TABLE batsinal.ancoras ADD CONSTRAINT ancora_padrao_da_mesma_area
+    FOREIGN KEY (vaga_padrao_id, area_id, empresa_id)
+    REFERENCES batsinal.vagas(id, area_id, empresa_id) DEFERRABLE INITIALLY DEFERRED;
 
 CREATE TABLE batsinal.sensores (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -102,7 +114,6 @@ CREATE TABLE batsinal.sensores (
 );
 CREATE INDEX sensores_empresa ON batsinal.sensores(empresa_id);
 
--- Amostras por bolsão, em intervalos de 5 min, para gráficos; não guardar cada heartbeat.
 CREATE TABLE batsinal.historico_ocupacao (
     estacionamento_id UUID NOT NULL REFERENCES batsinal.estacionamentos(id) ON DELETE CASCADE,
     instante TIMESTAMPTZ NOT NULL,
@@ -113,4 +124,6 @@ CREATE TABLE batsinal.historico_ocupacao (
     PRIMARY KEY (estacionamento_id, instante),
     CHECK (livres + ocupadas + sem_sinal = total)
 );
+-- O serviço valida tipo aceito e versão sob bloqueio da área. Ao excluir uma vaga,
+-- limpa sensores.vaga_id e ancoras.vaga_padrao_id na mesma transação.
 COMMIT;

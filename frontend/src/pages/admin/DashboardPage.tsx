@@ -175,10 +175,10 @@ export function DashboardPage() {
           ) : (
             <p>
               {offline
-                ? `${offline} sensores desta área não responderam no último minuto.`
+                ? `${offline} ${offline === 1 ? 'sensor do estacionamento não respondeu' : 'sensores do estacionamento não responderam'} no último minuto.`
                 : related.length
                   ? `Os ${related.length} sensores responderam no último minuto.`
-                  : 'Nenhum sensor nesta área. Cadastre o primeiro e ligue a uma vaga.'}
+                  : 'Nenhum sensor neste estacionamento. Cadastre o primeiro e ligue a uma vaga.'}
             </p>
           )}
           <Link className="text-link" to="/admin/sensores">

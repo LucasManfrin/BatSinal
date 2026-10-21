@@ -242,7 +242,7 @@ function CampusConsult({
             <p>
               {destination
                 ? closestFree
-                  ? `A vaga ${closestFree.rotulo} é a livre mais próxima de ${destination.nome}: ${areaName(closestFree.areaId).toLowerCase()}.`
+                  ? `Vaga ${closestFree.rotulo} livre · ${areaName(closestFree.areaId)}.`
                   : `Ainda não há vagas livres perto de ${destination.nome} neste filtro.`
                 : 'Toque em um bloco para ver as vagas mais perto dele.'}
             </p>
@@ -253,22 +253,24 @@ function CampusConsult({
               </p>
             )}
           </div>
-          <UpdatedAt at={updatedAt} />
-          <Button
-            className="area-closeup"
-            onClick={() =>
-              changeParam(
-                'area',
-                selected?.areaId ??
-                  closestFree?.areaId ??
-                  ordered[0]?.areaId ??
-                  mapa.areas[0]?.id ??
-                  '',
-              )
-            }
-          >
-            Ver de perto <ArrowRight size={16} />
-          </Button>
+          <div className="campus-nearby-tools">
+            <UpdatedAt at={updatedAt} />
+            <Button
+              className="area-closeup"
+              onClick={() =>
+                changeParam(
+                  'area',
+                  selected?.areaId ??
+                    closestFree?.areaId ??
+                    ordered[0]?.areaId ??
+                    mapa.areas[0]?.id ??
+                    '',
+                )
+              }
+            >
+              Ver de perto <ArrowRight size={16} />
+            </Button>
+          </div>
           <div className="visitor-actions">
             {destination && (
               <Button

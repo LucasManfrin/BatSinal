@@ -1,26 +1,27 @@
-# Roteiro de revisão do grupo
+# Roteiro de revisão do grupo — v2
 
-Cada integrante deve conseguir seguir uma requisição desde a tela até o mock e explicar a resposta.
+Cada integrante deve conseguir seguir uma requisição da tela ao handler e explicar a resposta.
+Os itens abaixo são revisão humana pendente; a IA não os marca como realizados pelo grupo.
 
-| Área | O que explicar | O que conferir manualmente |
+| Área | Explicar | Conferir |
 | --- | --- | --- |
-| Acesso | Context, sessão do responsável e CompanyGuard | Visitante consulta sem conta; `/admin` sem sessão abre login; login inválido mostra erro |
-| Consulta | queryKey por campus/empresa, cache e polling de 3 s | Contador e cores mudam sem recarregar; visitante não envia token ou altera dados |
-| Campus inteiro | cena local, projeção isométrica e vínculos por vagaId | Escolher Bloco J/portão, filtrar tipo, selecionar vaga por teclado, alternar 2D/3D, zoom e pan; simular leitura e falha HTTP |
-| Lista e planta | seleção e geometria retornada pela API | Filtrar por nome e tipo; trocar bolsão; consultar vaga pelo teclado; verificar ocupada e sem sinal separadamente |
-| Acesso e rota | campos opcionais e coordenadas cadastradas | Editar portão/minutos/destino; conferir estados sem informação; validar destino do link antes de usar dados reais |
-| Empresa | responsável e slug | Cadastrar empresa e consultar suas vagas imediatamente sem sessão; sair e conferir que só a administração exige login |
-| Cabeçalho e busca | consulta compartilhada, menu e navegação | Visitante acessa consulta e cadastro de empresa; responsável acessa administração e Minha empresa; buscar com Ctrl+K |
-| Mock | empresa da sessão, handlers e seed | Gestão da nova empresa é isolada; consulta pública permanece livre; CRUD e cena persistem ao recarregar |
-| Canvas | coordenadas lógicas e escala | Zoom, pan, centralizar, clicar numa vaga e consultar pela lista HTML |
-| Editor | snapshots de undo/redo e baseline | Arrastar, rotacionar, duplicar, excluir, desfazer e sair com alterações |
-| Geometria | grade e projeção dos cantos para detectar sobreposição | Vagas apenas encostadas não geram aviso; rotacionadas são consideradas |
-| Sensores | vaga única, leitura e expiração em 60 s | Sem sensor = sem sinal; chave aparece somente na criação |
-| Painel | histórico, período, média e indisponibilidade | Trocar estacionamento/período, conferir gráfico e heatmap |
-| Sem internet | fontes empacotadas e tiles opcionais | Desligar internet depois da instalação; consulta e editor continuam funcionando |
-| Acessibilidade | labels, foco, textos e controles HTML | Navegar com Tab, usar campos numéricos e lista de objetos do editor |
+| Visitante | Rotas públicas, DTO e ausência de token | Abrir `/c/unisagrado` sem conta, filtrar Bloco J/portão/tipo, consultar uma vaga |
+| Preferências | Hooks e chaves por campus no localStorage | Favoritar destino, recarregar, recuperar destino e testar aviso com a aba aberta |
+| Empresa | Sessão da empresa, CompanyGuard e escopo do token | `/admin` sem sessão abre `/entrar`; outra empresa não acessa os IDs do seed |
+| Cadastro | Sugestão/edição do slug e validação final | Slug ocupado/inválido, senha curta, sucesso com entrada automática |
+| Maquete | Geometria existente, âncora e vaga separadas | Ver de perto, voltar ao campus, pan/zoom/rotação limitada, alternativa 2D |
+| Ímã | Raios relativos à largura, smoothstep e histerese | Pegar peça, aproximar, encaixar, afastar até soltar e largar fora da área |
+| Troca e histórico | Validação integral, versão e snapshots | Trocar duas compatíveis, desfazer/refazer, restaurar padrão e testar versão divergente |
+| Bandeja e importação | Vaga nova sem posição e levantamento JSON | Cadastrar vaga/área, importar posições reais; nenhuma grade é inventada |
+| Sem WebGL | Lista equivalente e anúncios aria-live | Tab/setas/Enter para posicionar, Escape para cancelar; conferir foco visível |
+| Sensores | Vínculo único, expiração em 60 s | Vaga sem sensor, seletor inline, leituras variadas, simulador na administração |
+| Painel | Resumo/pico calculados e histórico sintético | Conferir valores da linha e do heatmap, trocar período/estacionamento |
+| Persistência | Migração e armazenamento local compartilhado | Recarregar após posicionar; conferir erro se armazenamento estiver bloqueado |
+| Visual | Regras de frontend/DESIGN.md | Desktop e celular, tema claro/noturno, texto sem logo, símbolos além das cores |
+| Offline | Assets/fontes locais | Campus, cena e lista sem internet; Google Maps e tiles opcionais exigem rede |
+| Banco futuro | FKs compostas e transação sob bloqueio da área | Revisar SQL e testar em PostgreSQL antes de implementar; não está aplicado |
 
-O mock não ensina segurança de produção. Estudem separadamente hash de senha, JWT, autorização no backend,
-CORS e validação das chaves de dispositivo antes de conectar sensores reais.
-
-Registrem problemas encontrados e correções humanas na tabela de `USO_DE_IA.md`.
+Não há editor livre, gerador de grid, rotação manual de vaga, contas de motorista ou papéis.
+A migração ainda reconhece o formato antigo somente para preservar os dados existentes.
+Confiram no campus entradas, sentidos, vagas físicas, acessibilidade e os vínculos dos sensores.
+Registrem correções humanas em [USO_DE_IA.md](USO_DE_IA.md).

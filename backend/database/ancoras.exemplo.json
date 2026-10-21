@@ -1,0 +1,4 @@
+[
+  { "x": 0, "z": 0, "rotacao": 25, "largura": 1.2, "profundidade": 2.8, "tiposAceitos": ["COMUM"] },
+  { "x": 1.7, "z": 0.8, "rotacao": 25, "largura": 1.5, "profundidade": 2.8, "tiposAceitos": ["PCD"] }
+]
