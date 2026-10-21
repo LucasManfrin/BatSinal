@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "batsinal-api"
+version = "0.1.0"
+description = "Base da API BatSinal: configuração, conexão e migrações. Domínio em implementação futura."
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.34,<1",
+  "pydantic-settings>=2.7,<3",
+  "sqlalchemy>=2.0.38,<2.1",
+  "psycopg[binary]>=3.2,<4",
+  "alembic>=1.14,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3,<10",
+    "ruff>=0.11,<1",
+    "pglast>=7,<9",
+    "httpx2>=2.16.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

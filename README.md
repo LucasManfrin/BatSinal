@@ -20,9 +20,12 @@ Use somente dados fictícios: senhas e cadastros do mock ficam no armazenamento 
 
 ## Visitante sem conta
 
-`/` oferece **Ver o mapa da Unisagrado** e **Sou uma empresa**. O visitante entra em `/c/unisagrado`
-sem cadastro, escolhe bloco/serviço e pode filtrar portão, tipo e vagas livres. A lista ordena por
+`/` abre diretamente o mapa público da Unisagrado, sem tela intermediária nem login.
+O visitante escolhe bloco/serviço e pode filtrar portão, tipo e vagas livres. A lista ordena por
 proximidade relativa ao destino na ilustração, sem prometer metros, minutos ou rota interna.
+Links antigos em `/c/unisagrado` redirecionam à raiz preservando filtros. Outras empresas usam
+`/c/:slug`. `VITE_DEFAULT_CAMPUS_SLUG` define o campus da raiz; atualize-o se renomear esse slug.
+O menu do cabeçalho dá acesso ao cadastro e login das empresas.
 
 Favoritos de destinos, último destino e **Avisar quando abrir vaga** ficam no próprio aparelho,
 separados por campus. O aviso é um toast e funciona apenas com a aba aberta, na mudança de zero
@@ -100,17 +103,22 @@ Campus, cena 3D, ícones e fontes são locais, sem CDN. Google Maps e tiles opci
 exigem internet; a consulta/lista não depende deles. A maquete 3D é carregada sob demanda;
 o build ainda informa um chunk Three.js de cerca de 688 kB antes de gzip.
 
-API real e banco continuam **planejados**, sem servidor ou PostgreSQL implementados/aplicados.
-Proposta: FastAPI + SQLAlchemy + PostgreSQL + Alembic. O mapa ficará em JSONB; áreas, âncoras,
-vagas e sensores terão tabelas relacionadas. Não há tabela de motoristas ou editor livre.
+O backend tem uma **base executável** de FastAPI, configuração, health/readiness, conexão PostgreSQL,
+Compose e migração Alembic inicial. Dependências estão fixadas em `backend/uv.lock`.
+As rotas de autenticação/consulta/gestão e os modelos ORM ainda serão implementados; o frontend
+continua com MSW. A migração foi validada offline, mas não aplicada em PostgreSQL nesta preparação.
+O mapa ficará em JSONB; áreas, âncoras, vagas e sensores terão tabelas relacionadas.
 
 - [Contrato HTTP implementado no mock](docs/api-contract.md)
+- [Como executar e continuar o backend](backend/README.md)
+- [Roteiro para os próximos agentes](docs/HANDOFF.md)
 - [Arquitetura do backend e transações](docs/ARQUITETURA_BACKEND.md)
 - [Esquema PostgreSQL proposto](backend/database/schema.proposta.sql)
 - [Formato GeoJSON futuro](backend/database/mapa-campus.schema.json)
 - [Mapa geográfico inicial vazio](backend/database/mapa-unisagrado.inicial.geojson)
 
-Quando a API existir, configure `VITE_USE_MOCK=false` e `VITE_API_URL`. O frontend usa somente HTTP/JSON.
+Quando o contrato completo estiver implementado, configure `VITE_USE_MOCK=false` e `VITE_API_URL`.
+Os endpoints health/readiness do bootstrap não substituem esse contrato. O frontend usa somente HTTP/JSON.
 O mock compartilha armazenamento entre abas, mas não oferece bloqueio concorrente de banco;
 a versão reduz sobrescritas e a API real deverá verificar a versão sob bloqueio da área.
 
@@ -123,9 +131,10 @@ npm run build
 npm run preview
 ```
 
-Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte atual: **53 testes em 12 arquivos**,
+Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte frontend: **59 testes em 13 arquivos**,
 incluindo ímã, troca atômica, persistência/erro de armazenamento, versão, isolamento, cadastro,
-consulta anônima, preferências locais, migração, status, teclado e alternativa sem WebGL.
+consulta anônima, raiz pública, aliases, checklist, preferências locais, migração, status, teclado e alternativa sem WebGL.
+Backend: **7 testes**, Ruff e verificação do lock, com comandos em `backend/README.md`.
 O worker MSW é versionado; após atualizar MSW, regenere com `npx msw init frontend/public`.
 Durante alterações no próprio mock em desenvolvimento, recarregue a página se o worker perder a conexão.
 

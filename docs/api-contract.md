@@ -1,6 +1,13 @@
 # API BatSinal v2 — MSW local
 
 O frontend usa HTTP/JSON. Este contrato é demonstrado pelo MSW, sem backend real.
+No navegador, `/` consulta a Unisagrado; `/c/:slug` atende outras empresas. Isso não muda os endpoints:
+o cliente continua consultando `/public/empresas/{slug}` para identificar cada campus.
+O alias antigo da Unisagrado redireciona à raiz mantendo query/fragmento.
+
+O bootstrap FastAPI em `backend/` implementa somente `GET /api/health` e `GET /api/ready`.
+As rotas de domínio deste documento ainda são demonstradas **somente pelo MSW**.
+
 Token opaco em `Authorization: Bearer ...` somente nas rotas privadas. A sessão representa a empresa,
 sem papéis ou conta de motorista. A empresa é resolvida do token, nunca do corpo enviado pelo cliente.
 IDs conhecidos de outra empresa devolvem 404; visitante sem token recebe 401 ao tentar administrar.

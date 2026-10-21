@@ -1,4 +1,6 @@
--- Proposta PostgreSQL para revisão. Não é migração aplicada nem banco em execução.
+-- Referência PostgreSQL v2, congelada em migrations/versions/0001_initial.py.
+-- Use Alembic para criar/evoluir o esquema; não execute como inicializador paralelo.
+-- Esta referência não indica migração aplicada nem banco em execução.
 -- Uma conta por empresa; visitantes não possuem registros de autenticação.
 BEGIN;
 CREATE SCHEMA batsinal;

@@ -19,6 +19,7 @@ import {
 import { tempoDesde } from '../../lib/utils';
 import type { Vaga } from '../../types';
 import { useAlertaDeVaga } from '../../features/visitante/hooks';
+import { publicCampusPath } from '../../lib/routes';
 
 export function LotDetailPage() {
   const { id = '', campusSlug } = useParams();
@@ -50,7 +51,7 @@ export function LotDetailPage() {
   const status = statuses.data.find((s) => s.vagaId === selected?.id);
   return (
     <>
-      <Link className="back-link" to={campusSlug ? `/c/${campusSlug}` : '/admin'}>
+      <Link className="back-link" to={campusSlug ? publicCampusPath(campusSlug) : '/admin'}>
         <ArrowLeft size={16} />
         Estacionamentos
       </Link>

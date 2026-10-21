@@ -137,9 +137,9 @@ describe('consulta e perfil redesenhados', () => {
     store.sessoes['teste-ui'] = 'unisagrado';
     localStorage.setItem(TOKEN_KEY, 'teste-ui');
     show(<CompanyPage />, '/empresa');
-    expect(await screen.findByRole('link', { name: '/c/unisagrado' })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: `${window.location.origin}/` })).toHaveAttribute(
       'href',
-      '/c/unisagrado',
+      '/',
     );
     expect(screen.queryByRole('switch')).not.toBeInTheDocument();
     expect(screen.queryByText('Consulta fechada')).not.toBeInTheDocument();

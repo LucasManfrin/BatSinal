@@ -1,11 +1,16 @@
-# Backend e banco — proposta v2
+# Backend e banco — base e plano v2
 
-Status: **planejamento**. A experiência atual roda no navegador com MSW e armazenamento local.
-A API real não foi implementada; o SQL é um desenho para revisão, não foi aplicado a PostgreSQL.
+Status: **infraestrutura preparada; domínio pendente**. A experiência atual roda no navegador com MSW.
+FastAPI já tem health/readiness, configuração e conexão. Compose, lock de dependências e migração
+Alembic `0001` estão em `backend/`. O SQL foi analisado offline; não foi aplicado em PostgreSQL.
+Autenticação, consulta, CRUD, modelos ORM e sensores reais ainda não foram implementados.
+Comandos em [backend/README.md](../backend/README.md) e continuidade em [HANDOFF.md](HANDOFF.md).
 
 ## Modelo de acesso
 
-Visitantes consultam `/c/{slug}` sem conta. Destino, favoritos e aviso de vaga ficam no aparelho.
+Visitantes abrem a Unisagrado diretamente em `/`; outras empresas usam `/c/{slug}`.
+O alias `/c/unisagrado` preserva filtros ao redirecionar para `/`. A consulta não exige conta.
+Destino, favoritos e aviso de vaga ficam no aparelho.
 Cada empresa tem uma conta no MVP: nome, slug, e-mail e senha. Não há papéis nem tabela de motoristas.
 A consulta é sempre pública, inclusive para empresas recém-cadastradas. Apenas a gestão exige sessão.
 
@@ -62,7 +67,8 @@ erDiagram
   estacionamentos ||--o{ historico_ocupacao : registra
 ```
 
-[schema.proposta.sql](../backend/database/schema.proposta.sql) usa chaves estrangeiras compostas
+[schema.proposta.sql](../backend/database/schema.proposta.sql), congelado na revisão Alembic inicial,
+usa chaves estrangeiras compostas
 para impedir cruzamento de empresas/áreas. Uma âncora recebe no máximo uma vaga; rótulo é único
 no estacionamento, sem diferença de caixa. A compatibilidade de tipo é validada no serviço,
 pois depende da linha da âncora. Não há tabela de elementos de editor livre.
@@ -121,7 +127,7 @@ executado como atualização direta de um banco antigo.
 
 ## Ordem para implementar
 
-1. Criar aplicação, conexão e migrações revisadas; testar isolamento e restrições no PostgreSQL.
+1. Implementar ORM alinhado à migração existente e testar upgrade/downgrade, isolamento e restrições em PostgreSQL.
 2. Conta da empresa e sessões, consulta pública e CRUD administrativo.
 3. Transação de posicionamento, troca, versão, lote e padrão, com testes concorrentes.
 4. Importação validada do mapa e endpoint autenticado de leituras dos dispositivos.

@@ -1,6 +1,7 @@
 # Mapa único da Unisagrado
 
-A consulta de `/c/unisagrado` usa uma cena isométrica (2,5D), com opção 2D, zoom, deslocamento,
+A consulta da Unisagrado abre diretamente em `/`, com alias para links antigos em `/c/unisagrado`.
+Usa uma cena isométrica (2,5D), com opção 2D, zoom, deslocamento,
 seleção de bloco e de vaga. O desenho interpreta a imagem com marcações enviada pelo grupo.
 É uma aproximação visual, sem escala, georreferenciamento ou dimensões levantadas no local.
 
@@ -46,7 +47,8 @@ Status e credenciais de sensores não ficam gravados na cena.
 O serviço real deverá validar estrutura, limites de coordenadas, IDs únicos, contornos sem
 autointerseção, referência a vaga da mesma empresa e uma posição por vaga. A restrição SQL
 proposta verifica apenas que `cena` é um objeto JSON. Salvar deverá usar controle de versão
-e transação. A API real e o PostgreSQL continuam planejados, não implementados.
+e transação. A infraestrutura FastAPI e a migração inicial estão preparadas; o domínio e a
+aplicação da migração em PostgreSQL continuam pendentes, conforme `HANDOFF.md`.
 
 ## Conferência antes do mapeamento real
 

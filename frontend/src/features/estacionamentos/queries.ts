@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useCampusSlug } from './useCampusSlug';
 import { api } from '../../lib/api';
 import { useAuth } from '../auth/AuthContext';
 import type {
@@ -29,7 +29,7 @@ export function useCompany() {
   });
 }
 function useScope() {
-  const { campusSlug } = useParams();
+  const campusSlug = useCampusSlug();
   const { user } = useAuth();
   return {
     key: campusSlug ? `publico:${campusSlug}` : `empresa:${user?.id ?? ''}`,
@@ -47,7 +47,7 @@ export function useLots() {
   });
 }
 export function useCampusScene() {
-  const { campusSlug } = useParams();
+  const campusSlug = useCampusSlug();
   return useQuery({
     queryKey: ['mapa-campus', campusSlug],
     queryFn: () => api<ConsultaCampus>(`/public/empresas/${encodeURIComponent(campusSlug!)}`),
@@ -90,7 +90,7 @@ export function useAreas() {
   });
 }
 export function useArea(id: string) {
-  const { campusSlug } = useParams();
+  const campusSlug = useCampusSlug();
   const { user } = useAuth();
   return useQuery({
     queryKey: ['area', id, campusSlug ?? user?.id],

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useCampusSlug } from '../../features/estacionamentos/useCampusSlug';
+import { publicCampusPath, publicLotPath } from '../../lib/routes';
 import { ArrowRight, Car, LogOut, MapPin, Moon, Search, Sun, UserRound } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../features/ui/useTheme';
@@ -28,7 +30,7 @@ export function AppLayout() {
   const scene = useCampusScene();
   const company = useCompany();
   const campi = usePublicCampi();
-  const { campusSlug } = useParams();
+  const campusSlug = useCampusSlug();
   const navigate = useNavigate();
   const location = useLocation();
   const [accountOpen, setAccountOpen] = useState(false);
@@ -49,7 +51,7 @@ export function AppLayout() {
   const campus = campusSlug
     ? (campi.data?.find((c) => c.slug === campusSlug)?.nome ?? 'Campus indisponível')
     : (company.data?.nome ?? 'Minha empresa');
-  const home = campusSlug ? `/c/${campusSlug}` : '/';
+  const home = campusSlug ? publicCampusPath(campusSlug) : '/';
   const initials = user?.nome
     .split(' ')
     .map((n) => n[0])
@@ -63,7 +65,7 @@ export function AppLayout() {
       building.nome.toLowerCase().includes(search.toLowerCase()),
     ) ?? [];
   const detailPath = (id: string) =>
-    campusSlug ? `/c/${campusSlug}/${id}` : `/admin/consulta/${id}`;
+    campusSlug ? publicLotPath(campusSlug, id) : `/admin/consulta/${id}`;
   return (
     <div className={`app-shell ${admin ? 'admin-shell' : 'user-shell'}`}>
       <header className="mobility-header">
@@ -77,7 +79,7 @@ export function AppLayout() {
               <select
                 aria-label="Selecionar campus"
                 value={campusSlug}
-                onChange={(event) => navigate(`/c/${event.target.value}`)}
+                onChange={(event) => navigate(publicCampusPath(event.target.value))}
               >
                 {!campi.data?.some((c) => c.slug === campusSlug) && (
                   <option value={campusSlug}>Campus indisponível</option>
@@ -110,7 +112,7 @@ export function AppLayout() {
               {label}
             </NavLink>
           ))}
-          <Link to={company.data ? `/c/${company.data.slug}` : '/'}>
+          <Link to={company.data ? publicCampusPath(company.data.slug) : '/'}>
             Consultar vagas
             <ArrowRight size={14} />
           </Link>
@@ -207,7 +209,7 @@ export function AppLayout() {
             ? destinations.map((building) => (
                 <Link
                   key={building.id}
-                  to={`/c/${campusSlug}?bloco=${building.id}`}
+                  to={`${publicCampusPath(campusSlug!)}?bloco=${building.id}`}
                   onClick={() => setSearchOpen(false)}
                 >
                   <MapPin size={17} />

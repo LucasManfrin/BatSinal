@@ -6,7 +6,7 @@ import { AuthProvider, CompanyGuard } from '../features/auth/AuthContext';
 import { AppLayout } from '../components/layout/AppLayout';
 import { AuthPage } from '../pages/auth/AuthPage';
 import { CompanyPage } from '../pages/empresa/CompanyPage';
-import { CampusEntry } from '../pages/estacionamentos/HomePage';
+import { CanonicalCampus } from '../components/lot/CanonicalCampus';
 import { PositionPage } from '../pages/admin/PositionPage';
 import { Button, EmptyState, Loading } from '../components/ui';
 
@@ -42,7 +42,6 @@ const router = createBrowserRouter([
       </EmptyState>
     ),
     children: [
-      { path: '/', element: <CampusEntry /> },
       { path: '/entrar', element: <AuthPage /> },
       { path: '/login', element: <Navigate to="/entrar" replace /> },
       { path: '/cadastrar-empresa', element: <AuthPage register /> },
@@ -51,7 +50,15 @@ const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/c/:campusSlug', element: <LotsPage /> },
+          { path: '/', element: <LotsPage /> },
+          {
+            path: '/c/:campusSlug',
+            element: (
+              <CanonicalCampus>
+                <LotsPage />
+              </CanonicalCampus>
+            ),
+          },
           { path: '/c/:campusSlug/:id', element: <LotDetailPage /> },
           {
             element: <CompanyGuard />,

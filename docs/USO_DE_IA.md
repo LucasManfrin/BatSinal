@@ -408,3 +408,32 @@ recarregar a página recuperou as consultas sem apagar dados. O teste de histór
 ajustado para esperar o botão habilitar após a gravação e atualização, sem atrasos fixos.
 O grupo ainda deve validar o levantamento real, explicar o código e preencher a avaliação humana
 no início deste documento. Nenhuma correção humana não informada foi atribuída aos integrantes.
+
+## Finalização — raiz pública, preparação e continuidade
+
+A pedido do usuário, a IA substituiu a tela intermediária pelo mapa público diretamente em `/`.
+Centralizou os links canônicos: a Unisagrado usa a raiz, outras empresas mantêm `/c/:slug`.
+O alias antigo redireciona preservando query e fragmento; o endereço copiado e Minha empresa
+apontam à URL correta. A consulta permanece pública mesmo quando uma empresa está autenticada.
+O checklist ganhou quatro etapas com quantidades/progresso reais, indicadores de conclusão,
+ações consistentes e endereço público separado, com disposição responsiva.
+
+Para os próximos agentes, a IA preparou FastAPI com configuração tipada, conexão lazy, CORS,
+health/readiness, uv.lock, PostgreSQL em Compose e revisão Alembic inicial derivada do SQL v2.
+Ainda não implementou ORM ou rotas de negócio. O frontend permanece no MSW.
+Foram acrescentados AGENTS.md na raiz/backend e docs/HANDOFF.md com fontes, limites e próximos passos.
+O Docker daemon estava desligado: nenhum PostgreSQL foi iniciado/modificado e a migração não foi aplicada.
+PGlAST validou sintaxe do SQL gerado offline; isso não foi apresentado como teste real de constraints.
+
+Testes acrescentados cobrem raiz pública, empresa logada, alias com filtros, cópia/erro/conclusão
+do checklist e infraestrutura/migrações do backend. A suíte frontend passou a 59 testes em 13 arquivos;
+o backend tem sete testes. Na revisão completa, a IA corrigiu fixtures antigas que renderizavam
+Posicionar vagas na URL `/`: agora simulam sua rota administrativa real.
+Consultou documentação oficial de FastAPI, SQLAlchemy, Alembic, uv e imagem PostgreSQL, referida
+em backend/README.md. Ajustou a dependência do cliente de testes à versão usada pelo Starlette e
+a configuração de path do Alembic, eliminando avisos encontrados na execução.
+Revisão visual e verificações automatizadas são da IA; revisão humana do grupo continua pendente.
+Na revisão móvel final, corrigiu o tamanho mínimo das colunas da maquete do painel: a página
+passou a respeitar os 375 px disponíveis, mantendo a navegação horizontal em sua própria faixa.
+Capturas desktop: `v2-raiz.png` e `v2-preparacao.png`. Os dados usados na verificação de
+posicionamento foram restaurados pela própria interface.

@@ -31,6 +31,9 @@ Botão com canto de 6 px, peso 700, altura mínima 44 px. Inputs com borda de ti
 - Público: busca/destino sobre a maquete, filtros compactos, resumo e lista lateral; bottom sheet no celular.
 - Empresa: frase com disponibilidade e pico calculados, cena em dois terços da largura e lista operacional.
 - Posicionar: áreas, cena e bandeja. Teclado/lista equivalentes à manipulação 3D.
+- Preparação do mapa: quatro etapas com números/checks, quantidades reais e divisórias finas;
+  quatro colunas no desktop, duas na faixa intermediária e uma no celular. Link público em linha própria.
+  Na Unisagrado o endereço canônico é `/`, que abre diretamente a consulta.
 - Separar grupos por espaço e linhas finas; cartões só quando delimitam uma tarefa independente.
 - Painéis sem bloquear o restante da página para formulários, busca e detalhes. Modal só para excluir/restaurar.
 - Falar de bloco, portão, vaga e sensor específicos. Não prometer rota, distância ou tempo que não foram medidos.

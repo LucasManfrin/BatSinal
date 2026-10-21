@@ -8,6 +8,7 @@ import { api, json } from '../../lib/api';
 import { useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { mensagemErro } from '../../lib/utils';
+import { publicCampusPath } from '../../lib/routes';
 
 export function CompanyPage() {
   const { logout } = useAuth();
@@ -66,8 +67,9 @@ export function CompanyPage() {
           <div>
             <dt>Endereço da consulta</dt>
             <dd>
-              <Link className="text-link" to={`/c/${company.data.slug}`}>
-                /c/{company.data.slug} <ArrowRight size={14} />
+              <Link className="text-link" to={publicCampusPath(company.data.slug)}>
+                {window.location.origin}
+                {publicCampusPath(company.data.slug)} <ArrowRight size={14} />
               </Link>
             </dd>
           </div>

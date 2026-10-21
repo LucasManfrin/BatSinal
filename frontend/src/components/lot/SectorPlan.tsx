@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useCampusSlug } from '../../features/estacionamentos/useCampusSlug';
+import { publicLotPath } from '../../lib/routes';
 import { useLot, useStatuses } from '../../features/estacionamentos/queries';
 import { Loading, ErrorState, SpotStatusBadge } from '../ui';
 import { campusStatus } from '../../lib/campus';
@@ -7,7 +9,7 @@ export function SectorPlan({ id }: { id: string }) {
   const lot = useLot(id);
   const statuses = useStatuses(id);
   const [selected, setSelected] = useState('');
-  const { campusSlug } = useParams();
+  const campusSlug = useCampusSlug();
   if (lot.isPending || statuses.isPending) return <Loading />;
   if (lot.isError || statuses.isError)
     return (
@@ -27,7 +29,7 @@ export function SectorPlan({ id }: { id: string }) {
         <h2>{lot.data.nome}</h2>
         <Link
           className="text-link"
-          to={campusSlug ? `/c/${campusSlug}/${id}` : `/admin/posicionar/${id}`}
+          to={campusSlug ? publicLotPath(campusSlug, id) : `/admin/posicionar/${id}`}
         >
           Ver área
         </Link>

@@ -1,4 +1,5 @@
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useCampusSlug } from '../../features/estacionamentos/useCampusSlug';
 import { useRef, useState } from 'react';
 import { ArrowRight, Bell, Car, MapPin, Navigation, Star } from 'lucide-react';
 import { useCampusScene } from '../../features/estacionamentos/queries';
@@ -60,7 +61,7 @@ function CampusConsult({
   retry: () => void;
 }) {
   const mapa = data.mapa!;
-  const { campusSlug = '' } = useParams();
+  const campusSlug = useCampusSlug()!;
   const { favoritos, alternar } = useFavoritos(campusSlug);
   const [ultimoDestino, setUltimoDestino] = useUltimoDestino(campusSlug);
   const [params, setParams] = useSearchParams();
