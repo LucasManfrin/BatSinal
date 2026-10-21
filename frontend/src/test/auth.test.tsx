@@ -42,7 +42,7 @@ function setup(path = '/login', register = false) {
 describe('login e guardas de rota', () => {
   it('valida e-mail e senha antes de enviar', async () => {
     const user = setup();
-    await user.click(screen.getByRole('button', { name: /entrar na plataforma/i }));
+    await user.click(screen.getByRole('button', { name: /^entrar$/i }));
     expect(await screen.findByText('Informe um e-mail válido.')).toBeInTheDocument();
     expect(screen.getByText('A senha precisa ter pelo menos 8 caracteres.')).toBeInTheDocument();
     expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
@@ -51,7 +51,7 @@ describe('login e guardas de rota', () => {
     const user = setup();
     await user.type(screen.getByLabelText('E-mail'), 'admin@unisagrado.demo');
     await user.type(screen.getByLabelText('Senha', { exact: true }), 'Demo@123');
-    await user.click(screen.getByRole('button', { name: /entrar na plataforma/i }));
+    await user.click(screen.getByRole('button', { name: /^entrar$/i }));
     expect(await screen.findByRole('heading', { name: 'Painel protegido' })).toBeInTheDocument();
     expect(localStorage.getItem(TOKEN_KEY)).toBeTruthy();
   });
@@ -59,7 +59,7 @@ describe('login e guardas de rota', () => {
     const user = setup();
     await user.type(screen.getByLabelText('E-mail'), 'admin@unisagrado.demo');
     await user.type(screen.getByLabelText('Senha', { exact: true }), 'SenhaErrada1');
-    await user.click(screen.getByRole('button', { name: /entrar na plataforma/i }));
+    await user.click(screen.getByRole('button', { name: /^entrar$/i }));
     expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha incorretos.');
   });
   it('redireciona USER que tenta abrir /admin', async () => {
@@ -72,7 +72,7 @@ describe('login e guardas de rota', () => {
   it('redireciona pessoa sem sessão para login', async () => {
     setup('/admin');
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /entrar na plataforma/i })).toBeInTheDocument(),
+      expect(screen.getByRole('button', { name: /^entrar$/i })).toBeInTheDocument(),
     );
   });
   it('cadastra empresa e primeiro ADMIN sem pertencer ao campus seed', async () => {
@@ -81,7 +81,7 @@ describe('login e guardas de rota', () => {
     await user.type(screen.getByLabelText('Seu nome'), 'Ana Silva');
     await user.type(screen.getByLabelText('E-mail'), 'ana@novo.demo');
     await user.type(screen.getByLabelText('Senha', { exact: true }), 'SenhaNova1');
-    await user.click(screen.getByRole('button', { name: /criar minha empresa/i }));
+    await user.click(screen.getByRole('button', { name: /cadastrar empresa/i }));
     expect(await screen.findByRole('heading', { name: 'Painel protegido' })).toBeInTheDocument();
     const created = store.usuarios.find((u) => u.email === 'ana@novo.demo');
     expect(created?.role).toBe('ADMIN');

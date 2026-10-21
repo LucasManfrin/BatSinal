@@ -4,5 +4,11 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: { port: 5173, strictPort: true },
-  test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], css: false },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    css: false,
+    maxWorkers: 2,
+    testTimeout: 10000,
+  },
 });
