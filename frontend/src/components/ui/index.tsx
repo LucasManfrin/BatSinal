@@ -91,14 +91,14 @@ export function OccupancyBar({ total, livres }: { total: number; livres: number 
     <div
       className="occupancy-bar"
       role="meter"
-      aria-label="Vagas indisponíveis"
-      aria-valuenow={total - livres}
+      aria-label="Vagas livres"
+      aria-valuenow={livres}
       aria-valuemin={0}
       aria-valuemax={total || 1}
     >
       <span
         style={{
-          width: `${total ? ((total - livres) / total) * 100 : 0}%`,
+          width: `${total ? (livres / total) * 100 : 0}%`,
           background:
             livres === 0
               ? 'var(--ocupada)'
@@ -157,7 +157,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 export function Loading() {
   return (
     <div className="loading" role="status">
-      <Loader2 className="spin" size={22} /> Carregando seu espaço…
+      <Loader2 className="spin" size={22} /> Carregando dados…
     </div>
   );
 }

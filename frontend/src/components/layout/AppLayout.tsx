@@ -1,28 +1,33 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
-  Bell,
+  ArrowRight,
   ChevronRight,
   CircleHelp,
   CircleParking,
   LayoutDashboard,
   LogOut,
   Map,
+  MapPin,
   Menu,
   Moon,
   Radio,
+  Search,
   ShieldCheck,
   Star,
   Sun,
+  UserRound,
   Users,
   X,
+  type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
+import { useTheme } from '../../features/ui/useTheme';
+import { useLots } from '../../features/estacionamentos/queries';
 import { Logo } from './Logo';
-import { Button, Dialog, Tooltip } from '../ui';
+import { Button, Dialog, EmptyState, Input, Tooltip } from '../ui';
 import { USE_MOCK } from '../../lib/api';
 import { Simulator } from '../../features/sensores/Simulator';
-import type { LucideIcon } from 'lucide-react';
 
 interface NavItem {
   to: string;
@@ -40,16 +45,18 @@ const adminLinks: NavItem[] = [
 const userLinks: NavItem[] = [
   { to: '/estacionamentos', label: 'Encontrar vagas', icon: CircleParking },
   { to: '/favoritos', label: 'Favoritos', icon: Star },
-  { to: '/perfil', label: 'Meu perfil', icon: Users },
+  { to: '/perfil', label: 'Meu perfil', icon: UserRound },
 ];
 export function AppLayout() {
   const { user, logout } = useAuth();
+  const { light, changeTheme } = useTheme();
+  const lots = useLots();
+  const location = useLocation();
   const [mobile, setMobile] = useState(false);
   const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const [help, setHelp] = useState(false);
-  const [notifications, setNotifications] = useState(false);
-  const [light, setLight] = useState(() => localStorage.getItem('batsinal.theme') === 'light');
-  const location = useLocation();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState('');
   useEffect(() => {
     const media = window.matchMedia('(max-width: 760px)');
     const changed = () => setNarrow(media.matches);
@@ -57,28 +64,41 @@ export function AppLayout() {
     return () => media.removeEventListener('change', changed);
   }, []);
   useEffect(() => {
-    document.documentElement.dataset.theme = light ? 'light' : 'dark';
-  }, [light]);
+    const listener = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+      if (e.key === 'Escape') setMobile(false);
+    };
+    window.addEventListener('keydown', listener);
+    return () => window.removeEventListener('keydown', listener);
+  }, []);
   const admin = location.pathname.startsWith('/admin');
   const links = admin ? adminLinks : userLinks;
   const current =
     links.find((l) => (l.end ? location.pathname === l.to : location.pathname.startsWith(l.to)))
       ?.label ?? 'Detalhe do estacionamento';
-  function theme() {
-    const next = !light;
-    setLight(next);
-    document.documentElement.dataset.theme = next ? 'light' : 'dark';
-    localStorage.setItem('batsinal.theme', next ? 'light' : 'dark');
-  }
+  const campus = user?.empresaId === 'unisagrado' ? 'Unisagrado' : 'Meu campus';
+  const initials = user?.nome
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('');
+  const searchResults =
+    lots.data?.filter((l) => l.nome.toLowerCase().includes(search.toLowerCase())) ?? [];
   return (
     <div className={`app-shell ${admin ? 'admin-shell' : 'user-shell'}`}>
       <aside
+        id="menu-lateral"
         className={`sidebar ${mobile ? 'sidebar-open' : ''}`}
         aria-hidden={narrow && !mobile}
         {...(narrow && !mobile ? { inert: '' } : {})}
       >
         <div className="sidebar-brand">
-          <Logo />
+          <Link to={admin ? '/admin' : '/estacionamentos'} aria-label="BatSinal, início">
+            <Logo />
+          </Link>
           <button
             className="mobile-close icon-button"
             onClick={() => setMobile(false)}
@@ -88,79 +108,62 @@ export function AppLayout() {
           </button>
         </div>
         <div className="workspace">
-          <span className="workspace-icon">{user?.empresaId === 'unisagrado' ? 'U' : 'C'}</span>
+          <span className="workspace-icon">{campus[0]}</span>
           <div>
-            <strong>
-              {user?.empresaId === 'unisagrado' ? 'Unisagrado' : 'Meu campus'}
-              <span className="muted"> / campus</span>
-            </strong>
-            <small>{admin ? 'Área de administração' : 'Encontre seu lugar'}</small>
+            <strong>{campus}</strong>
+            <small>{admin ? 'Administração do campus' : 'Estacionamentos do campus'}</small>
           </div>
-          <ChevronRight size={14} />
         </div>
-        <p className="nav-label">{admin ? 'GERENCIAMENTO' : 'MEU CAMPUS'}</p>
+        <p className="nav-label">{admin ? 'Operação' : 'Navegação'}</p>
         <nav aria-label="Menu principal">
-          {links.map(({ to, label, icon: Icon, ...rest }) => (
+          {links.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
-              end={'end' in rest ? rest.end : false}
+              end={end}
               onClick={() => setMobile(false)}
               className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             >
-              <Icon size={19} strokeWidth={1.7} />
-              {label}
+              <Icon size={18} strokeWidth={1.65} />
+              <span>{label}</span>
               {label === 'Sensores' && <span className="nav-tag">IoT</span>}
             </NavLink>
           ))}
         </nav>
         {user?.role === 'ADMIN' && (
           <div className="sidebar-switch">
-            <p className="nav-label">EXPERIÊNCIA DO USUÁRIO</p>
             <NavLink
               className="nav-item"
               to={admin ? '/estacionamentos' : '/admin'}
               onClick={() => setMobile(false)}
             >
-              {admin ? <Map size={19} /> : <ShieldCheck size={19} />}
-              {admin ? 'Visão do usuário' : 'Painel administrativo'}
-              <ChevronRight size={14} />
+              {admin ? <MapPin size={18} /> : <ShieldCheck size={18} />}
+              <span>{admin ? 'Abrir consulta de vagas' : 'Painel administrativo'}</span>
+              <ArrowRight size={13} />
             </NavLink>
           </div>
         )}
         <div className="sidebar-bottom">
-          <div className="system-status">
-            <span className="live-orb">
-              <Radio size={19} />
-            </span>
-            <div>
-              <strong>{USE_MOCK ? 'Demonstração local' : 'API conectada'}</strong>
-              <small>
-                {USE_MOCK ? 'Sensores simulados · sem hardware' : 'Dados recebidos pela API'}
-              </small>
-            </div>
-            <span className="status-led" />
-          </div>
           <button className="help-link" onClick={() => setHelp(true)}>
-            <CircleHelp size={17} />
-            Como funciona o BatSinal
-            <ChevronRight size={14} />
+            <CircleHelp size={16} />
+            Ajuda e funcionamento
+            <ChevronRight size={12} />
           </button>
+          <div className="mode-indicator">
+            <span />
+            {USE_MOCK ? 'Demonstração local' : 'Dados da API'}
+          </div>
           <div className="sidebar-person">
-            <span className="avatar">
-              {user?.nome
-                .split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')}
-            </span>
-            <div>
-              <strong>{user?.nome}</strong>
-              <small>{user?.role === 'ADMIN' ? 'Administrador' : 'Usuário'}</small>
-            </div>
+            <Link to="/perfil" className="sidebar-profile">
+              <span className="avatar">{initials}</span>
+              <span>
+                <strong>{user?.nome}</strong>
+                <small>{user?.role === 'ADMIN' ? 'Administrador' : 'Usuário'}</small>
+              </span>
+            </Link>
             <Tooltip text="Sair da conta">
               <button aria-label="Sair da conta" className="icon-button" onClick={logout}>
-                <LogOut size={17} />
+                <LogOut size={16} />
               </button>
             </Tooltip>
           </div>
@@ -179,35 +182,39 @@ export function AppLayout() {
             <button
               className="mobile-menu icon-button"
               aria-label="Abrir menu"
+              aria-expanded={mobile}
+              aria-controls="menu-lateral"
               onClick={() => setMobile(true)}
             >
               <Menu size={21} />
             </button>
-            <span>{admin ? 'Administração' : 'Meu campus'}</span>
-            <ChevronRight size={13} />
+            <MapPin size={15} />
+            <span>{campus}</span>
+            <span className="breadcrumb-separator">/</span>
             <strong>{current}</strong>
           </div>
           <div className="topbar-actions">
-            <span className="local-badge">
-              <span />
-              {USE_MOCK ? 'AMBIENTE DEMO' : 'CONECTADO'}
-            </span>
+            <button
+              className="global-search-trigger"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Buscar estacionamentos"
+            >
+              <Search size={17} />
+              <span>Buscar</span>
+              <kbd>Ctrl K</kbd>
+            </button>
             <Tooltip text={light ? 'Usar tema escuro' : 'Usar tema claro'}>
               <button
-                className="icon-button"
-                onClick={theme}
+                className="icon-button theme-button"
+                onClick={() => changeTheme(!light)}
                 aria-label={light ? 'Usar tema escuro' : 'Usar tema claro'}
               >
-                {light ? <Moon size={18} /> : <Sun size={18} />}
+                {light ? <Moon size={17} /> : <Sun size={17} />}
               </button>
             </Tooltip>
-            <button
-              className="icon-button notification-button"
-              onClick={() => setNotifications(true)}
-              aria-label="Notificações"
-            >
-              <Bell size={18} />
-            </button>
+            <Link className="header-profile" to="/perfil" aria-label="Abrir meu perfil">
+              <span>{initials}</span>
+            </Link>
           </div>
         </header>
         <main className="main-content" id="conteudo">
@@ -215,11 +222,9 @@ export function AppLayout() {
         </main>
         <footer className="app-footer">
           <span>
-            BatSinal <span className="muted">/</span> Inteligência para estacionar.
+            BatSinal <span>·</span> {campus}
           </span>
-          <span>
-            Projeto acadêmico · Unisagrado <span className="version">v0.1.0</span>
-          </span>
+          <span>Projeto acadêmico · Dados {USE_MOCK ? 'simulados' : 'da API'}</span>
         </footer>
       </div>
       <nav className="bottom-nav" aria-label="Navegação mobile">
@@ -233,39 +238,71 @@ export function AppLayout() {
       <Dialog
         open={help}
         onOpenChange={setHelp}
-        title="Seu campus no radar"
-        description="Os sensores detectam automaticamente a presença de um veículo."
+        title="Como consultar as vagas"
+        description="As leituras dos sensores são atualizadas automaticamente."
       >
         <div className="help-content">
-          <Radio size={32} className="accent-text" />
           <p>
-            O sensor envia a leitura à API. A tela consulta o status a cada 3 segundos: você só
-            precisa encontrar uma vaga livre e seguir até ela.
+            Escolha um estacionamento e abra o layout. Cada vaga informa se está livre, ocupada ou
+            sem leitura confiável.
           </p>
           <p>
-            Verde + check: livre. Vermelho + carro: ocupada. Cinza + hachura: sem leitura confiável
-            há mais de 60 segundos.
+            Verde e check indicam uma vaga livre. Vermelho e carro indicam ocupação. Cinza com
+            hachura indica ausência de sinal por mais de 60 segundos.
           </p>
           <p>
-            Na demonstração, abra o simulador no canto inferior direito para representar os
-            dispositivos. Não existe reserva nem confirmação manual de ocupação.
+            A consulta atualiza a cada 3 segundos. Não há reserva de vagas. Na demonstração, o
+            simulador representa os dispositivos.
           </p>
           <Button onClick={() => setHelp(false)}>Entendi</Button>
         </div>
       </Dialog>
       <Dialog
-        open={notifications}
-        onOpenChange={setNotifications}
-        title="Notificações"
-        description="Alertas de disponibilidade"
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        title="Buscar estacionamento"
+        description={`Estacionamentos de ${campus}`}
       >
-        <p className="muted space-y">
-          Nenhum alerta pendente. Abra um estacionamento sem vagas e ative “Avisar quando abrir
-          vaga”. Mantenha a página aberta para receber o aviso.
-        </p>
-        <Button onClick={() => setNotifications(false)}>Entendi</Button>
+        <div className="search-input">
+          <Search size={17} />
+          <Input
+            autoFocus
+            aria-label="Nome do estacionamento"
+            placeholder="Nome do estacionamento"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="quick-search-results">
+          {searchResults.map((lot) => (
+            <Link
+              key={lot.id}
+              to={`/estacionamentos/${lot.id}`}
+              onClick={() => setSearchOpen(false)}
+            >
+              <MapPin size={17} />
+              <span>
+                <strong>{lot.nome}</strong>
+                <small>
+                  {lot.vagasLivres} vagas livres de {lot.totalVagas}
+                </small>
+              </span>
+              <ArrowRight size={16} />
+            </Link>
+          ))}
+          {!searchResults.length && (
+            <EmptyState
+              title={lots.isError ? 'Busca indisponível' : 'Nenhum estacionamento encontrado'}
+              description={
+                lots.isError ? 'Tente carregar a consulta novamente.' : 'Tente outro nome.'
+              }
+            />
+          )}
+        </div>
       </Dialog>
-      {USE_MOCK && import.meta.env.VITE_SHOW_SIMULATOR === 'true' && <Simulator />}
+      {USE_MOCK &&
+        import.meta.env.VITE_SHOW_SIMULATOR === 'true' &&
+        location.pathname !== '/perfil' && <Simulator />}
     </div>
   );
 }

@@ -85,12 +85,12 @@ export function DashboardPage() {
       <>
         <div className="page-heading">
           <div>
-            <div className="eyebrow">BEM-VINDO AO SEU CAMPUS</div>
+            <div className="eyebrow">Administração</div>
             <h1>Olá, {user?.nome.split(' ')[0]}.</h1>
           </div>
         </div>
         <EmptyState
-          title="Seu campus começa com o primeiro espaço"
+          title="Nenhum estacionamento cadastrado"
           description="Cadastre um estacionamento e gere o layout para começar a conectar seus sensores."
         >
           <Link className="btn btn-primary" to="/admin/estacionamentos">
@@ -112,11 +112,11 @@ export function DashboardPage() {
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">SEU CAMPUS, EM SINTONIA</div>
+          <div className="eyebrow">Administração do campus</div>
           <h1>
             Visão geral<span className="heading-dot">.</span>
           </h1>
-          <p>Menos voltas. Mais controle sobre cada espaço.</p>
+          <p>Disponibilidade, ocupação e leituras dos sensores.</p>
         </div>
         <div className="dashboard-select">
           <MapPin size={16} />
@@ -164,7 +164,7 @@ export function DashboardPage() {
           title="Vagas livres"
           value={String(free).padStart(2, '0')}
           icon={<CircleParking size={19} />}
-          detail="Seu próximo lugar está no radar"
+          detail="Disponíveis no estacionamento selecionado"
           accent="green"
         >
           <span className="metric-inline green-text">
@@ -201,7 +201,7 @@ export function DashboardPage() {
         <Card className="chart-card">
           <div className="card-heading">
             <div>
-              <h2>O ritmo do estacionamento</h2>
+              <h2>Histórico de ocupação</h2>
               <p>Ocupação ao longo do tempo</p>
             </div>
             <Select
@@ -223,7 +223,7 @@ export function DashboardPage() {
           ) : analytics.isPending ? (
             <Loading />
           ) : !analytics.data.length ? (
-            <EmptyState title="O histórico começa com a primeira leitura" />
+            <EmptyState title="Nenhuma leitura neste período" />
           ) : (
             <div
               className="occupancy-chart"
@@ -290,21 +290,20 @@ export function DashboardPage() {
         <Card className="availability-card">
           <div className="card-heading">
             <div>
-              <h2>Cada espaço conta</h2>
+              <h2>Estado das vagas</h2>
               <p>Disponibilidade agora</p>
             </div>
             <Radio size={18} className="muted" />
           </div>
-          <div
-            className="availability-ring"
-            style={{
-              background: `conic-gradient(var(--livre) 0 ${total ? (free / total) * 360 : 0}deg, var(--border) 0 360deg)`,
-            }}
-          >
-            <div>
-              <strong>{free}</strong>
-              <span>vagas livres</span>
-            </div>
+          <div className="operation-summary">
+            <strong>
+              {related.length - offline}
+              <span> / {related.length}</span>
+            </strong>
+            <p>sensores com leitura recente</p>
+            <Link to="/admin/sensores">
+              Gerenciar sensores <ArrowRight size={14} />
+            </Link>
           </div>
           <div className="availability-detail">
             <span>
@@ -330,7 +329,7 @@ export function DashboardPage() {
         <Card className="live-map-card">
           <div className="card-heading">
             <div>
-              <h2>Um olhar sobre cada vaga</h2>
+              <h2>Layout e disponibilidade</h2>
               <p>{current.nome}</p>
             </div>
             <Link className="table-link" to={`/admin/editor/${id}`}>
@@ -350,7 +349,7 @@ export function DashboardPage() {
         <Card className="heatmap-card">
           <div className="card-heading">
             <div>
-              <h2>Os melhores horários</h2>
+              <h2>Ocupação por dia e hora</h2>
               <p>Ocupação média · últimos 14 dias</p>
             </div>
             <Badge>14 dias</Badge>
@@ -399,7 +398,7 @@ export function DashboardPage() {
               <div className="heatmap-tip">
                 <Clock3 size={19} />
                 <p>
-                  Planeje a chegada.
+                  Como ler este mapa
                   <span>
                     As cores mais claras indicam os horários de maior movimento no campus.
                   </span>
@@ -412,7 +411,7 @@ export function DashboardPage() {
       <Card className="dashboard-sensors">
         <div className="card-heading">
           <div>
-            <h2>Conectados ao seu campus</h2>
+            <h2>Leituras dos sensores</h2>
             <p>Últimas leituras dos dispositivos</p>
           </div>
           <Link className="table-link" to="/admin/sensores">

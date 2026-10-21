@@ -117,9 +117,10 @@ export function Simulator() {
         className={`simulator-trigger ${moving ? 'simulator-running' : ''}`}
         variant="secondary"
         onClick={() => setOpen(!open)}
+        aria-label={open ? 'Fechar simulador' : 'Simulador'}
       >
         <Activity size={17} />
-        {open ? 'Fechar simulador' : 'Simulador'}
+        <span className="simulator-trigger-label">{open ? 'Fechar simulador' : 'Simulador'}</span>
         {moving && <span className="status-led" />}
       </Button>
     </div>

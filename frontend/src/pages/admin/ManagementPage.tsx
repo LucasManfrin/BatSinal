@@ -29,10 +29,10 @@ const labels = {
   estacionamentos: [
     'Estacionamentos',
     'estacionamento',
-    'Organize os espaços e os acessos do seu campus.',
+    'Cadastre áreas, configure acessos e edite os layouts.',
   ],
-  sensores: ['Sensores', 'sensor', 'Cada leitura conecta uma vaga a uma decisão melhor.'],
-  usuarios: ['Usuários', 'usuário', 'As pessoas que fazem parte do seu campus.'],
+  sensores: ['Sensores', 'sensor', 'Consulte as leituras e vincule os dispositivos às vagas.'],
+  usuarios: ['Usuários', 'usuário', 'Gerencie contas e permissões de acesso.'],
 };
 const defaults: Record<Resource, Form> = {
   estacionamentos: {
@@ -175,7 +175,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">GERENCIAMENTO DO CAMPUS</div>
+          <div className="eyebrow">Administração</div>
           <h1>{title}</h1>
           <p>{description}</p>
         </div>

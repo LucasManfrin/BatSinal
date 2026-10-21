@@ -19,7 +19,7 @@ interface Props extends Layout {
   onChange?: (layout: Layout) => void;
   onDropItem?: (tipo: string, x: number, y: number) => void;
 }
-const colors = { LIVRE: '#22C55E', OCUPADA: '#EF4444', SEM_SINAL: '#8A94A0' };
+const colors = { LIVRE: '#78C59E', OCUPADA: '#DF8984', SEM_SINAL: '#8B99AA' };
 export function LotCanvas({
   vagas,
   elementos,
@@ -212,7 +212,7 @@ export function LotCanvas({
             <Line
               key={`x${i}`}
               points={[i * 20, 0, i * 20, altura]}
-              stroke="#1e2730"
+              stroke="#1b2b3b"
               strokeWidth={0.5}
               listening={false}
             />
@@ -221,7 +221,7 @@ export function LotCanvas({
             <Line
               key={`y${i}`}
               points={[0, i * 20, largura, i * 20]}
-              stroke="#1e2730"
+              stroke="#1b2b3b"
               strokeWidth={0.5}
               listening={false}
             />
@@ -247,7 +247,7 @@ export function LotCanvas({
                 width={el.largura}
                 height={el.altura}
                 fill={el.tipo === 'VIA' ? '#2a323d' : '#141c23'}
-                stroke={selected.includes(el.id) ? '#FFC800' : '#3b4854'}
+                stroke={selected.includes(el.id) ? '#EFC54B' : '#3b4854'}
                 strokeWidth={1}
                 cornerRadius={4}
               />
@@ -274,7 +274,7 @@ export function LotCanvas({
           ))}
           {vagas.map((vaga) => {
             const status = statuses.find((s) => s.vagaId === vaga.id)?.status ?? 'SEM_SINAL';
-            const color = mode === 'edit' ? '#FFC800' : colors[status];
+            const color = mode === 'edit' ? '#EFC54B' : colors[status];
             const w = vaga.largura;
             const h = vaga.altura;
             return (
@@ -400,8 +400,8 @@ export function LotCanvas({
               rotateEnabled
               rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
               flipEnabled={false}
-              borderStroke="#FFC800"
-              anchorStroke="#FFC800"
+              borderStroke="#EFC54B"
+              anchorStroke="#EFC54B"
               anchorFill="#14181D"
               boundBoxFunc={(oldBox, newBox) =>
                 newBox.width < 20 || newBox.height < 20 ? oldBox : newBox
@@ -414,8 +414,8 @@ export function LotCanvas({
               y={Math.min(box.y, box.endY)}
               width={Math.abs(box.endX - box.x)}
               height={Math.abs(box.endY - box.y)}
-              fill="#FFC80020"
-              stroke="#FFC800"
+              fill="#EFC54B20"
+              stroke="#EFC54B"
               listening={false}
             />
           )}

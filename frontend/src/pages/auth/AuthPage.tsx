@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Eye, EyeOff, MapPin, Radio, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, MapPin, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
-import { Button, Field, Input, LiveDot } from '../../components/ui';
+import { Button, Field, Input } from '../../components/ui';
 import { Logo } from '../../components/layout/Logo';
+import { UrbanDrawing } from '../../components/lot/UrbanDrawing';
 import { ApiError, USE_MOCK } from '../../lib/api';
 import { mensagemErro } from '../../lib/utils';
 
@@ -62,69 +63,39 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   return (
     <div className="auth-page">
       <section className="auth-story">
-        <Logo />
-        <div className="auth-message">
-          <div className="eyebrow">
-            <span className="tiny-square" /> MENOS VOLTAS. MAIS TEMPO.
-          </div>
+        <header className="auth-brand-row">
+          <Logo />
+          <span>Mobilidade no campus</span>
+        </header>
+        <div className="auth-editorial">
+          <span className="section-kicker">Estacionamentos conectados</span>
           <h1>
-            Seu próximo destino.
+            Vagas do campus.
             <br />
-            Sua vaga <em>já no radar.</em>
+            <span>Em tempo real.</span>
           </h1>
           <p>
-            Veja onde estacionar antes de sair de casa.
-            <br />
-            Sensores conectados, vagas em tempo real.
+            Consulte a disponibilidade antes de chegar.
+            <br />A detecção de veículos é automática.
           </p>
-          <div className="auth-map">
-            <div className="map-grid" />
-            <div className="auth-map-top">
-              <span>
-                <MapPin size={15} /> Campus Unisagrado
-              </span>
-              <LiveDot />
-            </div>
-            <div className="auth-spots">
-              {Array.from({ length: 18 }, (_, i) => (
-                <div key={i} className={i % 4 === 0 || i === 7 ? 'spot-free' : 'spot-taken'}>
-                  {i % 4 === 0 || i === 7 ? (
-                    <Check size={22} />
-                  ) : (
-                    <svg viewBox="0 0 28 48" aria-hidden="true">
-                      <rect x="3" y="2" width="22" height="43" rx="6" />
-                      <path d="M6 12h16l-2 9H8Zm2 22h12" />
-                    </svg>
-                  )}
-                  <small>A{String(i + 1).padStart(2, '0')}</small>
-                </div>
-              ))}
-            </div>
-            <div className="auth-map-road">
-              →<span>ACESSO PRINCIPAL</span>→
-            </div>
-            <div className="map-floating">
-              <span className="live-orb">
-                <Radio size={20} />
-              </span>
-              <div>
-                <strong>Uma vaga a menos para procurar.</strong>
-                <span>Uma preocupação a menos no seu dia.</span>
-              </div>
-              <Sparkles size={16} />
-            </div>
-          </div>
-          <div className="auth-benefits">
-            <span>
-              <Radio size={16} /> Detecção automática
-            </span>
-            <span>
-              <ShieldCheck size={16} /> Feito para o seu campus
-            </span>
+        </div>
+        <div className="login-visual">
+          <UrbanDrawing beam />
+          <span className="visual-location">
+            <MapPin size={14} />
+            Campus Unisagrado<small>Representação ilustrativa</small>
+          </span>
+          <span className="visual-bearing">
+            N <span>↗</span>
+          </span>
+          <div className="visual-coordinate">
+            <span>01 / Monitoramento de vagas</span>
+            <span>BatSinal</span>
           </div>
         </div>
         <footer>
-          PROJETO ACADÊMICO · UNISAGRADO <span>2026</span>
+          <span>Projeto acadêmico · Unisagrado</span>
+          <span>2026</span>
         </footer>
       </section>
       <section className="auth-form-side" id="conteudo">
@@ -132,18 +103,18 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           <Logo />
         </div>
         <div className="auth-form-wrap">
-          <BadgeLabel text={register ? 'SEU CAMPUS, CONECTADO' : 'BEM-VINDO AO BATSINAL'} />
-          <h2>{register ? 'Dê sinal de um novo começo.' : 'Bom ter você por aqui.'}</h2>
+          <BadgeLabel text={register ? 'Cadastro de organização' : 'Acesse sua conta'} />
+          <h2>{register ? 'Cadastrar empresa' : 'Entrar no BatSinal'}</h2>
           <p>
             {register
               ? 'Cadastre sua empresa e seja o primeiro administrador.'
-              : 'Entre para encontrar seu lugar no campus.'}
+              : 'Consulte as vagas disponíveis no seu campus.'}
           </p>
           <form onSubmit={submit} noValidate className="form-stack">
             {register && (
               <>
                 {field('nomeEmpresa', 'Nome da empresa', 'Ex.: Unisagrado')}
-                {field('nome', 'Seu nome', 'Como podemos chamar você?')}
+                {field('nome', 'Seu nome', 'Nome e sobrenome')}
               </>
             )}
             {field('email', 'E-mail', 'voce@empresa.com.br')}
@@ -183,19 +154,19 @@ export function AuthPage({ register = false }: { register?: boolean }) {
               </p>
             )}
             <Button type="submit" disabled={busy} className="auth-submit">
-              {busy ? 'Aguarde…' : register ? 'Criar minha empresa' : 'Entrar na plataforma'}
+              {busy ? 'Aguarde…' : register ? 'Cadastrar empresa' : 'Entrar'}
               <ArrowRight size={18} />
             </Button>
           </form>
           <p className="auth-alternative">
-            {register ? 'Já tem uma conta?' : 'Sua empresa ainda não está aqui?'}{' '}
+            {register ? 'Já tem uma conta?' : 'Primeiro acesso da empresa?'}{' '}
             <Link to={register ? '/login' : '/cadastro'}>
               {register ? 'Entrar' : 'Cadastrar empresa'} <ArrowRight size={14} />
             </Link>
           </p>
           {USE_MOCK && (
             <div className="demo-login">
-              <span className="eyebrow">EXPLORE A DEMONSTRAÇÃO LOCAL</span>
+              <span className="eyebrow">Contas de demonstração</span>
               <div>
                 <button
                   onClick={() =>
@@ -204,7 +175,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
                 >
                   <ShieldCheck size={17} />
                   <span>
-                    Administrador<small>Gerencie o seu campus</small>
+                    Administrador<small>Painel e configuração</small>
                   </span>
                   <ArrowRight size={15} />
                 </button>
@@ -215,7 +186,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
                 >
                   <MapPin size={17} />
                   <span>
-                    Usuário<small>Encontre sua vaga</small>
+                    Usuário<small>Consulta de vagas</small>
                   </span>
                   <ArrowRight size={15} />
                 </button>
@@ -227,7 +198,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           )}
         </div>
         <p className="auth-bottom">
-          <span className="tiny-square" /> Seu lugar está aqui.
+          <span className="tiny-square" /> Ambiente local · dados de demonstração
         </p>
       </section>
     </div>

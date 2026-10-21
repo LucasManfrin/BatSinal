@@ -18,8 +18,11 @@ import {
 } from '../../components/ui';
 import { tempoDesde } from '../../lib/utils';
 import type { Vaga } from '../../types';
+import { useAuth } from '../../features/auth/AuthContext';
+import { recordVisit } from '../../features/profile/preferences';
 
 export function LotDetailPage() {
+  const { user } = useAuth();
   const { id = '' } = useParams();
   const lot = useLot(id);
   const statuses = useStatuses(id);
@@ -28,6 +31,9 @@ export function LotDetailPage() {
   const [alert, setAlert] = useState(false);
   const previousFree = useRef<number | null>(null);
   const free = statuses.data?.filter((s) => s.status === 'LIVRE').length ?? 0;
+  useEffect(() => {
+    if (user && lot.data) recordVisit(user.id, lot.data.id, lot.data.nome);
+  }, [user, lot.data]);
   useEffect(() => {
     if (alert && previousFree.current === 0 && free > 0) {
       toast.success('Abriu uma vaga!', {
@@ -57,7 +63,7 @@ export function LotDetailPage() {
       </Link>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">SEU LUGAR, EM TEMPO REAL</div>
+          <div className="eyebrow">Disponibilidade por vaga</div>
           <h1>{lot.data.nome}</h1>
           <p>
             <MapPin size={15} />

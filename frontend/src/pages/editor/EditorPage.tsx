@@ -277,7 +277,7 @@ export function EditorPage() {
       await api(`/estacionamentos/${id}/layout`, { method: 'PUT', body: json(editor.layout) });
       editor.markSaved();
       await client.invalidateQueries();
-      toast.success('Layout salvo. Seu campus está no radar.');
+      toast.success('Layout salvo com sucesso.');
     } catch (e) {
       toast.error(mensagemErro(e));
     } finally {
@@ -318,9 +318,9 @@ export function EditorPage() {
     <>
       <div className="page-heading">
         <div>
-          <div className="eyebrow">CADA VAGA NO SEU LUGAR</div>
+          <div className="eyebrow">Configuração do estacionamento</div>
           <h1>Editor de layout</h1>
-          <p>Desenhe um estacionamento que faz sentido para o seu campus.</p>
+          <p>Posicione as vagas, configure os elementos e vincule os sensores.</p>
         </div>
         <Select
           aria-label="Estacionamento para editar"
@@ -579,7 +579,7 @@ export function EditorPage() {
       <Dialog
         open={gridOpen}
         onOpenChange={setGridOpen}
-        title="Um bom começo para o seu layout"
+        title="Gerar layout padrão"
         description="Confira a prévia. Gerar e salvar substitui o layout atual e desvincula os sensores das vagas antigas."
         wide
       >
