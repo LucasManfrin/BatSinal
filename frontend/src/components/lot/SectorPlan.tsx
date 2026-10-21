@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { ArrowRight, Car, Check, Navigation, WifiOff } from 'lucide-react';
 import { useLot, useStatuses } from '../../features/estacionamentos/queries';
-import { useAuth } from '../../features/auth/AuthContext';
-import { recordVisit } from '../../features/profile/preferences';
 import { Button, EmptyState, ErrorState, Loading } from '../ui';
 import type { StatusVaga } from '../../types';
 
@@ -16,12 +14,9 @@ const labels: Record<StatusVaga, string> = {
 export function SectorPlan({ id }: { id: string }) {
   const lot = useLot(id);
   const statuses = useStatuses(id);
-  const { user } = useAuth();
+  const { campusSlug } = useParams();
   const [selected, setSelected] = useState('');
   const [onlyFree, setOnlyFree] = useState(false);
-  useEffect(() => {
-    if (user && lot.data) recordVisit(user.id, lot.data.id, lot.data.nome);
-  }, [user, lot.data]);
   if (lot.isPending || statuses.isPending)
     return (
       <div className="sector-placeholder">
@@ -55,7 +50,10 @@ export function SectorPlan({ id }: { id: string }) {
           <span>Planta do bolsão</span>
           <h2>{data.nome}</h2>
         </div>
-        <Link to={`/estacionamentos/${id}`} aria-label={`Detalhes de ${data.nome}`}>
+        <Link
+          to={campusSlug ? `/c/${campusSlug}/${id}` : `/admin/editor/${id}`}
+          aria-label={`Detalhes de ${data.nome}`}
+        >
           Detalhes <ArrowRight size={14} />
         </Link>
       </header>

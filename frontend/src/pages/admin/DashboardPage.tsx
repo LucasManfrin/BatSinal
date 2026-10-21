@@ -340,7 +340,7 @@ export function DashboardPage() {
           ) : (
             <Loading />
           )}
-          <Link className="dashboard-detail-link" to={`/estacionamentos/${id}`}>
+          <Link className="dashboard-detail-link" to={`/admin/consulta/${id}`}>
             Abrir mapa interativo <ArrowRight size={15} />
           </Link>
         </Card>

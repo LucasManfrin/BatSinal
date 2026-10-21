@@ -101,7 +101,7 @@ export function CampusMap({
               <p>
                 {lot.vagasLivres} livres de {lot.totalVagas}
               </p>
-              <Link to={`/estacionamentos/${lot.id}`}>Ver vagas →</Link>
+              <Link to={`/admin/consulta/${lot.id}`}>Ver vagas →</Link>
             </Popup>
           </CircleMarker>
         ))}

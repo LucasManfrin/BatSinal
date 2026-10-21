@@ -1,55 +1,68 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, json } from '../../lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
+import { api } from '../../lib/api';
+import { useAuth } from '../auth/AuthContext';
 import type {
+  CampusPublico,
   DetalheEstacionamento,
+  Empresa,
   EstacionamentoResumo,
   Sensor,
   StatusVagaAtual,
-  Usuario,
 } from '../../types';
-import { toast } from 'sonner';
-import { mensagemErro } from '../../lib/utils';
 
-export const useLots = () =>
-  useQuery({
-    queryKey: ['estacionamentos'],
-    queryFn: () => api<EstacionamentoResumo[]>('/estacionamentos'),
+export function usePublicCampi() {
+  return useQuery({
+    queryKey: ['campi-publicos'],
+    queryFn: () => api<CampusPublico[]>('/publico/campi'),
+  });
+}
+export function useCompany() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['empresa', user?.empresaId],
+    queryFn: () => api<Empresa>('/empresa'),
+    enabled: Boolean(user),
+  });
+}
+function useScope() {
+  const { campusSlug } = useParams();
+  const { user } = useAuth();
+  return {
+    key: campusSlug ? `publico:${campusSlug}` : `empresa:${user?.empresaId ?? ''}`,
+    enabled: Boolean(campusSlug || user),
+    prefix: campusSlug ? `/publico/campi/${encodeURIComponent(campusSlug)}` : '',
+  };
+}
+export function useLots() {
+  const scope = useScope();
+  return useQuery({
+    queryKey: ['estacionamentos', scope.key],
+    queryFn: () => api<EstacionamentoResumo[]>(`${scope.prefix}/estacionamentos`),
     refetchInterval: 3000,
+    enabled: scope.enabled,
   });
-export const useLot = (id: string) =>
-  useQuery({
-    queryKey: ['estacionamento', id],
-    queryFn: () => api<DetalheEstacionamento>(`/estacionamentos/${id}`),
-    enabled: Boolean(id),
+}
+export function useLot(id: string) {
+  const scope = useScope();
+  return useQuery({
+    queryKey: ['estacionamento', id, scope.key],
+    queryFn: () => api<DetalheEstacionamento>(`${scope.prefix}/estacionamentos/${id}`),
+    enabled: Boolean(id) && scope.enabled,
   });
-export const useStatuses = (id: string) =>
-  useQuery({
-    queryKey: ['status', id],
-    queryFn: () => api<StatusVagaAtual[]>(`/estacionamentos/${id}/status`),
+}
+export function useStatuses(id: string) {
+  const scope = useScope();
+  return useQuery({
+    queryKey: ['status', id, scope.key],
+    queryFn: () => api<StatusVagaAtual[]>(`${scope.prefix}/estacionamentos/${id}/status`),
     refetchInterval: 3000,
-    enabled: Boolean(id),
+    enabled: Boolean(id) && scope.enabled,
   });
+}
 export const useSensors = () =>
   useQuery({
     queryKey: ['sensores'],
     queryFn: () => api<Sensor[]>('/sensores'),
     refetchInterval: 3000,
   });
-export const useUsers = () =>
-  useQuery({ queryKey: ['usuarios'], queryFn: () => api<Usuario[]>('/usuarios') });
-export function useFavorites() {
-  const client = useQueryClient();
-  const query = useQuery({ queryKey: ['favoritos'], queryFn: () => api<string[]>('/favoritos') });
-  async function toggle(id: string) {
-    try {
-      const next = await api<string[]>('/favoritos', {
-        method: query.data?.includes(id) ? 'DELETE' : 'POST',
-        body: json({ estacionamentoId: id }),
-      });
-      client.setQueryData(['favoritos'], next);
-    } catch (e) {
-      toast.error(mensagemErro(e));
-    }
-  }
-  return { ...query, toggle };
-}

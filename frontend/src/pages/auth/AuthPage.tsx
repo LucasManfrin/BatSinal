@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { ArrowRight, Eye, EyeOff, MapPin, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Button, Field, Input } from '../../components/ui';
 import { Logo } from '../../components/layout/Logo';
@@ -14,7 +14,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ email: '', senha: '', nome: '', nomeEmpresa: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  if (user) return <Navigate to={user.role === 'ADMIN' ? '/admin' : '/estacionamentos'} replace />;
+  if (user) return <Navigate to={'/admin'} replace />;
   const strength = [
     form.senha.length >= 8,
     /[a-z]/.test(form.senha),
@@ -39,8 +39,9 @@ export function AuthPage({ register = false }: { register?: boolean }) {
     if (Object.keys(next).length) return;
     setBusy(true);
     try {
-      const u = register ? await createCompany(form) : await login(form.email, form.senha);
-      navigate(u.role === 'ADMIN' ? '/admin' : '/estacionamentos');
+      if (register) await createCompany(form);
+      else await login(form.email, form.senha);
+      navigate('/admin');
     } catch (e) {
       setErrors({ ...(e instanceof ApiError ? e.details.campos : {}), geral: mensagemErro(e) });
     } finally {
@@ -66,18 +67,18 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           <Logo />
         </div>
         <div className="auth-form-wrap">
-          <BadgeLabel text={register ? 'Cadastro de organização' : 'Acesse sua conta'} />
-          <h2>{register ? 'Cadastrar empresa' : 'Entrar no BatSinal'}</h2>
+          <BadgeLabel text={register ? 'Cadastro de organização' : 'Acesso da empresa'} />
+          <h2>{register ? 'Cadastrar empresa' : 'Entrar como empresa'}</h2>
           <p>
             {register
-              ? 'Cadastre sua empresa e seja o primeiro administrador.'
-              : 'Consulte as vagas disponíveis no seu campus.'}
+              ? 'Cadastre a empresa e o responsável pelos estacionamentos.'
+              : 'Gerencie o mapa, os bolsões e os sensores da sua empresa.'}
           </p>
           <form onSubmit={submit} noValidate className="form-stack">
             {register && (
               <>
                 {field('nomeEmpresa', 'Nome da empresa', 'Ex.: Unisagrado')}
-                {field('nome', 'Seu nome', 'Nome e sobrenome')}
+                {field('nome', 'Nome do responsável', 'Nome e sobrenome')}
               </>
             )}
             {field('email', 'E-mail', 'voce@empresa.com.br')}
@@ -127,9 +128,12 @@ export function AuthPage({ register = false }: { register?: boolean }) {
               {register ? 'Entrar' : 'Cadastrar empresa'} <ArrowRight size={14} />
             </Link>
           </p>
-          {USE_MOCK && (
+          <Link className="text-link public-consult-link" to="/">
+            Consultar vagas sem conta <ArrowRight size={14} />
+          </Link>
+          {USE_MOCK && !register && (
             <div className="demo-login">
-              <span className="eyebrow">Contas de demonstração</span>
+              <span className="eyebrow">Acesso de demonstração</span>
               <div>
                 <button
                   onClick={() =>
@@ -138,18 +142,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
                 >
                   <ShieldCheck size={17} />
                   <span>
-                    Administrador<small>Painel e configuração</small>
-                  </span>
-                  <ArrowRight size={15} />
-                </button>
-                <button
-                  onClick={() =>
-                    setForm({ ...form, email: 'usuario@unisagrado.demo', senha: 'Demo@123' })
-                  }
-                >
-                  <MapPin size={17} />
-                  <span>
-                    Usuário<small>Consulta de vagas</small>
+                    Empresa de demonstração<small>Unisagrado</small>
                   </span>
                   <ArrowRight size={15} />
                 </button>

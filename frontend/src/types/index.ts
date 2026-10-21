@@ -1,16 +1,17 @@
-export type Role = 'ADMIN' | 'USER';
 export type StatusVaga = 'LIVRE' | 'OCUPADA' | 'SEM_SINAL';
 export type TipoVaga = 'COMUM' | 'PCD' | 'MOTO';
 export interface Empresa {
   id: string;
   nome: string;
+  slug: string;
+  publicado: boolean;
 }
-export interface Usuario {
+export type CampusPublico = Pick<Empresa, 'id' | 'nome' | 'slug'>;
+export interface Administrador {
   id: string;
   empresaId: string;
   nome: string;
   email: string;
-  role: Role;
 }
 export interface Estacionamento {
   id: string;
@@ -73,7 +74,7 @@ export interface Layout {
 export interface DetalheEstacionamento extends Estacionamento, Layout {}
 export interface Sessao {
   token: string;
-  usuario: Usuario;
+  administrador: Administrador;
 }
 export interface ErroApi {
   status: number;

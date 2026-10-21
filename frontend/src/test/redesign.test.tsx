@@ -1,45 +1,40 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setupServer } from 'msw/node';
 import type { ReactNode } from 'react';
 import { handlers, simulateStatus } from '../mocks/handlers';
 import { createSeed, store } from '../mocks/seed';
 import { TOKEN_KEY } from '../lib/api';
-import { ProfilePage } from '../pages/perfil/ProfilePage';
+import { CompanyPage } from '../pages/empresa/CompanyPage';
 import { LotsPage } from '../pages/estacionamentos/LotsPage';
-import { readPreferences, recordVisit } from '../features/profile/preferences';
+import type { Administrador } from '../types';
 import { AppLayout } from '../components/layout/AppLayout';
 
-vi.mock('../features/auth/AuthContext', () => ({
-  useAuth: () => ({
-    user: {
-      id: 'user',
-      nome: 'Marina Santos',
-      email: 'usuario@unisagrado.demo',
-      empresaId: 'unisagrado',
-      role: 'USER',
-    },
-    logout: vi.fn(),
-  }),
-}));
+const auth = vi.hoisted(() => ({ user: null as Administrador | null, logout: vi.fn() }));
+vi.mock('../features/auth/AuthContext', () => ({ useAuth: () => ({ ...auth, loading: false }) }));
 const server = setupServer(...handlers);
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());
 beforeEach(() => {
   localStorage.clear();
   Object.assign(store, createSeed());
-  store.sessoes['teste-ui'] = 'user';
-  localStorage.setItem(TOKEN_KEY, 'teste-ui');
+  auth.user = null;
 });
-function show(content: ReactNode) {
+function show(content: ReactNode, path = '/c/unisagrado') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const view = render(
     <QueryClientProvider client={client}>
-      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        {content}
+      <MemoryRouter
+        initialEntries={[path]}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <Routes>
+          <Route path="/c/:campusSlug" element={content} />
+          <Route path="/empresa" element={content} />
+        </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -111,64 +106,49 @@ describe('consulta e perfil redesenhados', () => {
     expect(await screen.findByText('Acesso não informado')).toBeInTheDocument();
     expect(screen.getByText('Tempo a pé não informado')).toBeInTheDocument();
   });
-  it('mantém apenas contexto, contador e conta no cabeçalho e abre os acessos pelo avatar', async () => {
+  it('oferece cadastro somente para empresas e consulta pública sem conta', async () => {
     const user = userEvent.setup();
     show(<AppLayout />);
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
-    const total = screen.getByRole('status', { name: 'Total de vagas livres no campus' });
-    await waitFor(() => expect(total).toHaveTextContent('26'));
-    await user.click(screen.getByRole('button', { name: 'Abrir menu da conta' }));
-    expect(
-      within(screen.getByRole('dialog')).getByRole('link', { name: 'Perfil e preferências' }),
-    ).toHaveAttribute('href', '/perfil');
-    expect(
-      within(screen.getByRole('dialog')).getByRole('link', { name: 'Favoritos' }),
-    ).toHaveAttribute('href', '/favoritos');
-  });
-  it('remove favorito por HTTP e atualiza o resultado do filtro', async () => {
-    const user = userEvent.setup();
-    show(<LotsPage />);
-    await user.click(await screen.findByRole('button', { name: 'Favoritos' }));
-    expect(screen.getAllByRole('article')).toHaveLength(1);
-    await user.click(
-      screen.getByRole('button', { name: 'Remover Estacionamento Central dos favoritos' }),
+    await waitFor(() =>
+      expect(
+        screen.getByRole('status', { name: 'Total de vagas livres no campus' }),
+      ).toHaveTextContent('26'),
     );
-    expect(await screen.findByRole('heading', { name: 'Nenhum resultado' })).toBeInTheDocument();
-    expect(store.favoritos.user).toEqual([]);
-  });
-  it('salva e remove veículo com confirmação e isola os dados por conta', async () => {
-    const user = userEvent.setup();
-    show(<ProfilePage />);
-    await user.click(screen.getByRole('button', { name: 'Adicionar veículo' }));
-    await user.type(screen.getByLabelText('Nome do veículo'), 'Moto do campus');
-    await user.selectOptions(screen.getByLabelText('Tipo de veículo'), 'MOTO');
-    await user.click(screen.getByRole('button', { name: 'Salvar veículo' }));
-    expect(await screen.findByText('Moto do campus')).toBeInTheDocument();
-    expect(readPreferences('user').veiculos[0].tipo).toBe('MOTO');
-    expect(readPreferences('admin').veiculos).toEqual([]);
-    await user.click(screen.getByRole('button', { name: 'Remover veículo Moto do campus' }));
-    await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }));
-    expect(screen.getByText('Moto do campus')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Remover veículo Moto do campus' }));
-    await user.click(
-      within(screen.getByRole('dialog')).getByRole('button', { name: 'Remover veículo' }),
+    await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
+    const dialog = screen.getByRole('dialog');
+    expect(within(dialog).getByRole('link', { name: 'Cadastrar empresa' })).toHaveAttribute(
+      'href',
+      '/cadastro',
     );
-    await waitFor(() => expect(screen.queryByText('Moto do campus')).not.toBeInTheDocument());
+    expect(within(dialog).getByRole('link', { name: 'Acesso para empresas' })).toHaveAttribute(
+      'href',
+      '/login',
+    );
+    expect(
+      within(dialog).queryByRole('link', { name: /perfil|favoritos/i }),
+    ).not.toBeInTheDocument();
+    expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
   });
-  it('aplica a preferência na próxima consulta e registra histórico sem duplicatas', async () => {
+  it('permite ao responsável publicar e fechar a consulta de sua empresa', async () => {
+    auth.user = {
+      id: 'admin',
+      empresaId: 'unisagrado',
+      nome: 'Lucas Oliveira',
+      email: 'admin@unisagrado.demo',
+    };
+    store.sessoes['teste-ui'] = 'admin';
+    localStorage.setItem(TOKEN_KEY, 'teste-ui');
     const user = userEvent.setup();
-    const profile = show(<ProfilePage />);
-    await user.selectOptions(screen.getByLabelText('Tipo de vaga preferido'), 'MOTO');
-    profile.unmount();
-    show(<LotsPage />);
-    expect(await screen.findByLabelText('Tipo de vaga')).toHaveValue('MOTO');
-    expect(screen.getAllByRole('article')).toHaveLength(1);
-    act(() => {
-      recordVisit('user', 'est-1', 'Estacionamento Central');
-      recordVisit('user', 'est-1', 'Estacionamento Central');
-      recordVisit('user', 'est-2', 'Bloco Acadêmico');
-    });
-    expect(readPreferences('user').recentes.map((r) => r.id)).toEqual(['est-2', 'est-1']);
-    expect(readPreferences('admin').recentes).toEqual([]);
+    show(<CompanyPage />, '/empresa');
+    const toggle = await screen.findByRole('switch', { name: 'Publicar consulta de vagas' });
+    expect(toggle).toBeChecked();
+    await user.click(toggle);
+    await waitFor(() => expect(store.empresas[0].publicado).toBe(false));
+    expect(await screen.findByText('Consulta fechada')).toBeInTheDocument();
+    await user.click(toggle);
+    expect(await screen.findByRole('link', { name: 'Abrir consulta pública' })).toHaveAttribute(
+      'href',
+      '/c/unisagrado',
+    );
   });
 });

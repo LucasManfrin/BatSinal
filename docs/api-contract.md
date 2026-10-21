@@ -1,100 +1,101 @@
-# Contrato HTTP — BatSinal v1
+# Contrato HTTP — BatSinal (empresa + consulta pública)
 
-Prefixo padrão: `http://localhost:8000/api`. JSON em **camelCase**. Datas ISO 8601 com fuso.
-IDs são strings opacas. Autenticação: `Authorization: Bearer <token>`.
-O frontend usa exclusivamente HTTP; o mock MSW intercepta as mesmas URLs.
+Prefixo: `http://localhost:8000/api`. JSON em camelCase; datas ISO 8601. O mock MSW implementa
+as rotas abaixo, exceto as explicitamente marcadas como planejadas. Não há API real nesta entrega.
+
+Visitantes não têm conta ou role. A empresa possui um responsável autenticado por Bearer token.
+Cadastro cria empresa e responsável; a resposta não tem campo `role`.
 
 ## Convenções
 
-- Sucesso: GET/PUT/DELETE 200; POST 201. DELETE retorna `null`, exceto favoritos, que retorna a lista atual.
-- Erro: `{ "status": 422, "mensagem": "Confira os campos informados.", "campos": { "email": "Informe um e-mail válido." } }`.
-- 400/422: formato/validação; 401: sem sessão; 403: perfil sem permissão; 404: recurso ausente ou de outra empresa; 409: e-mail duplicado.
-- Todos os recursos são filtrados pela empresa do usuário autenticado. ADMIN também pode consultar as telas de USER.
-- `Role`: ADMIN | USER. `TipoVaga`: COMUM | PCD | MOTO. `StatusVaga`: LIVRE | OCUPADA | SEM_SINAL.
-- Objetos e interfaces completas: `frontend/src/types/index.ts`.
+- GET/PUT/DELETE: 200; POST: 201; DELETE retorna `null`.
+- Erro: `{ "status": 422, "mensagem": "Confira os campos.", "campos": { "email": "E-mail inválido." } }`.
+- 401: sem sessão; 404: ausente, de outra empresa ou campus não publicado; 405: escrita em consulta pública;
+  409: conflito; 422: validação. Backend real também pode retornar 400 com o mesmo formato.
+- Rotas da empresa filtram pelo `empresaId` resolvido da sessão, nunca pelo corpo enviado pelo navegador.
+- Tipos completos: `frontend/src/types/index.ts`. `StatusVaga`: LIVRE, OCUPADA, SEM_SINAL.
 
-## Autenticação e usuários
+## Consulta pública — sem Authorization
 
-| Método e rota | Acesso | Corpo | Resposta |
+| Método / rota | Resposta |
+| --- | --- |
+| GET `/publico/campi` | `{ id, nome, slug }[]` somente de empresas publicadas |
+| GET `/publico/campi/{slug}/estacionamentos` | `EstacionamentoResumo[]` sem layouts internos ou sensores |
+| GET `/publico/campi/{slug}/estacionamentos/{id}` | Layout de consulta, sem `sensorId` nas vagas |
+| GET `/publico/campi/{slug}/estacionamentos/{id}/status` | `{ vagaId, status, atualizadoEm }[]` |
+
+Essas rotas nunca retornam e-mails de responsáveis, senhas, hashes, IDs ou chaves dos sensores.
+O ID do bolsão deve pertencer ao campus indicado. Campus fechado devolve 404, inclusive para
+quem conhece o ID. Escritas em `/publico/*` devolvem 405. Analytics e sensores não são públicos.
+
+## Empresa e autenticação
+
+| Método / rota | Acesso | Corpo | Resposta |
 | --- | --- | --- | --- |
-| POST `/auth/cadastro-empresa` | Público | `{ nomeEmpresa, nome, email, senha }` | `{ token, usuario }` |
-| POST `/auth/login` | Público | `{ email, senha }` | `{ token, usuario }` |
-| GET `/auth/me` | Logado | — | `Usuario` |
-| GET `/usuarios` | ADMIN | — | `Usuario[]` |
-| POST `/usuarios` | ADMIN | `{ nome, email, senha, role }` | `Usuario` |
-| PUT `/usuarios/{id}` | ADMIN | `{ nome, email, role, senha? }` | `Usuario` |
-| DELETE `/usuarios/{id}` | ADMIN | — | `null` |
+| POST `/auth/cadastro-empresa` | Público | `{ nomeEmpresa, nome, email, senha }` | `{ token, administrador }` |
+| POST `/auth/login` | Público | `{ email, senha }` | `{ token, administrador }` |
+| GET `/auth/me` | Responsável | — | `{ id, empresaId, nome, email }` |
+| GET `/empresa` | Responsável | — | `{ id, nome, slug, publicado }` |
+| PUT `/empresa` | Responsável | `{ publicado: boolean }` | Empresa atualizada |
 
-Senha inicial com ≥ 8 caracteres, minúscula, maiúscula e número. E-mail único.
-Não se permite excluir a própria conta ou remover o próprio perfil ADMIN.
-`Usuario`: `{ id, empresaId, nome, email, role }`; senhas nunca retornam.
+Senha demonstrativa exige 8 caracteres, minúscula, maiúscula e número. E-mail é único.
+Slug é criado a partir do nome, com sufixo se já existir. Empresa nova inicia com `publicado: false`.
+O seed Unisagrado é publicado. Sessões mock usam tokens opacos e senhas fictícias; segurança real
+está no [planejamento do backend](ARQUITETURA_BACKEND.md).
 
-## Estacionamentos
+Não existem cadastro/login de visitante, roles USER/ADMIN, CRUD de usuários ou favoritos no contrato atual.
+Os antigos endpoints `/usuarios` e `/favoritos` foram retirados. Rotas antigas da interface redirecionam.
 
-| Método e rota | Acesso | Corpo / consulta | Resposta |
-| --- | --- | --- | --- |
-| GET `/estacionamentos` | Logado | — | `EstacionamentoResumo[]` |
-| POST `/estacionamentos` | ADMIN | `{ nome, descricao?, latitude, longitude, largura, altura }` | `DetalheEstacionamento` |
-| GET `/estacionamentos/{id}` | Logado | — | `DetalheEstacionamento` |
-| PUT `/estacionamentos/{id}` | ADMIN | `{ nome, descricao?, latitude, longitude, largura, altura }` | `DetalheEstacionamento` |
-| DELETE `/estacionamentos/{id}` | ADMIN | — | `null` |
-| POST `/estacionamentos/{id}/layout-padrao` | ADMIN | `{ linhas, colunas, largura?, altura?, espacamento? }` | `DetalheEstacionamento` |
-| PUT `/estacionamentos/{id}/layout` | ADMIN | `{ vagas: Vaga[], elementos: ElementoLayout[] }` | `DetalheEstacionamento` |
-| GET `/estacionamentos/{id}/status` | Logado | Polling a cada 3 s | `StatusVagaAtual[]` |
+## Estacionamentos — responsável autenticado
 
-`EstacionamentoResumo` adiciona `totalVagas`, `vagasLivres`, `tendencia` e `livresPorTipo: { COMUM, PCD, MOTO }`.
-`tendencia` compara livres atuais com a leitura disponível até 15 minutos atrás: SUBINDO | ESTAVEL | CAINDO.
-`DetalheEstacionamento` contém os campos do estacionamento + `vagas` + `elementos`.
-Dimensões do estacionamento entre 200 e 10000; latitude -90..90, longitude -180..180.
-Campos opcionais em GET, POST e PUT de estacionamento: `portao?: string` (até 100 caracteres),
-`caminhadaMinutos?: number` (inteiro de 1 a 120) e `caminhadaDestino?: string` (até 100 caracteres).
-Tempo e destino devem ser enviados juntos; valores ausentes são exibidos como não informados.
-Para limpar a caminhada no PUT, enviar `caminhadaMinutos: null` e `caminhadaDestino: ""`;
-para limpar o portão, enviar `portao: ""`. Omitir os campos no PUT preserva os valores anteriores.
-São informações cadastradas, não estimativas calculadas pelo frontend. Os exemplos do seed são fictícios.
-`Navegar até o bolsão` usa latitude/longitude em uma URL de direções do Google Maps; não há endpoint novo de rotas.
-Grid: 1..20 linhas, 1..30 colunas; tamanho padrão 53×86, espaço 10. O grid precisa caber no canvas.
-O gerador substitui o layout existente; o cliente mostra preview e confirmação antes de chamar o endpoint.
-Salvar layout é atômico, com rótulos únicos não vazios e sensores únicos da mesma empresa.
-Uma vaga nova sem sensor permanece SEM_SINAL. Excluir estacionamento desvincula sensores e limpa favoritos/histórico.
+| Método / rota | Corpo / consulta | Resposta |
+| --- | --- | --- |
+| GET `/estacionamentos` | — | Resumos da própria empresa |
+| POST `/estacionamentos` | `{ nome, descricao?, latitude, longitude, largura, altura, portao?, caminhadaMinutos?, caminhadaDestino? }` | Detalhe |
+| GET `/estacionamentos/{id}` | — | Campos do estacionamento, vagas e elementos |
+| PUT `/estacionamentos/{id}` | Mesmos campos do cadastro | Detalhe |
+| DELETE `/estacionamentos/{id}` | — | `null` |
+| POST `/estacionamentos/{id}/layout-padrao` | `{ linhas, colunas, largura?, altura?, espacamento? }` | Detalhe |
+| PUT `/estacionamentos/{id}/layout` | `{ vagas, elementos }` | Detalhe |
+| GET `/estacionamentos/{id}/status` | — | Status das vagas |
 
-## Sensores e favoritos
+Resumo inclui `totalVagas`, `vagasLivres`, `tendencia` e `livresPorTipo: { COMUM, PCD, MOTO }`.
+Tendência compara livres atuais com a leitura disponível até 15 minutos antes.
+Dimensões do bolsão: 200..10000; latitude -90..90 e longitude -180..180.
+Grid: 1..20 linhas e 1..30 colunas; padrão 53×86, espaço 10; precisa caber no layout.
+Rótulos de vaga são únicos e não vazios. Salvar layout é atômico; geração substitui as vagas anteriores.
 
-| Método e rota | Acesso | Corpo | Resposta |
-| --- | --- | --- | --- |
-| GET `/sensores` | ADMIN | — | `Sensor[]` |
-| POST `/sensores` | ADMIN | `{ nome, vagaId? }` | `Sensor & { deviceKey }` |
-| PUT `/sensores/{id}` | ADMIN | `{ nome, vagaId? }` | `Sensor` |
-| DELETE `/sensores/{id}` | ADMIN | — | `null` |
-| GET `/favoritos` | Logado | — | `string[]` de IDs |
-| POST `/favoritos` | Logado | `{ estacionamentoId }` | `string[]` |
-| DELETE `/favoritos` | Logado | `{ estacionamentoId }` | `string[]` |
+Portão e destino aceitam até 100 caracteres. Minutos: inteiro 1..120; tempo e destino devem vir juntos.
+Para limpar, enviar `caminhadaMinutos: null` e `caminhadaDestino: ""`; para portão, `portao: ""`.
+Omitir campos opcionais no PUT preserva seus valores anteriores. Seed de acesso/caminhada é fictício.
 
-Um sensor só pode estar em uma vaga e vice-versa. `deviceKey` só aparece na resposta de criação.
-O mock gera uma chave ilustrativa, sem uso real. Em produção o backend deve armazenar hash e validar a chave.
-Sem leitura há mais de 60 s, ou sem sensor vinculado, a vaga é SEM_SINAL.
+## Sensores — responsável autenticado
 
-## Analytics
+| Método / rota | Corpo | Resposta |
+| --- | --- | --- |
+| GET `/sensores` | — | `Sensor[]` da empresa |
+| POST `/sensores` | `{ nome, vagaId? }` | Sensor + `deviceKey` ilustrativa, exibida uma vez |
+| PUT `/sensores/{id}` | `{ nome, vagaId? }` | Sensor |
+| DELETE `/sensores/{id}` | — | `null` |
 
-| Método e rota | Acesso | Consulta | Resposta |
-| --- | --- | --- | --- |
-| GET `/estacionamentos/{id}/ocupacao` | ADMIN | `de`, `ate` (ISO), `granularidade=30min\|hora\|dia` | `{ instante, ocupacao, livres }[]` |
-| GET `/estacionamentos/{id}/heatmap` | ADMIN | — | `{ dia, hora, ocupacao }[]` |
+Um sensor por vaga e vice-versa. Sem sensor ou leitura há mais de 60 segundos, SEM_SINAL.
 
-`ocupacao`: porcentagem 0..100, calculada como (total − livres)/total; por isso inclui vagas sem sinal entre as indisponíveis.
-`dia`: 0=segunda, 6=domingo. `hora`: 0..23, no fuso local da demonstração.
-Seed: 14 dias, intervalos de 30 minutos e picos sintéticos às 7h30, 12h e 18h30. Dados são ilustrativos.
-Períodos retornam a média de cada agrupamento; o painel calcula o pico do dia a partir das leituras de hoje.
+## Analytics — responsável autenticado
 
-## Dispositivo (fora do frontend)
+- GET `/estacionamentos/{id}/ocupacao?de=ISO&ate=ISO&granularidade=30min|hora|dia`:
+  `{ instante, ocupacao, livres }[]`.
+- GET `/estacionamentos/{id}/heatmap`: `{ dia, hora, ocupacao }[]`, dia 0=segunda, hora 0..23.
 
-`PUT /dispositivo/vagas/{id}/status`, header `X-Device-Key`, corpo `{ status, atualizadoEm }`.
-Este endpoint **não é implementado nem chamado pelo frontend**. O simulador local representa o dispositivo.
-Alertas in-app só existem enquanto a página do estacionamento está aberta; push/e-mail serão futuros serviços do backend.
+Ocupação significa indisponibilidade: (total − livres)/total; inclui sem sinal. Seed sintético de 14 dias.
 
-## Futuro FastAPI
+## Planejado para a API real — ainda não implementado no mock
 
-Pydantic com `alias_generator=to_camel` e campos Python em snake_case. Exception handler traduz erros 422 para o formato acima.
-CORS: permitir `http://localhost:5173` e `http://127.0.0.1:5173`, incluindo header Authorization e métodos usados.
-Swagger em `/docs`; OpenAPI em `/openapi.json`. Manter esta especificação coerente com o OpenAPI.
-JWT, hash de senhas, revogação, autorização e chaves de dispositivo precisam de implementação real no backend.
+- GET/PUT `/empresa/mapa`: mapa GeoJSON, PUT com `{ versao, geojson }`; conflito de versão: 409.
+- GET `/publico/campi/{slug}/mapa`: GeoJSON do campus publicado, sem dados internos.
+- PUT `/dispositivo/vagas/{id}/status`: chave do sensor vinculado em `X-Device-Key`;
+  `{ status: "LIVRE" | "OCUPADA" }`; hora de recebimento definida pelo servidor.
+- Controle `layoutVersao` ao salvar o layout na API real.
+
+Mapas, esquema SQL e limites estão em [ARQUITETURA_BACKEND.md](ARQUITETURA_BACKEND.md).
+O frontend só acessa HTTP/JSON. Backend real precisará de CORS para as origens locais,
+hash de senha, validade de token, autenticação de dispositivo e testes de isolamento.

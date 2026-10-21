@@ -1,6 +1,6 @@
 import { setupWorker } from 'msw/browser';
 import { handlers, heartbeat } from './handlers';
-import { store, STORAGE_KEY, type MockStore } from './seed';
+import { store, STORAGE_KEY, migrateStore } from './seed';
 
 export const worker = setupWorker(...handlers);
 // Como um dispositivo, o mock repete leituras mesmo sem mudança de ocupação.
@@ -10,7 +10,7 @@ window.setInterval(heartbeat, 10000);
 window.addEventListener('storage', (event) => {
   if (event.key !== STORAGE_KEY || !event.newValue) return;
   try {
-    Object.assign(store, JSON.parse(event.newValue) as MockStore);
+    Object.assign(store, migrateStore(JSON.parse(event.newValue)));
   } catch {
     /* Ignora dados locais corrompidos. */
   }

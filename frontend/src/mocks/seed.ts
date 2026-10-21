@@ -5,18 +5,18 @@ import type {
   PontoOcupacao,
   Sensor,
   StatusVagaAtual,
-  Usuario,
+  Administrador,
 } from '../types';
 import { gerarGrid } from '../lib/utils';
 
 export interface MockStore {
   navigationSchema?: number;
   empresas: Empresa[];
-  usuarios: (Usuario & { senha: string })[];
+  accessSchema?: number;
+  administradores: (Administrador & { senha: string })[];
   estacionamentos: DetalheEstacionamento[];
   sensores: Sensor[];
   status: StatusVagaAtual[];
-  favoritos: Record<string, string[]>;
   sessoes: Record<string, string>;
   historico: Record<string, PontoOcupacao[]>;
 }
@@ -130,30 +130,14 @@ export function createSeed(): MockStore {
   );
   return {
     navigationSchema: 1,
-    empresas: [{ id: 'unisagrado', nome: 'Unisagrado' }],
-    usuarios: [
+    accessSchema: 2,
+    empresas: [{ id: 'unisagrado', nome: 'Unisagrado', slug: 'unisagrado', publicado: true }],
+    administradores: [
       {
         id: 'admin',
         empresaId: 'unisagrado',
         nome: 'Lucas Oliveira',
         email: 'admin@unisagrado.demo',
-        role: 'ADMIN',
-        senha: DEMO_PASSWORD,
-      },
-      {
-        id: 'user',
-        empresaId: 'unisagrado',
-        nome: 'Marina Santos',
-        email: 'usuario@unisagrado.demo',
-        role: 'USER',
-        senha: DEMO_PASSWORD,
-      },
-      {
-        id: 'user-2',
-        empresaId: 'unisagrado',
-        nome: 'Pedro Almeida',
-        email: 'pedro@unisagrado.demo',
-        role: 'USER',
         senha: DEMO_PASSWORD,
       },
     ],
@@ -161,16 +145,46 @@ export function createSeed(): MockStore {
     status,
     sensores,
     historico,
-    favoritos: { user: ['est-1'] },
     sessoes: {},
   };
 }
 export const STORAGE_KEY = 'batsinal.mock.v1';
+interface LegacyStore extends Omit<MockStore, 'empresas' | 'administradores'> {
+  empresas: (Pick<Empresa, 'id' | 'nome'> & Partial<Empresa>)[];
+  administradores?: MockStore['administradores'];
+  usuarios?: (Administrador & { senha: string; role?: string })[];
+}
+export function migrateStore(saved: LegacyStore): MockStore {
+  const administradores =
+    saved.administradores ??
+    (saved.usuarios ?? [])
+      .filter((u) => u.role === 'ADMIN')
+      .map(({ id, empresaId, nome, email, senha }) => ({ id, empresaId, nome, email, senha }));
+  return {
+    navigationSchema: saved.navigationSchema,
+    accessSchema: 2,
+    empresas: saved.empresas.map((e) => ({
+      id: e.id,
+      nome: e.nome,
+      slug: e.slug ?? (e.id === 'unisagrado' ? 'unisagrado' : 'campus-' + e.id),
+      publicado: e.publicado ?? e.id === 'unisagrado',
+    })),
+    administradores,
+    estacionamentos: saved.estacionamentos,
+    sensores: saved.sensores,
+    status: saved.status,
+    historico: saved.historico,
+    sessoes: Object.fromEntries(
+      Object.entries(saved.sessoes).filter(([, id]) => administradores.some((a) => a.id === id)),
+    ),
+  };
+}
 function loadStore(): MockStore {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const saved = JSON.parse(raw) as MockStore;
+      const legacy = JSON.parse(raw) as LegacyStore;
+      const saved = migrateStore(legacy);
       if (saved.navigationSchema !== 1) {
         // Acrescenta só os campos novos do seed, preservando cadastros, layouts e leituras.
         saved.estacionamentos.forEach((lot) => {
@@ -182,6 +196,8 @@ function loadStore(): MockStore {
           }
         });
         saved.navigationSchema = 1;
+      }
+      if (legacy.accessSchema !== 2 || legacy.navigationSchema !== 1) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
         } catch {

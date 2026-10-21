@@ -7,8 +7,7 @@ import type {
   EstacionamentoResumo,
   GridOptions,
   Layout,
-  Role,
-  Usuario,
+  Administrador,
   Vaga,
 } from '../types';
 import { heatmap, persist, store } from './seed';
@@ -73,7 +72,7 @@ function email(body: Body, exceptId?: string) {
   const value = text(body, 'email').toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
     throw new MockError(422, 'E-mail inválido.', { email: 'Informe um e-mail válido.' });
-  if (store.usuarios.some((u) => u.email === value && u.id !== exceptId))
+  if (store.administradores.some((u) => u.email === value && u.id !== exceptId))
     throw new MockError(409, 'Este e-mail já está cadastrado.', { email: 'E-mail já cadastrado.' });
   return value;
 }
@@ -85,24 +84,21 @@ function password(body: Body) {
     });
   return value;
 }
-function publicUser(user: Usuario): Usuario {
+function publicUser(user: Administrador): Administrador {
   return {
     id: user.id,
     empresaId: user.empresaId,
     nome: user.nome,
     email: user.email,
-    role: user.role,
   };
 }
-function authenticated(request: Request, admin = false): Usuario {
+function authenticated(request: Request): Administrador {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-  const user = store.usuarios.find((u) => token && u.id === store.sessoes[token]);
+  const user = store.administradores.find((u) => token && u.id === store.sessoes[token]);
   if (!user) throw new MockError(401, 'Sua sessão expirou. Entre novamente.');
-  if (admin && user.role !== 'ADMIN')
-    throw new MockError(403, 'Acesso exclusivo para administradores.');
   return publicUser(user);
 }
-function getLot(id: string, user: Usuario): DetalheEstacionamento {
+function getLot(id: string, user: Administrador): DetalheEstacionamento {
   const lot = store.estacionamentos.find((l) => l.id === id && l.empresaId === user.empresaId);
   if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
   return lot;
@@ -144,7 +140,29 @@ function resumo(lot: DetalheEstacionamento): EstacionamentoResumo {
     },
   };
 }
-function validateLayout(layout: Layout, lot: DetalheEstacionamento, user: Usuario) {
+function publicLot(lot: DetalheEstacionamento, summary = false) {
+  const { vagas, elementos, ...base } = lot;
+  if (summary) {
+    const { totalVagas, vagasLivres, tendencia, livresPorTipo } = resumo(lot);
+    return { ...base, totalVagas, vagasLivres, tendencia, livresPorTipo };
+  }
+  return {
+    ...base,
+    elementos,
+    vagas: vagas.map(({ id, estacionamentoId, rotulo, tipo, x, y, largura, altura, rotacao }) => ({
+      id,
+      estacionamentoId,
+      rotulo,
+      tipo,
+      x,
+      y,
+      largura,
+      altura,
+      rotacao,
+    })),
+  };
+}
+function validateLayout(layout: Layout, lot: DetalheEstacionamento, user: Administrador) {
   if (!Array.isArray(layout.vagas) || !Array.isArray(layout.elementos))
     throw new MockError(422, 'Layout inválido.');
   const labels = new Set<string>();
@@ -209,11 +227,6 @@ function saveLayout(lot: DetalheEstacionamento, layout: Layout) {
     if (sensor) sensor.vagaId = v.id;
   }
 }
-function role(body: Body): Role {
-  if (body.role !== 'USER' && body.role !== 'ADMIN') throw new MockError(422, 'Perfil inválido.');
-  return body.role;
-}
-
 export const handlers = [
   http.all(`${API_URL}/*`, async ({ request }) => {
     await delay(140);
@@ -227,38 +240,84 @@ export const handlers = [
           : {};
       const [resource, id, action] = path;
       let result: unknown;
-      if (resource === 'auth' && id === 'login' && method === 'POST') {
-        const user = store.usuarios.find(
+      if (resource === 'publico') {
+        if (method !== 'GET') throw new MockError(405, 'Consulta pública permite somente leitura.');
+        if (id !== 'campi') throw new MockError(404, 'Rota não encontrada.');
+        if (!action)
+          result = store.empresas
+            .filter((e) => e.publicado)
+            .map(({ id, nome, slug }) => ({ id, nome, slug }));
+        else {
+          const empresa = store.empresas.find((e) => e.slug === action && e.publicado);
+          if (!empresa) throw new MockError(404, 'Campus não disponível para consulta.');
+          const [, , , collection, lotId, detail] = path;
+          if (collection !== 'estacionamentos') throw new MockError(404, 'Rota não encontrada.');
+          if (!lotId)
+            result = store.estacionamentos
+              .filter((l) => l.empresaId === empresa.id)
+              .map((l) => publicLot(l, true));
+          else {
+            const lot = store.estacionamentos.find(
+              (l) => l.id === lotId && l.empresaId === empresa.id,
+            );
+            if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
+            if (!detail) result = publicLot(lot);
+            else if (detail === 'status' && path.length === 6) result = lotStatus(lot);
+            else throw new MockError(404, 'Rota não encontrada.');
+          }
+        }
+      } else if (resource === 'auth' && id === 'login' && method === 'POST') {
+        const user = store.administradores.find(
           (u) => u.email === String(body.email).toLowerCase() && u.senha === body.senha,
         );
         if (!user) throw new MockError(401, 'E-mail ou senha incorretos.');
         const token = crypto.randomUUID();
         store.sessoes[token] = user.id;
-        result = { token, usuario: publicUser(user) };
+        result = { token, administrador: publicUser(user) };
       } else if (resource === 'auth' && id === 'cadastro-empresa' && method === 'POST') {
         const nomeEmpresa = text(body, 'nomeEmpresa', 2);
         const nome = text(body, 'nome', 2);
         const userEmail = email(body);
         const senha = password(body);
-        const empresa = { id: crypto.randomUUID(), nome: nomeEmpresa };
+        const idEmpresa = crypto.randomUUID();
+        const baseSlug =
+          nomeEmpresa
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+            .slice(0, 60) || 'campus';
+        const slug = store.empresas.some((e) => e.slug === baseSlug)
+          ? baseSlug + '-' + idEmpresa.slice(0, 8)
+          : baseSlug;
+        const empresa = { id: idEmpresa, nome: nomeEmpresa, slug, publicado: false };
         const user = {
           id: crypto.randomUUID(),
           empresaId: empresa.id,
           nome,
           email: userEmail,
-          role: 'ADMIN' as const,
           senha,
         };
         store.empresas.push(empresa);
-        store.usuarios.push(user);
+        store.administradores.push(user);
         const token = crypto.randomUUID();
         store.sessoes[token] = user.id;
-        result = { token, usuario: publicUser(user) };
+        result = { token, administrador: publicUser(user) };
       } else {
         const user = authenticated(request);
-        const admin = () => authenticated(request, true);
+        const admin = () => authenticated(request);
         if (resource === 'auth' && id === 'me' && method === 'GET') result = user;
-        else if (resource === 'estacionamentos') {
+        else if (resource === 'empresa' && !id) {
+          const empresa = store.empresas.find((e) => e.id === user.empresaId)!;
+          if (method === 'GET') result = empresa;
+          else if (method === 'PUT') {
+            if (typeof body.publicado !== 'boolean')
+              throw new MockError(422, 'Informe se a consulta está publicada.');
+            empresa.publicado = body.publicado;
+            result = empresa;
+          }
+        } else if (resource === 'estacionamentos') {
           if (!id) {
             if (method === 'GET')
               result = store.estacionamentos
@@ -366,61 +425,6 @@ export const handlers = [
               saveLayout(lot, { vagas: [], elementos: [] });
               store.estacionamentos = store.estacionamentos.filter((l) => l.id !== id);
               delete store.historico[id];
-              Object.keys(store.favoritos).forEach((key) => {
-                store.favoritos[key] = store.favoritos[key].filter((f) => f !== id);
-              });
-              result = null;
-            }
-          }
-        } else if (resource === 'favoritos') {
-          const favorites = store.favoritos[user.id] ?? [];
-          if (method === 'GET') result = favorites;
-          else if (method === 'POST' || method === 'DELETE') {
-            const lotId = text(body, 'estacionamentoId');
-            getLot(lotId, user);
-            store.favoritos[user.id] =
-              method === 'POST'
-                ? [...new Set([...favorites, lotId])]
-                : favorites.filter((f) => f !== lotId);
-            result = store.favoritos[user.id];
-          }
-        } else if (resource === 'usuarios') {
-          admin();
-          if (method === 'GET' && !id)
-            result = store.usuarios.filter((u) => u.empresaId === user.empresaId).map(publicUser);
-          else if (method === 'POST' && !id) {
-            const newUser = {
-              id: crypto.randomUUID(),
-              empresaId: user.empresaId,
-              nome: text(body, 'nome', 2),
-              email: email(body),
-              role: role(body),
-              senha: password(body),
-            };
-            store.usuarios.push(newUser);
-            result = publicUser(newUser);
-          } else if (id) {
-            const target = store.usuarios.find(
-              (u) => u.id === id && u.empresaId === user.empresaId,
-            );
-            if (!target) throw new MockError(404, 'Usuário não encontrado.');
-            if (target.id === user.id && (method === 'DELETE' || body.role === 'USER'))
-              throw new MockError(
-                422,
-                'Você não pode remover seu próprio acesso de administrador.',
-              );
-            if (method === 'PUT') {
-              const changes = {
-                nome: text(body, 'nome', 2),
-                email: email(body, id),
-                role: role(body),
-                senha: body.senha ? password(body) : target.senha,
-              };
-              Object.assign(target, changes);
-              result = publicUser(target);
-            } else if (method === 'DELETE') {
-              store.usuarios = store.usuarios.filter((u) => u.id !== id);
-              delete store.favoritos[id];
               result = null;
             }
           }

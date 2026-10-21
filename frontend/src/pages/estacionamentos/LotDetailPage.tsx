@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Bell, MapPin, Star } from 'lucide-react';
+import { ArrowLeft, Bell, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
-import { useFavorites, useLot, useStatuses } from '../../features/estacionamentos/queries';
+import { useLot, useStatuses } from '../../features/estacionamentos/queries';
 import { LotCanvas } from '../../components/lot/LotCanvas';
 import {
   Badge,
@@ -18,22 +18,15 @@ import {
 } from '../../components/ui';
 import { tempoDesde } from '../../lib/utils';
 import type { Vaga } from '../../types';
-import { useAuth } from '../../features/auth/AuthContext';
-import { recordVisit } from '../../features/profile/preferences';
 
 export function LotDetailPage() {
-  const { user } = useAuth();
-  const { id = '' } = useParams();
+  const { id = '', campusSlug } = useParams();
   const lot = useLot(id);
   const statuses = useStatuses(id);
-  const favorites = useFavorites();
   const [selected, setSelected] = useState<Vaga | null>(null);
   const [alert, setAlert] = useState(false);
   const previousFree = useRef<number | null>(null);
   const free = statuses.data?.filter((s) => s.status === 'LIVRE').length ?? 0;
-  useEffect(() => {
-    if (user && lot.data) recordVisit(user.id, lot.data.id, lot.data.nome);
-  }, [user, lot.data]);
   useEffect(() => {
     if (alert && previousFree.current === 0 && free > 0) {
       toast.success('Abriu uma vaga!', {
@@ -57,7 +50,7 @@ export function LotDetailPage() {
   const status = statuses.data.find((s) => s.vagaId === selected?.id);
   return (
     <>
-      <Link className="back-link" to="/estacionamentos">
+      <Link className="back-link" to={campusSlug ? `/c/${campusSlug}` : '/admin'}>
         <ArrowLeft size={16} />
         Estacionamentos
       </Link>
@@ -71,10 +64,6 @@ export function LotDetailPage() {
           </p>
         </div>
         <div className="heading-actions">
-          <Button variant="secondary" onClick={() => void favorites.toggle(id)}>
-            <Star size={16} fill={favorites.data?.includes(id) ? 'currentColor' : 'none'} />
-            Favorito
-          </Button>
           <LiveDot />
         </div>
       </div>

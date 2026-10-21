@@ -2,10 +2,11 @@ import { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { AuthProvider, RoleGuard } from '../features/auth/AuthContext';
+import { AuthProvider, CompanyGuard } from '../features/auth/AuthContext';
 import { AppLayout } from '../components/layout/AppLayout';
 import { AuthPage } from '../pages/auth/AuthPage';
-import { ProfilePage } from '../pages/perfil/ProfilePage';
+import { CompanyPage } from '../pages/empresa/CompanyPage';
+import { CampusEntry } from '../pages/estacionamentos/CampusEntry';
 import { Button, EmptyState, Loading } from '../components/ui';
 
 // Bibliotecas de mapa, canvas e gráficos só carregam quando a tela precisa delas.
@@ -44,39 +45,34 @@ const router = createBrowserRouter([
       </EmptyState>
     ),
     children: [
-      { path: '/', element: <Navigate to="/login" replace /> },
+      { path: '/', element: <CampusEntry /> },
       { path: '/login', element: <AuthPage /> },
       { path: '/cadastro', element: <AuthPage register /> },
+      { path: '/estacionamentos', element: <Navigate to="/" replace /> },
+      { path: '/favoritos', element: <Navigate to="/" replace /> },
       {
-        element: <RoleGuard />,
+        element: <AppLayout />,
         children: [
+          { path: '/c/:campusSlug', element: <LotsPage /> },
+          { path: '/c/:campusSlug/:id', element: <LotDetailPage /> },
           {
-            element: <AppLayout />,
+            element: <CompanyGuard />,
             children: [
-              { path: '/estacionamentos', element: <LotsPage /> },
-              { path: '/estacionamentos/:id', element: <LotDetailPage /> },
-              { path: '/favoritos', element: <LotsPage favoritesOnly /> },
-              { path: '/perfil', element: <ProfilePage /> },
+              { path: '/empresa', element: <CompanyPage /> },
+              { path: '/perfil', element: <Navigate to="/empresa" replace /> },
+              { path: '/admin', element: <DashboardPage /> },
+              { path: '/admin/consulta/:id', element: <LotDetailPage /> },
               {
-                element: <RoleGuard role="ADMIN" />,
-                children: [
-                  { path: '/admin', element: <DashboardPage /> },
-                  {
-                    path: '/admin/estacionamentos',
-                    element: <ManagementPage key="estacionamentos" resource="estacionamentos" />,
-                  },
-                  {
-                    path: '/admin/sensores',
-                    element: <ManagementPage key="sensores" resource="sensores" />,
-                  },
-                  {
-                    path: '/admin/usuarios',
-                    element: <ManagementPage key="usuarios" resource="usuarios" />,
-                  },
-                  { path: '/admin/editor', element: <EditorPage /> },
-                  { path: '/admin/editor/:id', element: <EditorPage /> },
-                ],
+                path: '/admin/estacionamentos',
+                element: <ManagementPage key="estacionamentos" resource="estacionamentos" />,
               },
+              {
+                path: '/admin/sensores',
+                element: <ManagementPage key="sensores" resource="sensores" />,
+              },
+              { path: '/admin/usuarios', element: <Navigate to="/empresa" replace /> },
+              { path: '/admin/editor', element: <EditorPage /> },
+              { path: '/admin/editor/:id', element: <EditorPage /> },
             ],
           },
         ],

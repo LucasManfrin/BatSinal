@@ -2,13 +2,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { setupServer } from 'msw/node';
 import { handlers, simulateStatus } from '../mocks/handlers';
 import { createSeed, store } from '../mocks/seed';
-import { api, ApiError, json, TOKEN_KEY } from '../lib/api';
+import { api, json, TOKEN_KEY } from '../lib/api';
 import type {
   DetalheEstacionamento,
   EstacionamentoResumo,
   Sensor,
   StatusVagaAtual,
-  Usuario,
 } from '../types';
 
 const server = setupServer(...handlers);
@@ -54,28 +53,73 @@ describe('fluxos HTTP da demonstração', () => {
     expect(cleared.caminhadaMinutos).toBeUndefined();
     expect(cleared.caminhadaDestino).toBeUndefined();
   });
-  it('adiciona e remove favorito com corpo DELETE', async () => {
-    expect(
-      await api('/favoritos', { method: 'POST', body: json({ estacionamentoId: 'est-1' }) }),
-    ).toEqual(['est-1']);
-    expect(
-      await api('/favoritos', { method: 'DELETE', body: json({ estacionamentoId: 'est-1' }) }),
-    ).toEqual([]);
-  });
-  it('impede escrita de USER também no mock', async () => {
-    store.sessoes.teste = 'user';
-    await expect(api('/usuarios')).rejects.toMatchObject({ details: { status: 403 } });
+  it('permite consulta sem token e bloqueia escrita e administração', async () => {
+    localStorage.removeItem(TOKEN_KEY);
+    const lots = await api<EstacionamentoResumo[]>('/publico/campi/unisagrado/estacionamentos');
+    expect(lots).toHaveLength(3);
+    expect(await api('/publico/campi/unisagrado/estacionamentos/est-1/status')).toHaveLength(40);
     await expect(
       api('/estacionamentos', { method: 'POST', body: json({ nome: 'Indevido' }) }),
-    ).rejects.toBeInstanceOf(ApiError);
+    ).rejects.toMatchObject({ details: { status: 401 } });
+    await expect(api('/sensores')).rejects.toMatchObject({ details: { status: 401 } });
+    await expect(
+      api('/publico/campi/unisagrado/estacionamentos/est-1', {
+        method: 'PUT',
+        body: json({ nome: 'Indevido' }),
+      }),
+    ).rejects.toMatchObject({ details: { status: 405 } });
+  });
+  it('não envia token nem dados administrativos na consulta pública', async () => {
+    const detail = await api<DetalheEstacionamento>(
+      '/publico/campi/unisagrado/estacionamentos/est-1',
+    );
+    expect(detail.vagas[0]).not.toHaveProperty('sensorId');
+    const lots = await api<EstacionamentoResumo[]>('/publico/campi/unisagrado/estacionamentos');
+    expect(lots[0]).not.toHaveProperty('vagas');
+    await expect(api('/publico/campi/unisagrado/sensores')).rejects.toMatchObject({
+      details: { status: 404 },
+    });
+    await expect(
+      api('/publico/campi/unisagrado/estacionamentos/est-1/ocupacao'),
+    ).rejects.toMatchObject({ details: { status: 404 } });
+    localStorage.setItem(TOKEN_KEY, 'token-antigo');
+    expect(await api('/publico/campi')).toHaveLength(1);
+    expect(localStorage.getItem(TOKEN_KEY)).toBe('token-antigo');
+  });
+  it('empresa começa fechada, publica somente seus espaços e pode fechar novamente', async () => {
+    const session = await api<import('../types').Sessao>('/auth/cadastro-empresa', {
+      method: 'POST',
+      body: json({
+        nomeEmpresa: 'Campus novo',
+        nome: 'Responsável',
+        email: 'novo@teste.com',
+        senha: 'Teste123',
+      }),
+    });
+    localStorage.setItem(TOKEN_KEY, session.token);
+    const company = await api<import('../types').Empresa>('/empresa');
+    expect(company.publicado).toBe(false);
+    expect(session.administrador).not.toHaveProperty('role');
+    await api('/estacionamentos', { method: 'POST', body: json({ nome: 'Bolsão novo' }) });
+    await expect(api('/publico/campi/' + company.slug + '/estacionamentos')).rejects.toMatchObject({
+      details: { status: 404 },
+    });
+    await api('/empresa', { method: 'PUT', body: json({ publicado: true }) });
+    expect(await api('/publico/campi/' + company.slug + '/estacionamentos')).toHaveLength(1);
+    await expect(
+      api('/publico/campi/' + company.slug + '/estacionamentos/est-1'),
+    ).rejects.toMatchObject({ details: { status: 404 } });
+    await api('/empresa', { method: 'PUT', body: json({ publicado: false }) });
+    await expect(api('/publico/campi/' + company.slug + '/estacionamentos')).rejects.toMatchObject({
+      details: { status: 404 },
+    });
   });
   it('isola empresas nas consultas e nos IDs conhecidos', async () => {
-    store.usuarios.push({
+    store.administradores.push({
       id: 'outra',
       empresaId: 'outra',
       nome: 'Outro Admin',
       email: 'outro@demo.com',
-      role: 'ADMIN',
       senha: 'Senha123',
     });
     store.sessoes.teste = 'outra';
@@ -116,14 +160,5 @@ describe('fluxos HTTP da demonstração', () => {
       api('/estacionamentos/est-1/layout', { method: 'PUT', body: json(invalid) }),
     ).rejects.toMatchObject({ details: { status: 422 } });
     expect((await api<DetalheEstacionamento>('/estacionamentos/est-1')).vagas[1].rotulo).toBe('A2');
-  });
-  it('protege o próprio admin contra exclusão e rebaixamento', async () => {
-    await expect(api('/usuarios/admin', { method: 'DELETE' })).rejects.toMatchObject({
-      details: { status: 422 },
-    });
-    const user = await api<Usuario>('/auth/me');
-    await expect(
-      api('/usuarios/admin', { method: 'PUT', body: json({ ...user, role: 'USER' }) }),
-    ).rejects.toMatchObject({ details: { status: 422 } });
   });
 });

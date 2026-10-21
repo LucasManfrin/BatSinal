@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, Edit3, Map, Plus, Radio, Search, Trash2, Users } from 'lucide-react';
+import { Copy, Edit3, Map, Plus, Radio, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api, ApiError, json } from '../../lib/api';
 import { mensagemErro, tempoDesde } from '../../lib/utils';
-import type { DetalheEstacionamento, EstacionamentoResumo, Sensor, Usuario } from '../../types';
+import type { DetalheEstacionamento, EstacionamentoResumo, Sensor } from '../../types';
 import { useLots } from '../../features/estacionamentos/queries';
 import {
   Badge,
@@ -22,8 +22,8 @@ import {
 } from '../../components/ui';
 import { CampusMap } from '../../components/lot/CampusMap';
 
-type Resource = 'estacionamentos' | 'sensores' | 'usuarios';
-type Row = EstacionamentoResumo | Sensor | Usuario;
+type Resource = 'estacionamentos' | 'sensores';
+type Row = EstacionamentoResumo | Sensor;
 type Form = Record<string, string>;
 const labels = {
   estacionamentos: [
@@ -32,7 +32,6 @@ const labels = {
     'Cadastre áreas, configure acessos e edite os layouts.',
   ],
   sensores: ['Sensores', 'sensor', 'Consulte as leituras e vincule os dispositivos às vagas.'],
-  usuarios: ['Usuários', 'usuário', 'Gerencie contas e permissões de acesso.'],
 };
 const defaults: Record<Resource, Form> = {
   estacionamentos: {
@@ -47,7 +46,6 @@ const defaults: Record<Resource, Form> = {
     altura: '680',
   },
   sensores: { nome: '', vagaId: '' },
-  usuarios: { nome: '', email: '', role: 'USER', senha: '' },
 };
 export function ManagementPage({ resource }: { resource: Resource }) {
   const client = useQueryClient();
@@ -83,7 +81,6 @@ export function ManagementPage({ resource }: { resource: Resource }) {
                 .filter(([, v]) => typeof v !== 'object' && v !== undefined)
                 .map(([k, v]) => [k, String(v)]),
             ),
-            senha: '',
           }
         : { ...defaults[resource] },
     );
@@ -97,17 +94,6 @@ export function ManagementPage({ resource }: { resource: Resource }) {
     event.preventDefault();
     const next: Record<string, string> = {};
     if (form.nome.trim().length < 2) next.nome = 'Use pelo menos 2 caracteres.';
-    if (resource === 'usuarios') {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Informe um e-mail válido.';
-      if (
-        (editing === 'new' || form.senha) &&
-        (form.senha.length < 8 ||
-          !/[A-Z]/.test(form.senha) ||
-          !/[a-z]/.test(form.senha) ||
-          !/\d/.test(form.senha))
-      )
-        next.senha = 'Use 8 caracteres, maiúscula, minúscula e número.';
-    }
     if (resource === 'estacionamentos') {
       for (const name of ['latitude', 'longitude', 'largura', 'altura'])
         if (!form[name] || !Number.isFinite(Number(form[name])))
@@ -195,7 +181,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
         </div>
         <Button onClick={() => edit()}>
           <Plus size={17} />
-          {resource === 'usuarios' ? 'Convidar usuário' : `Novo ${singular}`}
+          {`Novo ${singular}`}
         </Button>
       </div>
       <Card className="management-card">
@@ -244,12 +230,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
                       <th>Última leitura</th>
                       <th>Status</th>
                     </>
-                  ) : (
-                    <>
-                      <th>E-mail</th>
-                      <th>Perfil</th>
-                    </>
-                  )}
+                  ) : null}
                   <th className="text-right">Ações</th>
                 </tr>
               </thead>
@@ -259,13 +240,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
                     <td>
                       <div className="table-name">
                         <span className="table-icon">
-                          {resource === 'estacionamentos' ? (
-                            <Map size={17} />
-                          ) : resource === 'sensores' ? (
-                            <Radio size={17} />
-                          ) : (
-                            <Users size={17} />
-                          )}
+                          {resource === 'estacionamentos' ? <Map size={17} /> : <Radio size={17} />}
                         </span>
                         <strong>{row.nome}</strong>
                       </div>
@@ -278,13 +253,6 @@ export function ManagementPage({ resource }: { resource: Resource }) {
                           <Link className="table-link" to={`/admin/editor/${row.id}`}>
                             Editar layout <Edit3 size={13} />
                           </Link>
-                        </td>
-                      </>
-                    ) : 'empresaId' in row && 'role' in row ? (
-                      <>
-                        <td>{row.email}</td>
-                        <td>
-                          <Badge>{row.role === 'ADMIN' ? 'Administrador' : 'Usuário'}</Badge>
                         </td>
                       </>
                     ) : (
@@ -342,15 +310,11 @@ export function ManagementPage({ resource }: { resource: Resource }) {
           if (!open) setEditing(null);
         }}
         title={`${editing === 'new' ? 'Novo' : 'Editar'} ${singular}`}
-        description={
-          resource === 'usuarios'
-            ? 'A senha inicial será informada ao usuário pelo administrador.'
-            : 'Preencha os dados para salvar.'
-        }
+        description="Preencha os dados para salvar."
         wide={resource === 'estacionamentos'}
       >
         <form onSubmit={save} noValidate className="form-stack">
-          {field('nome', resource === 'usuarios' ? 'Nome completo' : 'Nome')}
+          {field('nome', 'Nome')}
           {resource === 'estacionamentos' && (
             <>
               {field('descricao', 'Descrição')}
@@ -375,25 +339,6 @@ export function ManagementPage({ resource }: { resource: Resource }) {
                 {field('largura', 'Largura do canvas', 'number')}
                 {field('altura', 'Altura do canvas', 'number')}
               </div>
-            </>
-          )}
-          {resource === 'usuarios' && (
-            <>
-              {field('email', 'E-mail', 'email')}
-              <Field label="Perfil">
-                <Select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value })}
-                >
-                  <option value="USER">Usuário</option>
-                  <option value="ADMIN">Administrador</option>
-                </Select>
-              </Field>
-              {field(
-                'senha',
-                editing === 'new' ? 'Senha inicial' : 'Nova senha (opcional)',
-                'password',
-              )}
             </>
           )}
           {resource === 'sensores' && (

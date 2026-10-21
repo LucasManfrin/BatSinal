@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setupServer } from 'msw/node';
 import { handlers } from '../mocks/handlers';
 import { createSeed, store } from '../mocks/seed';
-import { AuthProvider, RoleGuard } from '../features/auth/AuthContext';
+import { AuthProvider, CompanyGuard } from '../features/auth/AuthContext';
 import { AuthPage } from '../pages/auth/AuthPage';
 import { TOKEN_KEY } from '../lib/api';
 
@@ -28,7 +28,7 @@ function setup(path = '/login', register = false) {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<AuthPage register={register} />} />
-            <Route element={<RoleGuard role="ADMIN" />}>
+            <Route element={<CompanyGuard />}>
               <Route path="/admin" element={<h1>Painel protegido</h1>} />
             </Route>
             <Route path="/estacionamentos" element={<h1>Consulta de vagas</h1>} />
@@ -62,13 +62,6 @@ describe('login e guardas de rota', () => {
     await user.click(screen.getByRole('button', { name: /^entrar$/i }));
     expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha incorretos.');
   });
-  it('redireciona USER que tenta abrir /admin', async () => {
-    store.sessoes['token-teste'] = 'user';
-    localStorage.setItem(TOKEN_KEY, 'token-teste');
-    setup('/admin');
-    expect(await screen.findByRole('heading', { name: 'Consulta de vagas' })).toBeInTheDocument();
-    expect(screen.queryByText('Painel protegido')).not.toBeInTheDocument();
-  });
   it('redireciona pessoa sem sessão para login', async () => {
     setup('/admin');
     await waitFor(() =>
@@ -78,13 +71,13 @@ describe('login e guardas de rota', () => {
   it('cadastra empresa e primeiro ADMIN sem pertencer ao campus seed', async () => {
     const user = setup('/login', true);
     await user.type(screen.getByLabelText('Nome da empresa'), 'Campus Novo');
-    await user.type(screen.getByLabelText('Seu nome'), 'Ana Silva');
+    await user.type(screen.getByLabelText('Nome do responsável'), 'Ana Silva');
     await user.type(screen.getByLabelText('E-mail'), 'ana@novo.demo');
     await user.type(screen.getByLabelText('Senha', { exact: true }), 'SenhaNova1');
     await user.click(screen.getByRole('button', { name: /cadastrar empresa/i }));
     expect(await screen.findByRole('heading', { name: 'Painel protegido' })).toBeInTheDocument();
-    const created = store.usuarios.find((u) => u.email === 'ana@novo.demo');
-    expect(created?.role).toBe('ADMIN');
+    const created = store.administradores.find((u) => u.email === 'ana@novo.demo');
+    expect(created).not.toHaveProperty('role');
     expect(created?.empresaId).not.toBe('unisagrado');
   });
 });

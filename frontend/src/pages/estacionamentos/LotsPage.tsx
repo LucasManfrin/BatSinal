@@ -1,32 +1,37 @@
 import { useRef, useState } from 'react';
-import { Car, Clock, MapPin, Navigation, Search, Star, X } from 'lucide-react';
-import { useAuth } from '../../features/auth/AuthContext';
-import { useFavorites, useLots } from '../../features/estacionamentos/queries';
-import { usePreferences } from '../../features/profile/preferences';
+import { Link } from 'react-router-dom';
+import { Car, Clock, MapPin, Navigation, Search, X } from 'lucide-react';
+import { useLots } from '../../features/estacionamentos/queries';
 import { Button, EmptyState, ErrorState, Input, Loading, Select } from '../../components/ui';
 import { SectorPlan } from '../../components/lot/SectorPlan';
 import { directionsUrl } from '../../lib/navigation';
-import { USE_MOCK } from '../../lib/api';
+import { ApiError, USE_MOCK } from '../../lib/api';
 import type { EstacionamentoResumo, TipoVaga } from '../../types';
 
-export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean }) {
-  const { user } = useAuth();
+export function LotsPage() {
   const query = useLots();
-  const favorites = useFavorites();
-  const { preferences } = usePreferences(user?.id ?? '');
   const [search, setSearch] = useState('');
   const [freeOnly, setFreeOnly] = useState(false);
-  const [starred, setStarred] = useState(false);
-  const [type, setType] = useState<TipoVaga | ''>(preferences.tipo);
+  const [type, setType] = useState<TipoVaga | ''>('');
   const [selectedId, setSelectedId] = useState('');
   const sectorRef = useRef<HTMLDivElement>(null);
-  if (query.isPending || favorites.isPending) return <Loading />;
-  if (query.isError || favorites.isError)
+  if (query.isPending) return <Loading />;
+  if (query.error instanceof ApiError && query.error.details.status === 404)
+    return (
+      <EmptyState
+        title="Campus não disponível"
+        description="A consulta está fechada ou o endereço não existe."
+      >
+        <Link className="btn btn-secondary" to="/">
+          Escolher campus
+        </Link>
+      </EmptyState>
+    );
+  if (query.isError)
     return (
       <ErrorState
         retry={() => {
           void query.refetch();
-          void favorites.refetch();
         }}
       />
     );
@@ -35,29 +40,22 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
       (lot) =>
         lot.nome.toLowerCase().includes(search.toLowerCase()) &&
         (!freeOnly || lot.vagasLivres > 0) &&
-        (!(favoritesOnly || starred) || favorites.data.includes(lot.id)) &&
         (!type || lot.livresPorTipo[type] > 0),
     )
     .sort((a, b) => {
-      if (preferences.favoritosPrimeiro) {
-        const difference =
-          Number(favorites.data.includes(b.id)) - Number(favorites.data.includes(a.id));
-        if (difference) return difference;
-      }
       return b.vagasLivres - a.vagasLivres;
     });
   const currentId = lots.some((lot) => lot.id === selectedId) ? selectedId : lots[0]?.id;
-  const hasFilters = search || freeOnly || starred || type;
+  const hasFilters = search || freeOnly || type;
   function clear() {
     setSearch('');
     setFreeOnly(false);
-    setStarred(false);
     setType('');
   }
   return (
     <div className="mobility-page">
       <div className="mobility-page-title">
-        <h1>{favoritesOnly ? 'Estacionamentos favoritos' : 'Estacionamentos'}</h1>
+        <h1>Estacionamentos</h1>
         <span>{query.data.length} bolsões · leituras a cada 3 s</span>
       </div>
       <div className="mobility-workspace">
@@ -90,16 +88,6 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
                 <Car size={14} />
                 Com vagas
               </Button>
-              {!favoritesOnly && (
-                <Button
-                  variant="secondary"
-                  aria-pressed={starred}
-                  onClick={() => setStarred(!starred)}
-                  aria-label="Favoritos"
-                >
-                  <Star size={14} />
-                </Button>
-              )}
               <Select
                 aria-label="Tipo de vaga"
                 value={type}
@@ -121,9 +109,7 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
                 Limpar filtros <X size={12} />
               </button>
             ) : (
-              <span>
-                {preferences.favoritosPrimeiro ? 'Favoritos primeiro' : 'Mais vagas primeiro'}
-              </span>
+              <span>Mais vagas primeiro</span>
             )}
           </div>
           <div className="lot-result-list">
@@ -145,13 +131,11 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
                     );
                   }
                 }}
-                favorite={favorites.data.includes(lot.id)}
-                onFavorite={() => void favorites.toggle(lot.id)}
               />
             ))}
             {!lots.length && (
               <EmptyState
-                title={favoritesOnly ? 'Nenhum estacionamento favorito' : 'Nenhum resultado'}
+                title="Nenhum resultado"
                 description="Ajuste os filtros ou busque outro bolsão."
               >
                 {hasFilters && (
@@ -189,14 +173,10 @@ export function LotsPage({ favoritesOnly = false }: { favoritesOnly?: boolean })
 function ParkingRow({
   lot,
   selected,
-  favorite,
-  onFavorite,
   onSelect,
 }: {
   lot: EstacionamentoResumo;
   selected: boolean;
-  favorite: boolean;
-  onFavorite: () => void;
   onSelect: () => void;
 }) {
   const unavailable = Math.max(0, lot.totalVagas - lot.vagasLivres);
@@ -214,14 +194,6 @@ function ParkingRow({
             {lot.nome}
           </button>
         </h2>
-        <button
-          className="icon-button"
-          aria-label={`${favorite ? 'Remover' : 'Adicionar'} ${lot.nome} ${favorite ? 'dos' : 'aos'} favoritos`}
-          aria-pressed={favorite}
-          onClick={onFavorite}
-        >
-          <Star size={16} fill={favorite ? 'currentColor' : 'none'} />
-        </button>
       </header>
       <p className="lot-access">
         <MapPin size={13} />

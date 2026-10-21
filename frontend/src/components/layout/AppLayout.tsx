@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { ArrowRight, Car, LogOut, MapPin, Moon, Search, Star, Sun, UserRound } from 'lucide-react';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ArrowRight, Car, LogOut, MapPin, Moon, Search, Sun, UserRound } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { useTheme } from '../../features/ui/useTheme';
-import { useLots } from '../../features/estacionamentos/queries';
+import { useCompany, useLots, usePublicCampi } from '../../features/estacionamentos/queries';
 import { Logo } from './Logo';
 import { Button, Dialog, EmptyState, Input } from '../ui';
 import { USE_MOCK } from '../../lib/api';
@@ -14,13 +14,16 @@ const adminLinks = [
   { to: '/admin/estacionamentos', label: 'Estacionamentos' },
   { to: '/admin/editor', label: 'Editor de layout' },
   { to: '/admin/sensores', label: 'Sensores' },
-  { to: '/admin/usuarios', label: 'Usuários' },
+  { to: '/empresa', label: 'Minha empresa' },
 ];
-
 export function AppLayout() {
   const { user, logout } = useAuth();
   const { light, changeTheme } = useTheme();
   const lots = useLots();
+  const company = useCompany();
+  const campi = usePublicCampi();
+  const { campusSlug } = useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const [accountOpen, setAccountOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -36,8 +39,11 @@ export function AppLayout() {
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
   }, []);
-  const admin = location.pathname.startsWith('/admin');
-  const campus = user?.empresaId === 'unisagrado' ? 'Unisagrado' : 'Meu campus';
+  const admin = !campusSlug && Boolean(user);
+  const campus = campusSlug
+    ? (campi.data?.find((c) => c.slug === campusSlug)?.nome ?? 'Campus indisponível')
+    : (company.data?.nome ?? 'Minha empresa');
+  const home = campusSlug ? `/c/${campusSlug}` : '/';
   const initials = user?.nome
     .split(' ')
     .map((n) => n[0])
@@ -46,16 +52,35 @@ export function AppLayout() {
   const total = lots.data?.reduce((sum, lot) => sum + lot.vagasLivres, 0);
   const searchResults =
     lots.data?.filter((lot) => lot.nome.toLowerCase().includes(search.toLowerCase())) ?? [];
+  const detailPath = (id: string) =>
+    campusSlug ? `/c/${campusSlug}/${id}` : `/admin/consulta/${id}`;
   return (
     <div className={`app-shell ${admin ? 'admin-shell' : 'user-shell'}`}>
       <header className="mobility-header">
         <div className="mobility-header-inner">
-          <Link to="/estacionamentos" aria-label="BatSinal, encontrar vagas">
+          <Link to={home} aria-label="BatSinal, encontrar vagas">
             <Logo />
           </Link>
           <span className="header-campus">
             <MapPin size={16} />
-            <span>{campus}</span>
+            {campusSlug && (campi.data?.length ?? 0) > 1 ? (
+              <select
+                aria-label="Selecionar campus"
+                value={campusSlug}
+                onChange={(event) => navigate(`/c/${event.target.value}`)}
+              >
+                {!campi.data?.some((c) => c.slug === campusSlug) && (
+                  <option value={campusSlug}>Campus indisponível</option>
+                )}
+                {campi.data?.map((c) => (
+                  <option key={c.id} value={c.slug}>
+                    {c.nome}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span>{campus}</span>
+            )}
           </span>
           <div
             className="header-availability"
@@ -68,12 +93,12 @@ export function AppLayout() {
           </div>
           <button
             className="account-trigger"
-            aria-label="Abrir menu da conta"
+            aria-label="Abrir menu"
             aria-haspopup="dialog"
             aria-expanded={accountOpen}
             onClick={() => setAccountOpen(true)}
           >
-            {initials}
+            {user ? initials : <UserRound size={18} />}
           </button>
         </div>
       </header>
@@ -84,8 +109,9 @@ export function AppLayout() {
               {label}
             </NavLink>
           ))}
-          <Link to="/estacionamentos">
-            Consultar vagas <ArrowRight size={14} />
+          <Link to={company.data?.publicado ? `/c/${company.data.slug}` : '/empresa'}>
+            {company.data?.publicado ? 'Consultar vagas' : 'Publicar consulta'}
+            <ArrowRight size={14} />
           </Link>
         </nav>
       )}
@@ -99,27 +125,40 @@ export function AppLayout() {
       <Dialog
         open={accountOpen}
         onOpenChange={setAccountOpen}
-        title="Sua conta"
-        description={`${user?.nome} · ${user?.email}`}
+        title={user ? 'Empresa' : 'Consulta de vagas'}
+        description={
+          user
+            ? `${user.nome} · ${user.email}`
+            : 'A consulta é aberta. Não é necessário ter uma conta.'
+        }
       >
-        <nav className="account-navigation" aria-label="Conta e navegação">
-          <Link to="/estacionamentos" onClick={() => setAccountOpen(false)}>
+        <nav className="account-navigation" aria-label="Navegação">
+          <Link to="/" onClick={() => setAccountOpen(false)}>
             <Car size={18} />
             Encontrar vagas
           </Link>
-          <Link to="/favoritos" onClick={() => setAccountOpen(false)}>
-            <Star size={18} />
-            Favoritos
-          </Link>
-          <Link to="/perfil" onClick={() => setAccountOpen(false)}>
-            <UserRound size={18} />
-            Perfil e preferências
-          </Link>
-          {user?.role === 'ADMIN' && (
-            <Link to="/admin" onClick={() => setAccountOpen(false)}>
-              <ArrowRight size={18} />
-              Administração
-            </Link>
+          {user ? (
+            <>
+              <Link to="/admin" onClick={() => setAccountOpen(false)}>
+                <ArrowRight size={18} />
+                Administração
+              </Link>
+              <Link to="/empresa" onClick={() => setAccountOpen(false)}>
+                <UserRound size={18} />
+                Minha empresa
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/login" onClick={() => setAccountOpen(false)}>
+                <UserRound size={18} />
+                Acesso para empresas
+              </Link>
+              <Link to="/cadastro" onClick={() => setAccountOpen(false)}>
+                <ArrowRight size={18} />
+                Cadastrar empresa
+              </Link>
+            </>
           )}
           <button
             onClick={() => {
@@ -133,10 +172,17 @@ export function AppLayout() {
           <button onClick={() => changeTheme(!light)}>
             {light ? <Moon size={18} /> : <Sun size={18} />}Usar tema {light ? 'escuro' : 'claro'}
           </button>
-          <button onClick={logout}>
-            <LogOut size={18} />
-            Sair da conta
-          </button>
+          {user && (
+            <button
+              onClick={() => {
+                setAccountOpen(false);
+                logout();
+              }}
+            >
+              <LogOut size={18} />
+              Sair da empresa
+            </button>
+          )}
         </nav>
       </Dialog>
       <Dialog
@@ -152,16 +198,12 @@ export function AppLayout() {
             aria-label="Nome do estacionamento"
             placeholder="Nome do estacionamento"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
           />
         </div>
         <div className="quick-search-results">
           {searchResults.map((lot) => (
-            <Link
-              key={lot.id}
-              to={`/estacionamentos/${lot.id}`}
-              onClick={() => setSearchOpen(false)}
-            >
+            <Link key={lot.id} to={detailPath(lot.id)} onClick={() => setSearchOpen(false)}>
               <MapPin size={17} />
               <span>
                 <strong>{lot.nome}</strong>
@@ -192,7 +234,8 @@ export function AppLayout() {
       </Dialog>
       {USE_MOCK &&
         import.meta.env.VITE_SHOW_SIMULATOR === 'true' &&
-        location.pathname !== '/perfil' && <Simulator />}
+        admin &&
+        location.pathname.startsWith('/admin') && <Simulator />}
     </div>
   );
 }
