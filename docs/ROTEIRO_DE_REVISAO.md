@@ -6,9 +6,10 @@ Cada integrante deve conseguir seguir uma requisição desde a tela até o mock 
 | --- | --- | --- |
 | Autenticação | Context, token e RoleGuard | USER digitando `/admin` volta à consulta; login inválido mostra erro |
 | Consulta | queryKey, cache e polling de 3 s | Contador e cores mudam sem recarregar; favoritos podem ser removidos |
-| Lista e esquema | seleção, ordenação e posições estáveis | Filtrar por nome e tipo; limpar filtros; alternar lista/mapa em celular; esquema não representa rotas reais |
+| Lista e planta | seleção e geometria retornada pela API | Filtrar por nome e tipo; trocar bolsão; consultar vaga pelo teclado; verificar ocupada e sem sinal separadamente |
+| Acesso e rota | campos opcionais e coordenadas cadastradas | Editar portão/minutos/destino; conferir estados sem informação; validar destino do link antes de usar dados reais |
 | Perfil | preferências locais por conta e favoritos via HTTP | Adicionar veículo, cancelar/confirmar remoção, aplicar preferência na consulta e conferir visitas recentes |
-| Busca global | consulta compartilhada e navegação | Abrir com Ctrl+K, buscar por nome e visitar o detalhe |
+| Cabeçalho e busca | consulta compartilhada, menu do avatar e navegação | Abrir favoritos/perfil/administração pelo avatar; buscar com Ctrl+K; conferir total de vagas |
 | Mock | empresa da sessão, handlers e seed | Nova empresa não enxerga o campus seed; CRUD persiste ao recarregar |
 | Canvas | coordenadas lógicas e escala | Zoom, pan, centralizar, clicar numa vaga e consultar pela lista HTML |
 | Editor | snapshots de undo/redo e baseline | Arrastar, rotacionar, duplicar, excluir, desfazer e sair com alterações |

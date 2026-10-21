@@ -47,8 +47,8 @@ O mock repete leituras a cada 10 s e a interface consulta os status a cada 3 s.
 6. Cadastre um sensor em **Sensores** e vincule à vaga (ou vincule um sensor livre pelo editor). Copie a chave demonstrativa antes de fechar.
 7. Salve o layout. Entre como USER e abra o estacionamento. Use o simulador para mostrar os status mudando automaticamente.
 8. Para demonstrar alerta: no estacionamento Central, clique **Lotar para testar alerta**, feche o painel, ative **Avisar quando abrir vaga** e libere uma vaga no simulador. O aviso aparece dentro do app.
-9. Adicione/remova favoritos e teste os filtros por tipo, disponibilidade e mapa do campus.
-10. Em **Meu perfil**, adicione um veículo, escolha o tipo de vaga preferido e consulte o histórico recente. Essas preferências são locais e separadas por conta.
+9. Adicione/remova favoritos e teste os filtros por tipo e disponibilidade. Clique no nome do bolsão para trocar a planta e consulte uma vaga.
+10. No menu do avatar, abra **Perfil e preferências**, adicione um veículo e escolha o tipo de vaga preferido. Essas preferências são locais e separadas por conta.
 
 Atalhos do editor: Ctrl+Z desfaz, Ctrl+Shift+Z refaz, Ctrl+D duplica, Delete exclui a seleção.
 Setas movem 1 unidade; Shift+setas move 10. Todos têm controles HTML equivalentes.
@@ -94,23 +94,29 @@ docs/                  contrato e declaração de uso de IA
 
 TanStack Query guarda dados vindos da API e faz polling; Zustand guarda somente UI/editor.
 Somente o mock/simulador conhece o armazenamento fictício. As telas consultam dados por HTTP/JSON.
-Plus Jakarta Sans é a fonte principal; JetBrains Mono identifica coordenadas e dados técnicos. Ambas são empacotadas por `@fontsource`. A marca e os desenhos urbanos são SVGs originais.
-Após instalar as dependências, a demonstração funciona sem internet. O mapa usa tiles opcionais do OpenStreetMap;
-se falharem ou demorarem, a consulta volta para o esquema local junto à lista. Os campos de posição continuam disponíveis no cadastro.
+Plus Jakarta Sans é a fonte principal; JetBrains Mono identifica contadores, status e dados técnicos. Ambas são empacotadas por `@fontsource`. A marca e a planta são SVGs locais.
+Após instalar as dependências, a consulta e a planta funcionam sem internet. O mapa de posição do cadastro usa tiles opcionais do OpenStreetMap;
+os campos de latitude/longitude continuam disponíveis se os tiles falharem. Abrir rotas no Google Maps exige internet.
 
 ## Interface e preferências
 
-A consulta combina lista ordenada por disponibilidade e esquema interativo do campus. No celular,
-os botões **Lista / Ver mapa** alternam as duas áreas. O mapa geográfico do OpenStreetMap continua opcional.
-O esquema vetorial é **ilustrativo e sem escala**: as posições são estáveis durante os filtros, mas ele não serve para navegação ou cálculo de trajeto.
+A consulta usa lista compacta à esquerda e planta técnica do setor selecionado à direita. No celular,
+as áreas ficam empilhadas; selecionar o nome do bolsão leva à planta, com um link para retornar à lista.
+O cabeçalho contém apenas logo, campus, total de vagas e avatar. Favoritos, perfil, tema, busca global e administração ficam no menu da conta.
 
-Busca no cabeçalho: clique na lupa ou use **Ctrl+K**. Os resultados abrem o layout do estacionamento.
-Verde representa vagas livres; amarelo indica atenção ou uma ação da marca. As barras mostram a proporção **livre**, com percentual e contador acessíveis.
+Use a busca da lista ou **Ctrl+K** para a busca global. Verde representa vagas livres; vagas ocupadas usam cinza escuro,
+e vagas sem sinal têm hachura e texto. As barras da lista mostram a fração **indisponível** (ocupadas + sem sinal), com valor acessível.
+O botão **Navegar até o bolsão** abre o Google Maps em outra aba com as coordenadas cadastradas, sem solicitar geolocalização ao navegador.
+Ele não representa reserva nem navegação interna entre vagas.
+
+Portão, destino e minutos de caminhada são campos opcionais da API, editáveis na administração.
+Se faltarem, a interface informa a ausência. Os exemplos do seed são **simulados**, sem equivalência validada com acessos reais da Unisagrado.
+A migração acrescenta esses campos ao seed antigo sem apagar cadastros ou layouts editados.
 
 O perfil reúne veículos (apelido e tipo, sem placa), preferência de vaga, favoritos, consultas recentes,
 dados da conta e tema. Veículos, preferência e histórico são guardados no `localStorage`, por usuário,
 e não geram novos endpoints. Favoritos continuam usando a API. Alterar os dados de acesso continua sendo responsabilidade do administrador.
-Tipos novos, entradas recomendadas e distâncias a pé precisam de dados do backend; a interface não inventa essas informações.
+Os dados reais de acesso e caminhada precisam ser cadastrados e mantidos pela organização. O app não estima tempos nem recomenda portões a partir da ocupação.
 
 Decisões visuais e imagens: [design do produto](docs/DESIGN.md).
 
@@ -128,8 +134,9 @@ npm run preview
 `lint` inclui ESLint sem warnings e Prettier. Para formatar: `npm run format`.
 Os testes cobrem cálculos, grid, snap, sobreposição com rotação, status acessível, login válido/inválido,
 cadastro, proteção real de rota, permissões do mock, isolamento por empresa, favoritos, vínculo de sensores e undo/redo.
-Também cobrem filtros com esquema integrado, veículos, preferências e histórico separados por conta.
-Última validação: 29 testes aprovados em seis arquivos.
+Também cobrem filtros e planta real do setor, navegação por coordenadas, atualização dos status, menu da conta,
+dados de acesso opcionais, migração que preserva dados, veículos, preferências e histórico separados por conta.
+Última validação: 36 testes aprovados em sete arquivos.
 O worker MSW já está versionado em `frontend/public`; não é preciso gerá-lo para rodar.
 Ao atualizar MSW no futuro, regenere-o com `npx msw init frontend/public` na raiz.
 

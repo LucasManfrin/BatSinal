@@ -162,3 +162,43 @@ Revisão humana ainda pendente: celulares reais, navegação integral por teclad
 contraste nos dois temas e entendimento dos novos estados. Não há certificação de acessibilidade
 nem revisão humana registrada nesta fase.
 
+## Refatoração — produto de mobilidade direto
+
+A IA continuou a partir dos três commits do redesign anterior, com Git limpo. O novo pedido substitui
+a composição editorial e a sidebar por uma consulta operacional: cabeçalho horizontal com logo, campus,
+total de vagas e avatar; lista compacta de bolsões; planta técnica do setor selecionado.
+
+O que foi produzido nesta fase:
+
+- Remoção da sidebar, navegação inferior fixa, ilustração urbana, feixe do login, slogan visual,
+  destaque “Mais vagas agora” e símbolo de acessibilidade em formato de emoji no canvas.
+  Ícones funcionais são SVGs Lucide; números e status usam JetBrains Mono.
+- Base grafite `#0A0C10`/`#0E1117`, superfícies `#131720`/`#161B26`, bordas com 8% de branco,
+  destaque tático `#FBBF24` e vagas ocupadas em cinza. Gráficos administrativos ficaram neutros.
+- Header com quatro elementos. Favoritos, perfil, tema, saída, busca e administração continuam
+  disponíveis pelo avatar; Ctrl+K foi preservado. ADMIN tem navegação horizontal.
+- Planta em SVG que usa a geometria e as leituras da API, com seleção de vaga por mouse/teclado,
+  filtro visual de livres, legenda de contagens e lista HTML alternativa. Nenhum detalhe flutua sobre o desenho.
+- Lista com portão, livres/total, tempo e destino a pé, barra sóbria da fração indisponível e link
+  “Navegar até o bolsão”. O link abre o Google Maps em outra aba com latitude/longitude cadastradas;
+  não pede geolocalização e não calcula rotas internas.
+- Campos opcionais `portao`, `caminhadaMinutos` e `caminhadaDestino` nos tipos, handlers, cadastro
+  administrativo e contrato. Tempo e destino são validados juntos. Dados ausentes têm texto explícito.
+  Os exemplos do seed são **simulados**, sem validação com acessos reais da universidade.
+- Migração do mock antigo acrescentando apenas os novos campos do seed. Teste confirmou a preservação
+  de nome editado, posições das vagas, portão já cadastrado e favoritos. Não houve reset do navegador.
+- Desktop com lista/planta lado a lado; em 360 px, áreas empilhadas com acesso à planta e retorno à lista.
+  Simulador passou para o fluxo normal da página para não cobrir o desenho.
+
+Verificação automatizada pela IA: **36 testes em sete arquivos**, incluindo seleção e geometria do setor,
+status atualizado por HTTP, teclado, URL de navegação, ausência de dados, menu do avatar, campos de acesso
+com validação e limpeza, migração (inclusive falha ao gravar) e fluxos anteriores. Lint/Prettier e build de produção aprovados.
+Durante a remoção de arquivos, o cache do Tailwind manteve uma referência ao desenho antigo; foi invalidado
+ao atualizar a configuração, e a prévia voltou a compilar. Não foi desativada a exibição de erros.
+
+As capturas atuais e as decisões estão em [DESIGN.md](DESIGN.md). A revisão de navegador incluiu lista,
+troca de setor, layout em 360 px sem rolagem horizontal da página, retorno aos bolsões,
+temas claro/escuro, navegação administrativa horizontal e campos de portão/caminhada no modal de edição.
+Os portões, tempos e coordenadas reais ainda precisam de validação do grupo. Conferência por IA e testes
+automatizados não constituem revisão humana nem certificação de acessibilidade.
+
