@@ -38,6 +38,9 @@ const defaults: Record<Resource, Form> = {
   estacionamentos: {
     nome: '',
     descricao: '',
+    portao: '',
+    caminhadaMinutos: '',
+    caminhadaDestino: '',
     latitude: '-22.327',
     longitude: '-49.054',
     largura: '780',
@@ -105,10 +108,20 @@ export function ManagementPage({ resource }: { resource: Resource }) {
       )
         next.senha = 'Use 8 caracteres, maiúscula, minúscula e número.';
     }
-    if (resource === 'estacionamentos')
+    if (resource === 'estacionamentos') {
       for (const name of ['latitude', 'longitude', 'largura', 'altura'])
         if (!form[name] || !Number.isFinite(Number(form[name])))
           next[name] = 'Informe um número válido.';
+      if (
+        form.caminhadaMinutos &&
+        (!Number.isInteger(Number(form.caminhadaMinutos)) ||
+          Number(form.caminhadaMinutos) < 1 ||
+          Number(form.caminhadaMinutos) > 120)
+      )
+        next.caminhadaMinutos = 'Use minutos inteiros entre 1 e 120.';
+      if (Boolean(form.caminhadaMinutos) !== Boolean(form.caminhadaDestino.trim()))
+        next.caminhadaDestino = 'Preencha o destino e os minutos, ou deixe ambos vazios.';
+    }
     setErrors(next);
     if (Object.keys(next).length) return;
     setBusy(true);
@@ -121,6 +134,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
               longitude: Number(form.longitude),
               largura: Number(form.largura),
               altura: Number(form.altura),
+              caminhadaMinutos: form.caminhadaMinutos ? Number(form.caminhadaMinutos) : null,
             }
           : form;
       const result = await api<Row & { deviceKey?: string }>(
@@ -340,6 +354,11 @@ export function ManagementPage({ resource }: { resource: Resource }) {
           {resource === 'estacionamentos' && (
             <>
               {field('descricao', 'Descrição')}
+              {field('portao', 'Portão de acesso (opcional)')}
+              <div className="form-grid">
+                {field('caminhadaMinutos', 'Minutos a pé (opcional)', 'number')}
+                {field('caminhadaDestino', 'Destino a pé (ex.: os blocos A e B)')}
+              </div>
               <CampusMap
                 point={[Number(form.latitude) || -22.327, Number(form.longitude) || -49.054]}
                 onPick={(latitude, longitude) =>

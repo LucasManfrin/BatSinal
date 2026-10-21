@@ -17,6 +17,9 @@ export interface Estacionamento {
   empresaId: string;
   nome: string;
   descricao?: string;
+  portao?: string;
+  caminhadaMinutos?: number;
+  caminhadaDestino?: string;
   latitude: number;
   longitude: number;
   largura: number;

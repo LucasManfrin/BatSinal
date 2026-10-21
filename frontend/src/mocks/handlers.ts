@@ -3,6 +3,7 @@ import { API_URL } from '../lib/api';
 import { gerarGrid, ocupacao, tendencia } from '../lib/utils';
 import type {
   DetalheEstacionamento,
+  Estacionamento,
   EstacionamentoResumo,
   GridOptions,
   Layout,
@@ -37,6 +38,36 @@ function num(body: Body, key: string, fallback: number, min: number, max: number
       [key]: `Use um número entre ${min} e ${max}.`,
     });
   return value;
+}
+function accessFields(body: Body, existing?: Estacionamento) {
+  function optionalText(key: 'portao' | 'caminhadaDestino') {
+    if (body[key] === undefined) return existing?.[key];
+    if (body[key] === null || body[key] === '') return undefined;
+    if (typeof body[key] !== 'string' || (body[key] as string).length > 100)
+      throw new MockError(422, 'Confira os dados de acesso.', { [key]: 'Use até 100 caracteres.' });
+    return (body[key] as string).trim() || undefined;
+  }
+  const portao = optionalText('portao');
+  const caminhadaDestino = optionalText('caminhadaDestino');
+  const raw = body.caminhadaMinutos;
+  const caminhadaMinutos =
+    raw === undefined
+      ? existing?.caminhadaMinutos
+      : raw === null || raw === ''
+        ? undefined
+        : Number(raw);
+  if (
+    caminhadaMinutos !== undefined &&
+    (!Number.isInteger(caminhadaMinutos) || caminhadaMinutos < 1 || caminhadaMinutos > 120)
+  )
+    throw new MockError(422, 'Confira o tempo de caminhada.', {
+      caminhadaMinutos: 'Use minutos inteiros entre 1 e 120.',
+    });
+  if (Boolean(caminhadaDestino) !== (caminhadaMinutos !== undefined))
+    throw new MockError(422, 'Informe destino e tempo de caminhada juntos.', {
+      caminhadaDestino: 'Preencha o destino e os minutos, ou deixe ambos vazios.',
+    });
+  return { portao, caminhadaDestino, caminhadaMinutos };
 }
 function email(body: Body, exceptId?: string) {
   const value = text(body, 'email').toLowerCase();
@@ -240,6 +271,7 @@ export const handlers = [
                 empresaId: user.empresaId,
                 nome: text(body, 'nome', 2),
                 descricao: String(body.descricao ?? ''),
+                ...accessFields(body),
                 latitude: num(body, 'latitude', -22.327, -90, 90),
                 longitude: num(body, 'longitude', -49.054, -180, 180),
                 largura: num(body, 'largura', 780, 200, 10000),
@@ -322,6 +354,7 @@ export const handlers = [
               Object.assign(lot, {
                 nome: text(body, 'nome', 2),
                 descricao: String(body.descricao ?? ''),
+                ...accessFields(body, lot),
                 latitude: num(body, 'latitude', lot.latitude, -90, 90),
                 longitude: num(body, 'longitude', lot.longitude, -180, 180),
                 largura: num(body, 'largura', lot.largura, 200, 10000),

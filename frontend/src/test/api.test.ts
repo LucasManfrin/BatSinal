@@ -21,6 +21,39 @@ beforeEach(() => {
   localStorage.setItem(TOKEN_KEY, 'teste');
 });
 describe('fluxos HTTP da demonstração', () => {
+  it('salva acesso e caminhada opcionais, valida e permite limpar os dados', async () => {
+    const payload = {
+      nome: 'Bolsão de teste',
+      portao: 'Portão 4',
+      caminhadaMinutos: 3,
+      caminhadaDestino: 'o bloco D',
+    };
+    const lot = await api<DetalheEstacionamento>('/estacionamentos', {
+      method: 'POST',
+      body: json(payload),
+    });
+    expect(lot).toMatchObject(payload);
+    await expect(
+      api(`/estacionamentos/${lot.id}`, {
+        method: 'PUT',
+        body: json({ ...payload, caminhadaMinutos: -1 }),
+      }),
+    ).rejects.toMatchObject({ details: { status: 422 } });
+    expect(store.estacionamentos.find((l) => l.id === lot.id)?.caminhadaMinutos).toBe(3);
+    await expect(
+      api(`/estacionamentos/${lot.id}`, {
+        method: 'PUT',
+        body: json({ ...payload, caminhadaDestino: '' }),
+      }),
+    ).rejects.toMatchObject({ details: { status: 422 } });
+    const cleared = await api<DetalheEstacionamento>(`/estacionamentos/${lot.id}`, {
+      method: 'PUT',
+      body: json({ nome: payload.nome, portao: '', caminhadaMinutos: null, caminhadaDestino: '' }),
+    });
+    expect(cleared.portao).toBeUndefined();
+    expect(cleared.caminhadaMinutos).toBeUndefined();
+    expect(cleared.caminhadaDestino).toBeUndefined();
+  });
   it('adiciona e remove favorito com corpo DELETE', async () => {
     expect(
       await api('/favoritos', { method: 'POST', body: json({ estacionamentoId: 'est-1' }) }),

@@ -46,6 +46,13 @@ Não se permite excluir a própria conta ou remover o próprio perfil ADMIN.
 `tendencia` compara livres atuais com a leitura disponível até 15 minutos atrás: SUBINDO | ESTAVEL | CAINDO.
 `DetalheEstacionamento` contém os campos do estacionamento + `vagas` + `elementos`.
 Dimensões do estacionamento entre 200 e 10000; latitude -90..90, longitude -180..180.
+Campos opcionais em GET, POST e PUT de estacionamento: `portao?: string` (até 100 caracteres),
+`caminhadaMinutos?: number` (inteiro de 1 a 120) e `caminhadaDestino?: string` (até 100 caracteres).
+Tempo e destino devem ser enviados juntos; valores ausentes são exibidos como não informados.
+Para limpar a caminhada no PUT, enviar `caminhadaMinutos: null` e `caminhadaDestino: ""`;
+para limpar o portão, enviar `portao: ""`. Omitir os campos no PUT preserva os valores anteriores.
+São informações cadastradas, não estimativas calculadas pelo frontend. Os exemplos do seed são fictícios.
+`Navegar até o bolsão` usa latitude/longitude em uma URL de direções do Google Maps; não há endpoint novo de rotas.
 Grid: 1..20 linhas, 1..30 colunas; tamanho padrão 53×86, espaço 10. O grid precisa caber no canvas.
 O gerador substitui o layout existente; o cliente mostra preview e confirmação antes de chamar o endpoint.
 Salvar layout é atômico, com rótulos únicos não vazios e sensores únicos da mesma empresa.
