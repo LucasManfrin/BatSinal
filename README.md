@@ -17,7 +17,7 @@ Abra a URL exibida pelo Vite. A porta 5173 é fixa; se já houver uma instância
 | Usuário | `usuario@unisagrado.demo` | `Demo@123` |
 | Segundo usuário | `pedro@unisagrado.demo` | `Demo@123` |
 
-Os botões de demonstração do login preenchem os campos; clique em **Entrar na plataforma**.
+Os botões de demonstração do login preenchem os campos; clique em **Entrar**.
 Também é possível cadastrar uma empresa. Ela começa vazia e seu primeiro usuário é ADMIN.
 Nunca informe dados pessoais nem senhas reais no mock: seus dados fictícios são guardados no navegador.
 
@@ -48,6 +48,7 @@ O mock repete leituras a cada 10 s e a interface consulta os status a cada 3 s.
 7. Salve o layout. Entre como USER e abra o estacionamento. Use o simulador para mostrar os status mudando automaticamente.
 8. Para demonstrar alerta: no estacionamento Central, clique **Lotar para testar alerta**, feche o painel, ative **Avisar quando abrir vaga** e libere uma vaga no simulador. O aviso aparece dentro do app.
 9. Adicione/remova favoritos e teste os filtros por tipo, disponibilidade e mapa do campus.
+10. Em **Meu perfil**, adicione um veículo, escolha o tipo de vaga preferido e consulte o histórico recente. Essas preferências são locais e separadas por conta.
 
 Atalhos do editor: Ctrl+Z desfaz, Ctrl+Shift+Z refaz, Ctrl+D duplica, Delete exclui a seleção.
 Setas movem 1 unidade; Shift+setas move 10. Todos têm controles HTML equivalentes.
@@ -93,9 +94,25 @@ docs/                  contrato e declaração de uso de IA
 
 TanStack Query guarda dados vindos da API e faz polling; Zustand guarda somente UI/editor.
 Somente o mock/simulador conhece o armazenamento fictício. As telas consultam dados por HTTP/JSON.
-Fontes Inter, Space Grotesk e JetBrains Mono são empacotadas por `@fontsource`; o SVG do holofote é original.
+Plus Jakarta Sans é a fonte principal; JetBrains Mono identifica coordenadas e dados técnicos. Ambas são empacotadas por `@fontsource`. A marca e os desenhos urbanos são SVGs originais.
 Após instalar as dependências, a demonstração funciona sem internet. O mapa usa tiles opcionais do OpenStreetMap;
-se falharem ou demorarem, volta para a lista. Os campos de posição continuam disponíveis no cadastro.
+se falharem ou demorarem, a consulta volta para o esquema local junto à lista. Os campos de posição continuam disponíveis no cadastro.
+
+## Interface e preferências
+
+A consulta combina lista ordenada por disponibilidade e esquema interativo do campus. No celular,
+os botões **Lista / Ver mapa** alternam as duas áreas. O mapa geográfico do OpenStreetMap continua opcional.
+O esquema vetorial é **ilustrativo e sem escala**: as posições são estáveis durante os filtros, mas ele não serve para navegação ou cálculo de trajeto.
+
+Busca no cabeçalho: clique na lupa ou use **Ctrl+K**. Os resultados abrem o layout do estacionamento.
+Verde representa vagas livres; amarelo indica atenção ou uma ação da marca. As barras mostram a proporção **livre**, com percentual e contador acessíveis.
+
+O perfil reúne veículos (apelido e tipo, sem placa), preferência de vaga, favoritos, consultas recentes,
+dados da conta e tema. Veículos, preferência e histórico são guardados no `localStorage`, por usuário,
+e não geram novos endpoints. Favoritos continuam usando a API. Alterar os dados de acesso continua sendo responsabilidade do administrador.
+Tipos novos, entradas recomendadas e distâncias a pé precisam de dados do backend; a interface não inventa essas informações.
+
+Decisões visuais e imagens: [design do produto](docs/DESIGN.md).
 
 ## Verificar o projeto
 
@@ -111,6 +128,8 @@ npm run preview
 `lint` inclui ESLint sem warnings e Prettier. Para formatar: `npm run format`.
 Os testes cobrem cálculos, grid, snap, sobreposição com rotação, status acessível, login válido/inválido,
 cadastro, proteção real de rota, permissões do mock, isolamento por empresa, favoritos, vínculo de sensores e undo/redo.
+Também cobrem filtros com esquema integrado, veículos, preferências e histórico separados por conta.
+Última validação: 29 testes aprovados em seis arquivos.
 O worker MSW já está versionado em `frontend/public`; não é preciso gerá-lo para rodar.
 Ao atualizar MSW no futuro, regenere-o com `npx msw init frontend/public` na raiz.
 

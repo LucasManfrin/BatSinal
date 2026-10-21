@@ -114,9 +114,51 @@ Dados, posições e históricos são demonstrativos. Testes automatizados e conf
 testes com hardware real, revisão humana e validação de acessibilidade em dispositivos reais.
 
 
-## Resultado das verificações finais
+## Resultado das verificações da integração inicial
 - npm run lint: aprovado (ESLint sem warnings e Prettier).
 - npm run test: 25 testes aprovados em 5 arquivos.
 - npm run build: aprovado (TypeScript estrito e build Vite).
 - Conferência visual local registrada acima; backend/hardware e validação em dispositivos reais permanecem fora desta entrega.
+
+## Redesign — identidade urbana e consulta integrada
+
+A pedido do usuário, a IA auditou o Git e os arquivos existentes antes do redesign e manteve
+os serviços HTTP, o contrato, a autenticação, os CRUDs, o canvas, o editor e o simulador.
+A interface passou a usar azul-marinho, grafite, dourado controlado e verde para disponibilidade/sucesso.
+A tipografia principal é Plus Jakarta Sans empacotada localmente. Logo, esquema urbano e feixe do login
+são desenhos originais em SVG, sem imagens de banco ou símbolos de personagens.
+
+Contribuições implementadas pela IA:
+
+- Navegação compacta, cabeçalho contextual e busca funcional de estacionamentos com Ctrl+K.
+- Consulta com lista e esquema integrados, filtros, favoritos, números de disponibilidade e barras
+  proporcionais à fração livre. Filtrar os resultados mantém as posições do esquema.
+- Login com composição urbana, mantendo validações e contas de demonstração.
+- Perfil com veículos, preferências de vaga, favoritos da API e últimas consultas feitas no app.
+  Veículos, preferências e histórico ficam no navegador, separados por conta; não foram inventados endpoints.
+- Indicadores administrativos em uma faixa mais compacta, nova paleta no canvas/editor e textos diretos.
+- Adaptação móvel com alternância lista/mapa e simulador compacto; no perfil ele fica oculto para
+  manter os controles acessíveis.
+
+Não foram inventados portões, distâncias, tempos de caminhada ou tipos de vaga ausentes no contrato.
+O esquema é explicitamente ilustrativo e sem escala. O mapa geográfico opcional continua usando
+as coordenadas da API e tiles do OpenStreetMap.
+
+### Verificação e correções do redesign
+
+A IA acrescentou quatro testes de integração para busca/lista/esquema, remoção HTTP de favorito,
+veículos com confirmação e isolamento por conta, preferências aplicadas à consulta e histórico sem duplicatas.
+Os testes de autenticação foram ajustados aos novos textos dos botões.
+
+Na execução simultânea de build e testes, dois testes excederam o tempo de espera. A suíte foi limitada
+a dois workers e os tempos de espera foram ajustados; a execução isolada completa aprovou os 29 testes
+em seis arquivos. O lint e o build de produção (TypeScript e Vite) também aprovaram.
+A inspeção visual foi feita pela IA no navegador local em desktop
+e em 360 px, incluindo login, busca, consulta, detalhe, perfil, painel e editor. A consulta móvel não apresentou
+rolagem horizontal. Um conflito visual entre simulador e controles foi corrigido.
+
+As decisões, os limites e as capturas estão em [DESIGN.md](DESIGN.md).
+Revisão humana ainda pendente: celulares reais, navegação integral por teclado/leitor de tela,
+contraste nos dois temas e entendimento dos novos estados. Não há certificação de acessibilidade
+nem revisão humana registrada nesta fase.
 
