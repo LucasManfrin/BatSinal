@@ -239,11 +239,15 @@ function loadStore(): MockStore {
   return createSeed();
 }
 export const store = loadStore();
-export function persist() {
+export function persist(strict = false) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   } catch {
-    /* Demo continua em memória. */
+    if (strict)
+      throw new Error(
+        'O armazenamento local está cheio ou bloqueado. Libere espaço e tente salvar novamente.',
+      );
+    /* Leituras do simulador podem continuar em memória. */
   }
 }
 export function heatmap(id: string): CelulaHeatmap[] {

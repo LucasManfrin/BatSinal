@@ -17,6 +17,7 @@ import { Simulator } from '../../features/sensores/Simulator';
 const adminLinks = [
   { to: '/admin', label: 'Visão geral', end: true },
   { to: '/admin/estacionamentos', label: 'Estacionamentos' },
+  { to: '/admin/posicionar', label: 'Posicionar vagas' },
   { to: '/admin/sensores', label: 'Sensores' },
   { to: '/empresa', label: 'Minha empresa' },
 ];

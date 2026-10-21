@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Check, Copy } from 'lucide-react';
-import { useCompany, useLots, useSensors } from '../../features/estacionamentos/queries';
+import { useAreas, useCompany, useLots, useSensors } from '../../features/estacionamentos/queries';
 import { useLocalValue } from '../../features/visitante/hooks';
 import { Button } from '../ui';
 import { useState } from 'react';
@@ -8,6 +8,7 @@ export function CompanyChecklist() {
   const company = useCompany();
   const lots = useLots();
   const sensors = useSensors();
+  const areas = useAreas();
   const [copied, setCopied] = useLocalValue(`batsinal:inicio:${company.data?.id ?? ''}`, false);
   const [error, setError] = useState('');
   if (!company.data || !lots.data || !sensors.data) return null;
@@ -19,7 +20,9 @@ export function CompanyChecklist() {
     },
     { done: sensors.data.length > 0, label: 'Cadastrar sensores', to: '/admin/sensores' },
     {
-      done: lots.data.some((lot) => lot.totalVagas > 0),
+      done:
+        Boolean(areas.data?.some((a) => a.progresso && a.progresso.posicionadas > 0)) &&
+        areas.data?.every((a) => a.progresso?.posicionadas === a.progresso?.total),
       label: 'Posicionar as vagas',
       to: '/admin/posicionar',
     },

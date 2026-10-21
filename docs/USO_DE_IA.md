@@ -359,3 +359,26 @@ Three.js foram alinhados pelo override do monorepo. A prévia também exigiu reg
 após instalar as bibliotecas; a configuração inclui explicitamente as dependências 3D.
 Testes acrescentados: progresso por área, ordenação relativa e abertura pública com fallback e retorno.
 Backend real e banco seguem propostos. Revisão humana ainda pendente.
+
+## V2 — Fase E: posicionamento magnético
+
+A IA implementou `calcularIma` como função pura: atração smoothstep, trava, histerese,
+compatibilidade e tratamento de posições ocupadas. Os raios são relativos à largura da âncora.
+A tela oferece áreas com progresso, maquete e bandeja filtrável; o celular usa seletor de área.
+O arraste usa projeção do ponteiro no piso 3D; a peça alinha rotação, levanta e desce em 180 ms,
+com realce de posições compatíveis e prévia de troca. Movimento reduzido dispensa interpolação.
+Há alternativa por lista, Tab/setas/Enter e Escape, com anúncios em aria-live.
+
+Foram acrescentados CRUD privado de áreas/vagas, importação de levantamento JSON, gravação da
+posição, troca atômica, restauração do padrão e lote de posições para desfazer/refazer. As escritas
+validam empresa, área, tipo, unicidade e versão; erro de persistência local reverte a alteração.
+O histórico da tela não substitui auditoria persistente e é limpo ao mudar de área/recarregar.
+Vagas sem sensor oferecem associação inline. O checklist agora verifica posicionamento real.
+
+A IA testou o arraste real no navegador com WebGL: uma primeira soltura fora da posição foi
+recusada e uma segunda na âncora encaixou e persistiu. Testes automatizados cobrem limites do ímã,
+troca/desfazer, restauração, isolamento, persistência, versão, CRUD e alternativa sem WebGL.
+A compilação detectou uma opção de consulta inválida nos testes; ela foi corrigida antes da conclusão.
+Revisão de textos sem depender do logo e de desktop/celular realizada pela IA. O grupo ainda precisa
+validar o mapeamento, os tipos aceitos em cada posição e os vínculos dos sensores na maquete física.
+Não foi registrada revisão humana nem implantada uma API/banco reais.

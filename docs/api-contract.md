@@ -45,9 +45,34 @@ As âncoras do seed derivam das posições existentes do campus, com x/z = coord
 A conversão é uma unidade de maquete, não metro. A geometria original do campus foi preservada.
 Três vagas do seed novo começam na bandeja; migração não desposiciona vagas de quem já usava a demo.
 
-GET `/areas`, GET `/areas/{id}` e GET `/vagas?areaId={id}` são privados e filtrados pela empresa.
-CRUD e escrita magnética serão concluídos na Fase E: PUT `/vagas/{id}/posicao` recebe `{ ancoraId: string | null }`;
-POST `/areas/{id}/restaurar-padrao` restaura os vínculos mapeados. Atualização exige versão para evitar sobrescrita.
+Todas as rotas abaixo são privadas, filtradas pela empresa do token:
+
+| Método e rota | Corpo / comportamento |
+| --- | --- |
+| GET `/areas?estacionamentoId={id}` | áreas com `progresso: { posicionadas, total }` |
+| GET `/areas/{id}` | `DetalheArea`, incluindo peças na bandeja |
+| POST `/areas` | `{ nome, estacionamentoId, ancoras?: [...] }`; importa levantamento, sem gerar grade |
+| PUT `/areas/{id}` | `{ nome, versao? }`; altera somente metadados |
+| DELETE `/areas/{id}` | exclui área vazia; 409 se houver vagas |
+| GET `/vagas?areaId={id}` e `/vagas/{id}` | vagas da própria empresa |
+| POST `/vagas` | `{ areaId, rotulo, tipo }`; nasce na bandeja |
+| PUT `/vagas/{id}` | `{ rotulo, tipo }`; tipo deve ser compatível com a posição atual |
+| DELETE `/vagas/{id}` | remove peça e desvincula sensor |
+| PUT `/vagas/{id}/posicao` | `{ ancoraId: string \| null, versao? }`; retorna `DetalheArea` |
+| PUT `/areas/{id}/posicoes` | `{ versao?, posicoes: [{ vagaId, ancoraId: string \| null }] }`; lote completo para desfazer/refazer |
+| POST `/areas/{id}/restaurar-padrao` | `{ versao? }`; restaura somente vínculos originais existentes; retorna `DetalheArea` |
+
+Uma posição recebe uma peça. Trocar uma vaga posicionada com outra ocupada troca os dois vínculos;
+quando a origem é a bandeja, a peça deslocada vai para a bandeja. Ambos os tipos precisam ser compatíveis.
+Todas as referências e tipos são validados antes de alterar o lote. Cada escrita incrementa `area.versao`.
+O frontend envia a versão nas operações de posicionamento; versão divergente retorna 409, sem sobrescrever.
+O campo é opcional no contrato mock para clientes antigos. Na API real deverá ser obrigatório.
+O histórico de desfazer fica na tela e é limpo ao trocar de área/recarregar. A operação é recusada se
+as posições já tiverem mudado fora do histórico. Restaurar não inventa âncoras para áreas importadas.
+
+O arquivo de importação de área é um array JSON de `{ x, z, rotacao, largura, profundidade, tiposAceitos }`.
+IDs são gerados pelo servidor, e `areaId` vem da nova área. Limite: 2000 posições por importação.
+Não há desenho, escala automática, edição livre ou gerador de posições no frontend.
 
 ## Estacionamentos, sensores e leituras
 
@@ -63,7 +88,8 @@ Ocupação é indisponibilidade, incluindo SEM_SINAL; histórico sintético de 1
 ## Respostas e limites
 
 Erros: `{ status, mensagem, campos? }`. 401 sessão ausente; 404 ausente/outra empresa;
-405 método proibido; 409 conflito de slug/posição/versão; 422 campos inválidos.
+405 método proibido; 409 conflito de slug/versão/área ocupada; 422 campos ou posições inválidos;
+507 armazenamento local indisponível. Nesse caso, o mock reverte a escrita e informa o erro.
 POST retorna 201; demais operações 200, exclusão null. O mock armazena somente credenciais fictícias.
 
 Não existem endpoints de usuários, favoritos ou editor livre. Preferências locais do visitante:

@@ -1,11 +1,12 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls, Instances, Instance } from '@react-three/drei';
-import { Color, ExtrudeGeometry, Shape } from 'three';
+import { Color, ExtrudeGeometry, Shape, Plane, Vector2, Vector3, Group } from 'three';
 import type { Ancora, PredioCampus } from '../../types';
 import type { AreaSceneProps } from './AreaScene';
 import { distanceCampus } from '../../lib/campus';
 import { VagaTile } from './VagaTile';
+import { calcularIma } from '../../lib/magnet';
 
 function Building({ building }: { building: PredioCampus }) {
   const geometry = useMemo(() => {
@@ -27,7 +28,32 @@ function Building({ building }: { building: PredioCampus }) {
     </mesh>
   );
 }
-function AnchorOutline({ anchor }: { anchor: Ancora }) {
+function AnchorOutline({
+  anchor,
+  state = 'normal',
+}: {
+  anchor: Ancora;
+  state?: 'normal' | 'compatible' | 'incompatible' | 'target';
+}) {
+  const group = useRef<Group>(null),
+    pulse = useRef<number | null>(null),
+    { invalidate } = useThree();
+  useEffect(() => {
+    if (
+      state === 'compatible' &&
+      !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ) {
+      pulse.current = performance.now();
+      invalidate();
+    }
+  }, [state, invalidate]);
+  useFrame(() => {
+    if (pulse.current === null || !group.current) return;
+    const t = Math.min(1, (performance.now() - pulse.current) / 180);
+    group.current.scale.setScalar(1 + 0.08 * (1 - t) ** 3);
+    if (t === 1) pulse.current = null;
+    else invalidate();
+  });
   const positions = useMemo(
     () =>
       new Float32Array([
@@ -50,19 +76,246 @@ function AnchorOutline({ anchor }: { anchor: Ancora }) {
     [anchor.largura, anchor.profundidade],
   );
   return (
-    <group position={[anchor.x, 0, anchor.z]} rotation={[0, (-anchor.rotacao * Math.PI) / 180, 0]}>
+    <group
+      ref={group}
+      position={[anchor.x, 0, anchor.z]}
+      rotation={[0, (-anchor.rotacao * Math.PI) / 180, 0]}
+    >
       <lineLoop onUpdate={(line) => line.computeLineDistances()}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
-        <lineDashedMaterial color="#6a645a" dashSize={0.2} gapSize={0.12} />
+        <lineDashedMaterial
+          color={state === 'target' || state === 'compatible' ? '#896500' : '#6a645a'}
+          transparent
+          opacity={state === 'incompatible' ? 0.25 : 1}
+          dashSize={state === 'target' ? 1 : 0.2}
+          gapSize={state === 'target' ? 0 : 0.12}
+        />
       </lineLoop>
+      {(state === 'target' || state === 'compatible') && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.035, 0]}>
+          <planeGeometry args={[anchor.largura, anchor.profundidade]} />
+          <meshBasicMaterial
+            color="#f2b705"
+            transparent
+            opacity={state === 'target' ? 0.4 : 0.15}
+          />
+        </mesh>
+      )}
+      {state === 'incompatible' && (
+        <Html center position={[0, 0.08, 0]} zIndexRange={[2, 0]}>
+          <span
+            className="anchor-incompatible"
+            title={`Esta posição aceita só ${anchor.tiposAceitos.join(' ou ').toLowerCase()}.`}
+            aria-label={`Posição incompatível: aceita ${anchor.tiposAceitos.join(' ou ')}`}
+          >
+            /
+          </span>
+        </Html>
+      )}
+    </group>
+  );
+}
+function MovingPiece({
+  geometry,
+  position,
+  rotation,
+  width,
+  depth,
+  label,
+  settling = false,
+}: {
+  geometry: ExtrudeGeometry;
+  position: [number, number, number];
+  rotation: number;
+  width: number;
+  depth: number;
+  label: string;
+  settling?: boolean;
+}) {
+  const group = useRef<Group>(null),
+    { invalidate } = useThree();
+  const initial = useRef(position),
+    initialRotation = useRef(rotation);
+  const animation = useRef<{
+    from: Vector3;
+    to: Vector3;
+    fromRotation: number;
+    toRotation: number;
+    start: number;
+  } | null>(null);
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const [x, y, z] = position;
+  useEffect(() => {
+    if (!group.current) return;
+    if (reduced) {
+      group.current.position.set(x, y, z);
+      group.current.rotation.y = rotation;
+    } else
+      animation.current = {
+        from: group.current.position.clone(),
+        to: new Vector3(x, y, z),
+        fromRotation: group.current.rotation.y,
+        toRotation: rotation,
+        start: performance.now(),
+      };
+    invalidate();
+  }, [x, y, z, rotation, reduced, invalidate]);
+  useFrame(() => {
+    const a = animation.current;
+    if (!a || !group.current) return;
+    const t = Math.min(1, (performance.now() - a.start) / 180),
+      e = 1 - (1 - t) ** 3;
+    group.current.position.lerpVectors(a.from, a.to, e);
+    group.current.rotation.y = a.fromRotation + (a.toRotation - a.fromRotation) * e;
+    group.current.scale.setScalar(settling ? 1 + 0.04 * (1 - e) : 1);
+    if (t === 1) animation.current = null;
+    else invalidate();
+  });
+  return (
+    <group ref={group} position={initial.current} rotation={[0, initialRotation.current, 0]}>
+      <mesh geometry={geometry} scale={[width, 1, depth]}>
+        <meshLambertMaterial color="#f2b705" flatShading />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -y + 0.04, 0]}>
+        <planeGeometry args={[width * 1.12, depth * 1.12]} />
+        <meshBasicMaterial color="#6a645a" transparent opacity={0.18} />
+      </mesh>
+      <Html center position={[0, 0.25, 0]} zIndexRange={[5, 0]} style={{ pointerEvents: 'none' }}>
+        <strong className="magnetic-label">{label}</strong>
+      </Html>
     </group>
   );
 }
 function Scene(props: AreaSceneProps) {
   const { data, onSelect, selectedId } = props;
-  const { size, camera, invalidate } = useThree();
+  const { size, camera, invalidate, gl, raycaster } = useThree();
+  type Preview = {
+    x: number;
+    z: number;
+    rotation: number;
+    anchor: string | null;
+    locked: boolean;
+    settling?: boolean;
+    slotId: string;
+  };
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const drag = useRef<Preview | null>(null),
+    locked = useRef<string | null>(null),
+    finished = useRef<ReturnType<typeof setTimeout>>();
+  const callbacks = useRef(props);
+  callbacks.current = props;
+  const latestData = useRef(data);
+  latestData.current = data;
+  const dragged = data.vagas.find((v) => v.id === (preview?.slotId ?? props.draggingId));
+  useEffect(() => {
+    if (!props.pointerDrag || !props.draggingId || props.disabled) return;
+    const data = latestData.current;
+    const slot = data.vagas.find((v) => v.id === props.draggingId);
+    if (!slot) return;
+    const source = data.ancoras.find((a) => a.id === slot.ancoraId);
+    locked.current = source?.id ?? null;
+    drag.current = null;
+    clearTimeout(finished.current);
+    const plane = new Plane(new Vector3(0, 1, 0), -0.15),
+      hit = new Vector3(),
+      pointer = new Vector2();
+    function move(event: PointerEvent) {
+      const box = gl.domElement.getBoundingClientRect();
+      if (
+        event.clientX < box.left ||
+        event.clientX > box.right ||
+        event.clientY < box.top ||
+        event.clientY > box.bottom
+      ) {
+        locked.current = null;
+        drag.current = null;
+        setPreview(null);
+        return;
+      }
+      pointer.set(
+        ((event.clientX - box.left) / box.width) * 2 - 1,
+        -((event.clientY - box.top) / box.height) * 2 + 1,
+      );
+      raycaster.setFromCamera(pointer, camera);
+      if (!raycaster.ray.intersectPlane(plane, hit)) return;
+      const occupancy = Object.fromEntries(
+        data.vagas.filter((v) => v.id !== slot!.id && v.ancoraId).map((v) => [v.ancoraId!, v.id]),
+      );
+      const anchors = data.ancoras.filter((a) => {
+        const other = data.vagas.find((v) => v.id === occupancy[a.id]);
+        return !other || !source || source.tiposAceitos.includes(other.tipo);
+      });
+      const result = calcularIma({
+        ponteiro: { x: hit.x, z: hit.z },
+        vaga: slot!,
+        ancoras: anchors,
+        ocupadas: occupancy,
+        ancoraTravada: locked.current,
+      });
+      locked.current = result.travada ? result.ancoraAlvo : null;
+      const anchor = anchors.find((a) => a.id === result.ancoraAlvo);
+      const next = {
+        ...result.posicao,
+        rotation:
+          (source?.rotacao ?? 0) +
+          ((anchor?.rotacao ?? source?.rotacao ?? 0) - (source?.rotacao ?? 0)) * result.forca,
+        anchor: result.ancoraAlvo,
+        locked: result.travada,
+        slotId: slot!.id,
+      };
+      drag.current = next;
+      setPreview(next);
+      invalidate();
+    }
+    function finish(event: PointerEvent) {
+      move(event);
+      const last = drag.current;
+      if (last?.locked && last.anchor) {
+        setPreview({ ...last, settling: true });
+        callbacks.current.onPlace?.(slot!.id, last.anchor);
+      } else {
+        if (last && source)
+          setPreview({
+            ...last,
+            x: source.x,
+            z: source.z,
+            rotation: source.rotacao,
+            settling: true,
+          });
+        else setPreview(null);
+        callbacks.current.onCancelDrag?.();
+      }
+      finished.current = setTimeout(() => {
+        setPreview(null);
+        invalidate();
+      }, 200);
+    }
+    function cancel() {
+      setPreview(null);
+      callbacks.current.onCancelDrag?.();
+    }
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', finish, { once: true });
+    window.addEventListener('pointercancel', cancel, { once: true });
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', finish);
+      window.removeEventListener('pointercancel', cancel);
+    };
+  }, [
+    props.pointerDrag,
+    props.draggingId,
+    props.disabled,
+    data.area.id,
+    data.area.versao,
+    gl,
+    camera,
+    raycaster,
+    invalidate,
+  ]);
+  useEffect(() => () => clearTimeout(finished.current), []);
   const controls = useRef<React.ElementRef<typeof OrbitControls>>(null);
   const approach = useRef<{ from: number; to: number; start: number } | null>(null);
   useFrame(() => {
@@ -155,72 +408,124 @@ function Scene(props: AreaSceneProps) {
         <Building key={building.id} building={building} />
       ))}
       {anchors.map((anchor) => (
-        <AnchorOutline key={anchor.id} anchor={anchor} />
+        <AnchorOutline
+          key={anchor.id}
+          anchor={anchor}
+          state={
+            preview?.anchor === anchor.id
+              ? 'target'
+              : props.draggingId
+                ? data.vagas.find((v) => v.id === props.draggingId) &&
+                  anchor.tiposAceitos.includes(
+                    data.vagas.find((v) => v.id === props.draggingId)!.tipo,
+                  )
+                  ? 'compatible'
+                  : 'incompatible'
+                : 'normal'
+          }
+        />
       ))}
       {tiles.length > 100 ? (
         <Instances geometry={geometry} limit={tiles.length}>
           <meshLambertMaterial />
-          {tiles.map(({ vaga, anchor }) => (
-            <Instance
-              key={vaga.id}
-              position={[anchor.x, 0.16, anchor.z]}
-              rotation={[0, (-anchor.rotacao * Math.PI) / 180, 0]}
-              scale={[anchor.largura, 0.9, anchor.profundidade]}
-              color={new Color(colorOf(vaga.status))}
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelect(vaga.id);
-              }}
-            />
-          ))}
+          {tiles
+            .filter(({ vaga }) => vaga.id !== preview?.slotId)
+            .map(({ vaga, anchor }) => (
+              <Instance
+                key={vaga.id}
+                position={[anchor.x, 0.16, anchor.z]}
+                rotation={[0, (-anchor.rotacao * Math.PI) / 180, 0]}
+                scale={[anchor.largura, 0.9, anchor.profundidade]}
+                color={new Color(colorOf(vaga.status))}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect(vaga.id);
+                }}
+                onPointerDown={(event) => {
+                  if (props.modo === 'posicionar' && !props.disabled) {
+                    event.stopPropagation();
+                    props.onGrab?.(vaga.id);
+                  }
+                }}
+              />
+            ))}
         </Instances>
       ) : (
-        tiles.map(({ vaga, anchor }) => (
-          <group
-            key={vaga.id}
-            position={[anchor.x, 0.17, anchor.z]}
-            rotation={[0, (-anchor.rotacao * Math.PI) / 180, 0]}
-          >
-            <mesh
-              geometry={geometry}
-              scale={[anchor.largura, 1, anchor.profundidade]}
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelect(vaga.id);
-              }}
-              onPointerDown={(event) => {
-                if (props.modo === 'posicionar' && props.onGrab) {
-                  event.stopPropagation();
-                  props.onGrab(vaga.id);
-                }
-              }}
+        tiles
+          .filter(({ vaga }) => vaga.id !== preview?.slotId)
+          .map(({ vaga, anchor }) => (
+            <group
+              key={vaga.id}
+              position={[anchor.x, 0.17, anchor.z]}
+              rotation={[0, (-anchor.rotacao * Math.PI) / 180, 0]}
             >
-              <meshLambertMaterial color={colorOf(vaga.status)} flatShading />
-            </mesh>
-            <Html center position={[0, 0.2, 0]} distanceFactor={undefined} zIndexRange={[3, 0]}>
-              <VagaTile
-                key={vaga.status}
-                vaga={vaga}
-                status={vaga.status}
-                compact
-                selected={vaga.id === selectedId}
-                onClick={() => onSelect(vaga.id)}
+              <mesh
+                geometry={geometry}
+                scale={[anchor.largura, 1, anchor.profundidade]}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSelect(vaga.id);
+                }}
                 onPointerDown={(event) => {
-                  if (props.modo === 'posicionar' && props.onGrab) {
+                  if (props.modo === 'posicionar' && props.onGrab && !props.disabled) {
                     event.stopPropagation();
                     props.onGrab(vaga.id);
                   }
                 }}
-              />
-            </Html>
-          </group>
-        ))
+              >
+                <meshLambertMaterial color={colorOf(vaga.status)} flatShading />
+              </mesh>
+              <Html center position={[0, 0.2, 0]} distanceFactor={undefined} zIndexRange={[3, 0]}>
+                <VagaTile
+                  key={vaga.status}
+                  vaga={vaga}
+                  status={vaga.status}
+                  compact
+                  selected={vaga.id === selectedId}
+                  onClick={() => onSelect(vaga.id)}
+                  onPointerDown={(event) => {
+                    if (props.modo === 'posicionar' && props.onGrab && !props.disabled) {
+                      event.stopPropagation();
+                      props.onGrab(vaga.id);
+                    }
+                  }}
+                />
+              </Html>
+            </group>
+          ))
+      )}
+      {preview && dragged && (
+        <MovingPiece
+          geometry={geometry}
+          position={[preview.x, preview.settling ? 0.17 : 0.85, preview.z]}
+          rotation={(-preview.rotation * Math.PI) / 180}
+          width={anchors.find((a) => a.id === preview.anchor)?.largura ?? 1.2}
+          depth={anchors.find((a) => a.id === preview.anchor)?.profundidade ?? 2.8}
+          label={dragged.rotulo}
+          settling={preview.settling}
+        />
+      )}
+      {preview?.anchor && (
+        <Html
+          position={[bounds.cx, 0, bounds.cz + bounds.d / 2]}
+          center
+          zIndexRange={[4, 0]}
+          style={{ pointerEvents: 'none' }}
+        >
+          <span className="magnetic-message">
+            {data.vagas.find((v) => v.ancoraId === preview.anchor && v.id !== dragged?.id)
+              ? `Trocar com ${data.vagas.find((v) => v.ancoraId === preview.anchor)?.rotulo}`
+              : preview.locked
+                ? 'Encaixada · solte para salvar'
+                : 'Aproximando da posição'}
+          </span>
+        </Html>
       )}
       <OrbitControls
         ref={controls}
         makeDefault
         enableDamping={false}
-        enabled={!props.draggingId}
+        enabled={!props.pointerDrag && !props.disabled}
         minPolarAngle={Math.PI / 2 - (35 * Math.PI) / 180}
         maxPolarAngle={Math.PI / 2 - (35 * Math.PI) / 180}
         minAzimuthAngle={-Math.PI / 4 - (25 * Math.PI) / 180}

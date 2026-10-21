@@ -11,17 +11,10 @@ import type {
 } from '../types';
 import { heatmap, persist, store } from './seed';
 import { slugValido } from '../lib/slug';
+import { MockError } from './errors';
+import { areaSummary, changeArea, changeSlot, changePosition } from './areaMutations';
 type ScopedCompany = { id: string; empresaId: string };
 
-class MockError extends Error {
-  constructor(
-    public status: number,
-    mensagem: string,
-    public campos?: Record<string, string>,
-  ) {
-    super(mensagem);
-  }
-}
 type Body = Record<string, unknown>;
 function text(body: Body, key: string, min = 1) {
   const value = typeof body[key] === 'string' ? (body[key] as string).trim() : '';
@@ -219,6 +212,7 @@ function publicCampus(empresaId: string): ConsultaCampus {
 export const handlers = [
   http.all(`${API_URL}/*`, async ({ request }) => {
     await delay(140);
+    const before = request.method === 'GET' ? undefined : structuredClone(store);
     try {
       const url = new URL(request.url);
       const path = url.pathname.slice(new URL(API_URL).pathname.length).split('/').filter(Boolean);
@@ -311,12 +305,19 @@ export const handlers = [
         if (resource === 'areas' && method === 'GET')
           result = id
             ? areaDetail(id, user.id)
-            : store.areas.filter(
-                (a) =>
-                  a.empresaId === user.id &&
-                  (!url.searchParams.get('estacionamentoId') ||
-                    a.estacionamentoId === url.searchParams.get('estacionamentoId')),
-              );
+            : store.areas
+                .filter(
+                  (a) =>
+                    a.empresaId === user.id &&
+                    (!url.searchParams.get('estacionamentoId') ||
+                      a.estacionamentoId === url.searchParams.get('estacionamentoId')),
+                )
+                .map(areaSummary);
+        else if (resource === 'areas') {
+          const changed = changeArea(user.id, method, id, action, body);
+          result = changed && action ? areaDetail(changed.id, user.id) : changed;
+        } else if (resource === 'vagas' && method === 'PUT' && action === 'posicao' && id)
+          result = areaDetail(changePosition(user.id, id, body), user.id);
         else if (resource === 'vagas' && method === 'GET' && !id)
           result = store.estacionamentos
             .filter((l) => l.empresaId === user.id)
@@ -324,6 +325,7 @@ export const handlers = [
             .filter(
               (v) => !url.searchParams.get('areaId') || v.areaId === url.searchParams.get('areaId'),
             );
+        else if (resource === 'vagas') result = changeSlot(user.id, method, id, body);
         else if (resource === 'auth' && id === 'me' && method === 'GET') result = account(user.id);
         else if (resource === 'empresa' && id === 'senha' && method === 'PUT') {
           if (body.senhaAtual !== store.contas[user.id].senha)
@@ -436,6 +438,11 @@ export const handlers = [
               });
               store.status = store.status.filter((s) => !ids.has(s.vagaId));
               store.estacionamentos = store.estacionamentos.filter((l) => l.id !== id);
+              const areas = new Set(
+                store.areas.filter((a) => a.estacionamentoId === id).map((a) => a.id),
+              );
+              store.areas = store.areas.filter((a) => !areas.has(a.id));
+              store.ancoras = store.ancoras.filter((a) => !areas.has(a.areaId));
               delete store.historico[id];
               result = null;
             }
@@ -493,7 +500,17 @@ export const handlers = [
         }
         if (result === undefined) throw new MockError(404, 'Rota não encontrada.');
       }
-      if (method !== 'GET') persist();
+      if (method !== 'GET') {
+        try {
+          persist(true);
+        } catch (error) {
+          Object.assign(store, before);
+          throw new MockError(
+            507,
+            error instanceof Error ? error.message : 'Não foi possível salvar no aparelho.',
+          );
+        }
+      }
       return new HttpResponse(JSON.stringify(result), {
         status: method === 'POST' ? 201 : 200,
         headers: { 'Content-Type': 'application/json' },
@@ -511,7 +528,7 @@ export const handlers = [
   }),
 ];
 
-// Somente o simulador escreve no store. A interface real continua usando HTTP.
+// O simulador representa os dispositivos; as telas escrevem somente por HTTP.
 export function simulateStatus(vagaId: string, status: 'LIVRE' | 'OCUPADA' | 'SEM_SINAL') {
   const sensor = store.sensores.find((s) => s.vagaId === vagaId);
   if (!sensor) return;

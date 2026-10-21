@@ -10,6 +10,8 @@ export interface AreaSceneProps {
   selectedId?: string;
   onSelect: (id: string) => void;
   draggingId?: string | null;
+  pointerDrag?: boolean;
+  disabled?: boolean;
   onGrab?: (id: string) => void;
   onPlace?: (id: string, ancoraId: string) => void;
   onCancelDrag?: () => void;
@@ -95,7 +97,7 @@ export function AreaPlan({
                   : 'transparent'
               }
               stroke={slot?.id === selectedId ? '#896500' : '#6a645a'}
-              strokeWidth={slot?.id === selectedId?.toString() ? '.15' : '.06'}
+              strokeWidth={slot?.id === selectedId ? '.15' : '.06'}
               strokeDasharray={slot ? undefined : '.2 .15'}
             />
             {slot && (

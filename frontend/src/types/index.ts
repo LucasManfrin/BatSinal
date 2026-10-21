@@ -55,6 +55,7 @@ export interface AreaEstacionamento {
   nome: string;
   contorno: PontoCampus[];
   versao: number;
+  progresso?: { posicionadas: number; total: number };
 }
 export interface StatusVagaAtual {
   vagaId: string;
