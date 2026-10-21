@@ -63,3 +63,60 @@ Revisão do grupo: conferir unidades, períodos e definição do pico do dia com
 A IA implementou simulador opt-in, temas, responsividade, legendas redundantes e estados de erro/vazio/carregamento. Copiou .env.example para .env local (ignorado pelo Git) para habilitar o simulador na conferência.
 Revisão do grupo: validar em celulares reais e com internet desligada; os tiles do mapa são o único recurso online opcional.
 
+### Fase 9 — Testes, revisão e documentação
+
+A IA criou 25 testes de comportamento e integração HTTP em Vitest/Testing Library/MSW.
+Foram verificados: ocupação/tendência, grid, snap, sobreposição com rotação, status com texto e ícone,
+labels de select, login válido/inválido, cadastro, bloqueio de rota para USER, isolamento de empresa,
+favoritos (incluindo DELETE), vínculo/sinal de sensor, proteção do próprio ADMIN e undo/redo.
+O README agora explica instalação, contas fictícias, variáveis de ambiente, roteiro de apresentação,
+troca para o FastAPI, responsabilidades dos módulos e limitações. Há um roteiro de revisão separado
+em `ROTEIRO_DE_REVISAO.md` e uma captura da interface em `preview.png`.
+
+Conferências executadas pela IA no navegador local:
+
+- Login ADMIN e carregamento de painel, tabela e consulta de vagas.
+- Seleção e arrasto de vaga com snap; propriedades numéricas atualizadas e aviso de sobreposição.
+- Aviso ao navegar com alterações não salvas e descarte da alteração de teste.
+- Contador mudou de 13 para 14 ao liberar uma vaga no simulador, sem recarregar a página.
+- Alerta in-app apareceu ao passar de zero para uma vaga livre. Status originais foram restaurados.
+- Cadastro fictício de estacionamento, preview e geração de grid 1×2.
+- Criação/vínculo de sensor, exibição única de chave demonstrativa, seleção via checkbox HTML e salvamento de layout.
+- Exclusão confirmada somente dos registros criados para a verificação, preservando o seed.
+
+Revisão do grupo: executar o roteiro nos próprios computadores e celulares, testar o mapa sem internet
+e revisar a navegação integral por teclado/leitor de tela. Isso ainda não representa certificação de acessibilidade.
+Não houve revisão humana registrada pela IA.
+
+## Dificuldades, erros e correções automáticas
+
+- O estado inicial tinha autenticação e handlers prontos, mas ainda faltavam o roteador, os estilos e as telas conectadas.
+  A IA continuou esses módulos e manteve as funcionalidades existentes; aplicou formatação padronizada ao código.
+- O mock ignorava o corpo de DELETE e impedia remover favoritos. A leitura foi corrigida e recebeu teste HTTP.
+- A primeira compilação apontou tipos incompatíveis na navegação e na geometria Konva. Foram corrigidos sem usar `any`.
+- Um teste novo usou uma opção do Playwright que não existe na Testing Library. O TypeScript detectou isso e a opção foi removida.
+- O lint identificou imports sem uso, dependência de hook e arquivos fora do formato; a IA corrigiu os apontamentos e reexecutou as verificações.
+- O build inicial concentrou canvas/mapa/gráficos em um arquivo grande. A IA separou o carregamento das telas com React.lazy.
+- A inspeção visual encontrou sobreposição do simulador com a barra de salvar. O editor agora reserva espaço para manter os botões acessíveis.
+- O menu recolhido no mobile podia receber foco. A IA adicionou `inert` e `aria-hidden`; a seleção múltipla também tem checkboxes HTML.
+- Selects podiam misturar o label com os textos das opções. A IA adicionou `aria-labelledby` e teste de nome acessível.
+- O timeout do mapa podia reiniciar durante o polling; o callback foi estabilizado. Botões de zoom e notificações receberam rótulos em português.
+- Leituras do mock persistiam o store sem necessidade. Agora só mutações persistem, e outras abas recebem alterações por evento de armazenamento.
+  Ainda não há controle de concorrência, e o token é compartilhado entre abas do mesmo navegador.
+- Houve reinício transitório da prévia ao criar o `.env` local. A IA reutilizou o servidor já em execução e reabriu a aba de conferência.
+
+## Avaliação provisória da contribuição da IA
+
+A IA produziu a implementação e verificações automatizadas, reduzindo o trabalho inicial de estrutura,
+interface e integração com o mock. O grupo precisa avaliar a legibilidade e aprender a explicar cada fluxo.
+Não estão implementados backend, autenticação segura de produção, hardware, push/e-mail nem reservas.
+Dados, posições e históricos são demonstrativos. Testes automatizados e conferência visual não substituem
+testes com hardware real, revisão humana e validação de acessibilidade em dispositivos reais.
+
+
+## Resultado das verificações finais
+- npm run lint: aprovado (ESLint sem warnings e Prettier).
+- npm run test: 25 testes aprovados em 5 arquivos.
+- npm run build: aprovado (TypeScript estrito e build Vite).
+- Conferência visual local registrada acima; backend/hardware e validação em dispositivos reais permanecem fora desta entrega.
+
