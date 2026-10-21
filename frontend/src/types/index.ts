@@ -6,10 +6,7 @@ export interface Empresa {
   slug: string;
 }
 export type CampusPublico = Pick<Empresa, 'id' | 'nome' | 'slug'>;
-export interface Administrador {
-  id: string;
-  empresaId: string;
-  nome: string;
+export interface ContaEmpresa extends Empresa {
   email: string;
 }
 export interface Estacionamento {
@@ -73,7 +70,7 @@ export interface Layout {
 export interface DetalheEstacionamento extends Estacionamento, Layout {}
 export interface Sessao {
   token: string;
-  administrador: Administrador;
+  empresa: ContaEmpresa;
 }
 export interface ErroApi {
   status: number;

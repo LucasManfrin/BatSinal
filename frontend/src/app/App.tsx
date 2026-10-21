@@ -6,7 +6,7 @@ import { AuthProvider, CompanyGuard } from '../features/auth/AuthContext';
 import { AppLayout } from '../components/layout/AppLayout';
 import { AuthPage } from '../pages/auth/AuthPage';
 import { CompanyPage } from '../pages/empresa/CompanyPage';
-import { CampusEntry } from '../pages/estacionamentos/CampusEntry';
+import { CampusEntry } from '../pages/estacionamentos/HomePage';
 import { Button, EmptyState, Loading } from '../components/ui';
 
 // Bibliotecas de mapa, canvas e gráficos só carregam quando a tela precisa delas.
@@ -46,10 +46,11 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <CampusEntry /> },
-      { path: '/login', element: <AuthPage /> },
-      { path: '/cadastro', element: <AuthPage register /> },
+      { path: '/entrar', element: <AuthPage /> },
+      { path: '/login', element: <Navigate to="/entrar" replace /> },
+      { path: '/cadastrar-empresa', element: <AuthPage register /> },
+      { path: '/cadastro', element: <Navigate to="/cadastrar-empresa" replace /> },
       { path: '/estacionamentos', element: <Navigate to="/" replace /> },
-      { path: '/favoritos', element: <Navigate to="/" replace /> },
       {
         element: <AppLayout />,
         children: [
@@ -70,7 +71,6 @@ const router = createBrowserRouter([
                 path: '/admin/sensores',
                 element: <ManagementPage key="sensores" resource="sensores" />,
               },
-              { path: '/admin/usuarios', element: <Navigate to="/empresa" replace /> },
               { path: '/admin/editor', element: <EditorPage /> },
               { path: '/admin/editor/:id', element: <EditorPage /> },
             ],

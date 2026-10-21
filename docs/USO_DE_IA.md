@@ -303,3 +303,17 @@ blocos, sentidos de circulação, acessibilidade dos percursos e vínculo físic
 O editor atual continua sendo o de layout local: editar a cena do campus requer implementação futura.
 Não houve revisão humana nem validação da geometria pela instituição registrada pela IA.
 
+
+## V2 — Fase 0 e A: auditoria e acesso da empresa
+
+A IA leu as rotas, tipos, mock, guardas e dependências sem alterar arquivos, apresentou a auditoria
+em até 25 linhas e criou a branch solicitada `feat/v2-acesso-3d-identidade`.
+A sessão agora retorna empresa; credenciais antigas dos responsáveis são migradas sem apagar
+campus, vagas, sensores ou histórico. Sessões antigas válidas passam a apontar à empresa.
+Cadastro tem slug sugerido/editável, checagem pública de disponibilidade e validação final no servidor mock.
+Foram criados `/entrar`, `/cadastrar-empresa`, página inicial com duas ações, checklist e troca de senha inline.
+Favoritos, último destino e alerta na transição de zero para vagas livres são locais ao aparelho/campus.
+A consulta continua sempre pública conforme a decisão anterior do usuário. Não há envio de preferências ao servidor.
+Os testes de autenticação e migração foram adaptados, com novos casos de slug e hooks do visitante.
+Uma asserção antiga foi limitada ao card da lista para evitar ambiguidade com o título da planta.
+O backend real continua não implementado. Revisão humana ainda não foi registrada.

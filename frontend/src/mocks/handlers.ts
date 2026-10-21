@@ -7,11 +7,12 @@ import type {
   EstacionamentoResumo,
   GridOptions,
   Layout,
-  Administrador,
   Vaga,
   ConsultaCampus,
 } from '../types';
 import { heatmap, persist, store } from './seed';
+import { slugValido } from '../lib/slug';
+type ScopedCompany = { id: string; empresaId: string };
 
 class MockError extends Error {
   constructor(
@@ -73,33 +74,38 @@ function email(body: Body, exceptId?: string) {
   const value = text(body, 'email').toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
     throw new MockError(422, 'E-mail inválido.', { email: 'Informe um e-mail válido.' });
-  if (store.administradores.some((u) => u.email === value && u.id !== exceptId))
+  if (Object.entries(store.contas).some(([id, u]) => u.email === value && id !== exceptId))
     throw new MockError(409, 'Este e-mail já está cadastrado.', { email: 'E-mail já cadastrado.' });
   return value;
 }
 function password(body: Body) {
   const value = text(body, 'senha', 8);
-  if (!/[a-z]/.test(value) || !/[A-Z]/.test(value) || !/\d/.test(value))
-    throw new MockError(422, 'Use uma senha com minúscula, maiúscula e número.', {
-      senha: 'Senha fraca.',
-    });
   return value;
 }
-function publicUser(user: Administrador): Administrador {
-  return {
-    id: user.id,
-    empresaId: user.empresaId,
-    nome: user.nome,
-    email: user.email,
-  };
+function account(empresaId: string) {
+  const company = store.empresas.find((e) => e.id === empresaId)!;
+  return { ...company, email: store.contas[empresaId].email };
 }
-function authenticated(request: Request): Administrador {
+function authenticated(request: Request): ScopedCompany {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
-  const user = store.administradores.find((u) => token && u.id === store.sessoes[token]);
-  if (!user) throw new MockError(401, 'Sua sessão expirou. Entre novamente.');
-  return publicUser(user);
+  const id = token && store.sessoes[token];
+  if (!id || !store.contas[id] || !store.empresas.some((e) => e.id === id))
+    throw new MockError(401, 'Entre na conta da empresa para continuar.');
+  return { id, empresaId: id };
 }
-function getLot(id: string, user: Administrador): DetalheEstacionamento {
+function availableSlug(body: Body, exceptId?: string) {
+  const slug = text(body, 'slug', 3);
+  if (!slugValido(slug))
+    throw new MockError(422, 'Confira o endereço do mapa.', {
+      slug: 'Use de 3 a 60 letras minúsculas, números e hífens.',
+    });
+  if (store.empresas.some((e) => e.slug === slug && e.id !== exceptId))
+    throw new MockError(409, 'Este endereço já está em uso.', {
+      slug: 'Escolha outro endereço para o mapa.',
+    });
+  return slug;
+}
+function getLot(id: string, user: ScopedCompany): DetalheEstacionamento {
   const lot = store.estacionamentos.find((l) => l.id === id && l.empresaId === user.empresaId);
   if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
   return lot;
@@ -186,7 +192,7 @@ function publicCampus(empresaId: string): ConsultaCampus {
   });
   return { mapa, vagas, vagasSemPosicao: slots.size - vagas.length };
 }
-function validateLayout(layout: Layout, lot: DetalheEstacionamento, user: Administrador) {
+function validateLayout(layout: Layout, lot: DetalheEstacionamento, user: ScopedCompany) {
   if (!Array.isArray(layout.vagas) || !Array.isArray(layout.elementos))
     throw new MockError(422, 'Layout inválido.');
   const labels = new Set<string>();
@@ -289,52 +295,75 @@ export const handlers = [
             else throw new MockError(404, 'Rota não encontrada.');
           }
         }
+      } else if (resource === 'public') {
+        if (method !== 'GET')
+          throw new MockError(405, 'A consulta pública permite apenas leitura.');
+        if (id === 'slugs' && path[3] === 'disponivel' && path.length === 4) {
+          result = {
+            slug: action,
+            disponivel: slugValido(action ?? '') && !store.empresas.some((e) => e.slug === action),
+          };
+        } else if (id === 'empresas' && !action) result = store.empresas;
+        else if (id === 'empresas') {
+          const company = store.empresas.find((e) => e.slug === action);
+          if (!company) throw new MockError(404, 'Campus não encontrado.');
+          if (path.length === 3) result = { ...publicCampus(company.id), empresa: company };
+          else if (path[3] === 'estacionamentos' && path.length === 4)
+            result = store.estacionamentos
+              .filter((l) => l.empresaId === company.id)
+              .map((l) => publicLot(l, true));
+          else throw new MockError(404, 'Rota não encontrada.');
+        } else if (id === 'estacionamentos') {
+          const lot = store.estacionamentos.find((l) => l.id === action);
+          if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
+          if (path.length === 3) result = publicLot(lot);
+          else if (path[3] === 'status' && path.length === 4) result = lotStatus(lot);
+          else throw new MockError(404, 'Rota não encontrada.');
+        } else throw new MockError(404, 'Rota não encontrada.');
       } else if (resource === 'auth' && id === 'login' && method === 'POST') {
-        const user = store.administradores.find(
-          (u) => u.email === String(body.email).toLowerCase() && u.senha === body.senha,
+        const entry = Object.entries(store.contas).find(
+          ([, c]) => c.email === String(body.email).toLowerCase() && c.senha === body.senha,
         );
-        if (!user) throw new MockError(401, 'E-mail ou senha incorretos.');
+        if (!entry) throw new MockError(401, 'E-mail ou senha incorretos.');
         const token = crypto.randomUUID();
-        store.sessoes[token] = user.id;
-        result = { token, administrador: publicUser(user) };
+        store.sessoes[token] = entry[0];
+        result = { token, empresa: account(entry[0]) };
       } else if (resource === 'auth' && id === 'cadastro-empresa' && method === 'POST') {
-        const nomeEmpresa = text(body, 'nomeEmpresa', 2);
         const nome = text(body, 'nome', 2);
+        const slug = availableSlug(body);
         const userEmail = email(body);
         const senha = password(body);
-        const idEmpresa = crypto.randomUUID();
-        const baseSlug =
-          nomeEmpresa
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '')
-            .slice(0, 60) || 'campus';
-        const slug = store.empresas.some((e) => e.slug === baseSlug)
-          ? baseSlug + '-' + idEmpresa.slice(0, 8)
-          : baseSlug;
-        const empresa = { id: idEmpresa, nome: nomeEmpresa, slug };
-        const user = {
-          id: crypto.randomUUID(),
-          empresaId: empresa.id,
-          nome,
-          email: userEmail,
-          senha,
-        };
+        const empresa = { id: crypto.randomUUID(), nome, slug };
         store.empresas.push(empresa);
-        store.administradores.push(user);
+        store.contas[empresa.id] = { email: userEmail, senha };
         const token = crypto.randomUUID();
-        store.sessoes[token] = user.id;
-        result = { token, administrador: publicUser(user) };
+        store.sessoes[token] = empresa.id;
+        result = { token, empresa: account(empresa.id) };
       } else {
         const user = authenticated(request);
         const admin = () => authenticated(request);
-        if (resource === 'auth' && id === 'me' && method === 'GET') result = user;
-        else if (resource === 'empresa' && !id) {
-          const empresa = store.empresas.find((e) => e.id === user.empresaId)!;
-          if (method !== 'GET') throw new MockError(405, 'Método não permitido.');
-          result = empresa;
+        if (resource === 'auth' && id === 'me' && method === 'GET') result = account(user.id);
+        else if (resource === 'empresa' && id === 'senha' && method === 'PUT') {
+          if (body.senhaAtual !== store.contas[user.id].senha)
+            throw new MockError(422, 'A senha atual não confere.');
+          store.contas[user.id].senha = password({ senha: body.novaSenha });
+          const currentToken = request.headers.get('Authorization')?.replace('Bearer ', '');
+          store.sessoes = Object.fromEntries(
+            Object.entries(store.sessoes).filter(
+              ([token, empresaId]) => empresaId !== user.id || token === currentToken,
+            ),
+          );
+          result = null;
+        } else if (resource === 'empresa' && !id) {
+          if (method === 'PUT') {
+            const nome = text(body, 'nome', 2);
+            const slug = availableSlug(body, user.id);
+            Object.assign(
+              store.empresas.find((e) => e.id === user.id)!,
+              { nome, slug },
+            );
+          } else if (method !== 'GET') throw new MockError(405, 'Método não permitido.');
+          result = account(user.id);
         } else if (resource === 'estacionamentos') {
           if (!id) {
             if (method === 'GET')

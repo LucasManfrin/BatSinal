@@ -16,7 +16,7 @@ afterAll(() => server.close());
 beforeEach(() => {
   localStorage.clear();
   Object.assign(store, createSeed());
-  store.sessoes.teste = 'admin';
+  store.sessoes.teste = 'unisagrado';
   localStorage.setItem(TOKEN_KEY, 'teste');
 });
 describe('fluxos HTTP da demonstração', () => {
@@ -91,8 +91,8 @@ describe('fluxos HTTP da demonstração', () => {
     const session = await api<import('../types').Sessao>('/auth/cadastro-empresa', {
       method: 'POST',
       body: json({
-        nomeEmpresa: 'Campus novo',
-        nome: 'Responsável',
+        nome: 'Campus novo',
+        slug: 'campus-novo',
         email: 'novo@teste.com',
         senha: 'Teste123',
       }),
@@ -100,7 +100,7 @@ describe('fluxos HTTP da demonstração', () => {
     localStorage.setItem(TOKEN_KEY, session.token);
     const company = await api<import('../types').Empresa>('/empresa');
     expect(company).not.toHaveProperty('publicado');
-    expect(session.administrador).not.toHaveProperty('role');
+    expect(session.empresa).not.toHaveProperty('role');
     await api('/estacionamentos', { method: 'POST', body: json({ nome: 'Bolsão novo' }) });
     localStorage.removeItem(TOKEN_KEY);
     expect(await api('/publico/campi')).toContainEqual({
@@ -118,13 +118,8 @@ describe('fluxos HTTP da demonstração', () => {
     ).rejects.toMatchObject({ details: { status: 401 } });
   });
   it('isola empresas nas consultas e nos IDs conhecidos', async () => {
-    store.administradores.push({
-      id: 'outra',
-      empresaId: 'outra',
-      nome: 'Outro Admin',
-      email: 'outro@demo.com',
-      senha: 'Senha123',
-    });
+    store.empresas.push({ id: 'outra', nome: 'Outra', slug: 'outra' });
+    store.contas.outra = { email: 'outra@demo.com', senha: 'Senha123' };
     store.sessoes.teste = 'outra';
     expect(await api<EstacionamentoResumo[]>('/estacionamentos')).toEqual([]);
     await expect(api('/estacionamentos/est-1')).rejects.toMatchObject({ details: { status: 404 } });

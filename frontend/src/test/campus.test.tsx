@@ -76,7 +76,7 @@ describe('consulta do campus inteiro', () => {
     delete legacy.mapas;
     delete legacy.campusSchema;
     legacy.estacionamentos[0].vagas[0].x = 321;
-    legacy.sessoes['sessao-existente'] = 'admin';
+    legacy.sessoes['sessao-existente'] = 'unisagrado';
     const migrated = migrateStore(legacy);
     expect(migrated.mapas?.unisagrado.predios.find((b) => b.id === 'j')).toBeDefined();
     expect(migrated.estacionamentos).toEqual(legacy.estacionamentos);

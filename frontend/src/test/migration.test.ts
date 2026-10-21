@@ -39,22 +39,32 @@ it('preserva o armazenamento carregado quando não consegue persistir a migraç�
   }
 });
 
-it('migra apenas administradores antigos e invalida sessões de visitantes', () => {
+it('migra contas antigas de empresa e invalida sessões de visitantes', () => {
   const seed = createSeed();
-  const { administradores, ...legacy } = seed;
+  const legacy = { ...seed, contas: undefined };
   const migrated = migrateStore({
     ...legacy,
-    empresas: legacy.empresas.map((e) => ({ ...e, publicado: false })),
+    accessSchema: 3,
     usuarios: [
-      { ...administradores[0], role: 'ADMIN' },
-      { ...administradores[0], id: 'visitante', role: 'USER' },
+      {
+        id: 'admin',
+        empresaId: 'unisagrado',
+        email: 'admin@unisagrado.demo',
+        senha: 'Demo@123',
+        role: 'ADMIN',
+      },
+      {
+        id: 'visitante',
+        empresaId: 'unisagrado',
+        email: 'visitante@demo.com',
+        senha: 'Demo@123',
+        role: 'USER',
+      },
     ],
     sessoes: { empresa: 'admin', visitante: 'visitante' },
   });
-  expect(migrated.administradores.map((a) => a.id)).toEqual(['admin']);
-  expect(migrated.administradores[0]).not.toHaveProperty('role');
-  expect(migrated.sessoes).toEqual({ empresa: 'admin' });
-  expect(migrated.empresas[0]).not.toHaveProperty('publicado');
-  expect(migrated.accessSchema).toBe(3);
-  expect(migrated.estacionamentos[0].vagas).toEqual(seed.estacionamentos[0].vagas);
+  expect(Object.keys(migrated.contas)).toEqual(['unisagrado']);
+  expect(migrated.sessoes).toEqual({ empresa: 'unisagrado' });
+  expect(migrated.accessSchema).toBe(4);
+  expect(migrated.estacionamentos).toEqual(seed.estacionamentos);
 });

@@ -10,10 +10,10 @@ import { createSeed, store } from '../mocks/seed';
 import { TOKEN_KEY } from '../lib/api';
 import { CompanyPage } from '../pages/empresa/CompanyPage';
 import { SectorLotsPage as LotsPage } from '../pages/estacionamentos/SectorLotsPage';
-import type { Administrador } from '../types';
+import type { ContaEmpresa } from '../types';
 import { AppLayout } from '../components/layout/AppLayout';
 
-const auth = vi.hoisted(() => ({ user: null as Administrador | null, logout: vi.fn() }));
+const auth = vi.hoisted(() => ({ user: null as ContaEmpresa | null, logout: vi.fn() }));
 vi.mock('../features/auth/AuthContext', () => ({ useAuth: () => ({ ...auth, loading: false }) }));
 const server = setupServer(...handlers);
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
@@ -48,7 +48,10 @@ describe('consulta e perfil redesenhados', () => {
     await user.type(await screen.findByLabelText('Buscar estacionamento'), 'Complexo');
     expect(screen.getAllByRole('article')).toHaveLength(1);
     expect(
-      screen.getByRole('heading', { name: 'Complexo Esportivo', level: 2 }),
+      within(screen.getByRole('article')).getByRole('heading', {
+        name: 'Complexo Esportivo',
+        level: 2,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Ver planta de Complexo Esportivo' }),
@@ -118,11 +121,11 @@ describe('consulta e perfil redesenhados', () => {
     const dialog = screen.getByRole('dialog');
     expect(within(dialog).getByRole('link', { name: 'Cadastrar empresa' })).toHaveAttribute(
       'href',
-      '/cadastro',
+      '/cadastrar-empresa',
     );
     expect(within(dialog).getByRole('link', { name: 'Acesso para empresas' })).toHaveAttribute(
       'href',
-      '/login',
+      '/entrar',
     );
     expect(
       within(dialog).queryByRole('link', { name: /perfil|favoritos/i }),
@@ -131,12 +134,12 @@ describe('consulta e perfil redesenhados', () => {
   });
   it('mostra o endereço público da empresa sem controle de visibilidade', async () => {
     auth.user = {
-      id: 'admin',
-      empresaId: 'unisagrado',
+      id: 'unisagrado',
+      slug: 'unisagrado',
       nome: 'Lucas Oliveira',
       email: 'admin@unisagrado.demo',
     };
-    store.sessoes['teste-ui'] = 'admin';
+    store.sessoes['teste-ui'] = 'unisagrado';
     localStorage.setItem(TOKEN_KEY, 'teste-ui');
     show(<CompanyPage />, '/empresa');
     expect(await screen.findByRole('link', { name: '/c/unisagrado' })).toHaveAttribute(

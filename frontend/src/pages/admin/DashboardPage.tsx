@@ -1,3 +1,4 @@
+import { CompanyChecklist } from '../../components/company/CompanyChecklist';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +22,6 @@ import {
   RefreshCw,
   WifiOff,
 } from 'lucide-react';
-import { useAuth } from '../../features/auth/AuthContext';
 import { useLot, useLots, useSensors, useStatuses } from '../../features/estacionamentos/queries';
 import { api } from '../../lib/api';
 import { ocupacao, tempoDesde } from '../../lib/utils';
@@ -39,7 +39,6 @@ import {
 import { LotCanvas } from '../../components/lot/LotCanvas';
 
 export function DashboardPage() {
-  const { user } = useAuth();
   const lots = useLots();
   const sensors = useSensors();
   const [chosen, setChosen] = useState('');
@@ -80,25 +79,7 @@ export function DashboardPage() {
   });
   if (lots.isPending) return <Loading />;
   if (lots.isError) return <ErrorState retry={() => void lots.refetch()} />;
-  if (!lots.data.length)
-    return (
-      <>
-        <div className="page-heading">
-          <div>
-            <div className="eyebrow">Administração</div>
-            <h1>Olá, {user?.nome.split(' ')[0]}.</h1>
-          </div>
-        </div>
-        <EmptyState
-          title="Nenhum estacionamento cadastrado"
-          description="Cadastre um estacionamento e gere o layout para começar a conectar seus sensores."
-        >
-          <Link className="btn btn-primary" to="/admin/estacionamentos">
-            Cadastrar estacionamento <ArrowRight size={16} />
-          </Link>
-        </EmptyState>
-      </>
-    );
+  if (!lots.data.length) return <CompanyChecklist />;
   const current = lots.data.find((l) => l.id === id)!;
   const free = statuses.data?.filter((s) => s.status === 'LIVRE').length ?? current.vagasLivres;
   const total = current.totalVagas;
@@ -110,6 +91,7 @@ export function DashboardPage() {
   const peak = today.data?.length ? Math.max(...today.data.map((p) => p.ocupacao)) : null;
   return (
     <>
+      <CompanyChecklist />
       <div className="page-heading">
         <div>
           <div className="eyebrow">Administração do campus</div>

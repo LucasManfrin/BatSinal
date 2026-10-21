@@ -1,3 +1,25 @@
+# Contrato v2 — migração por fases
+
+A sessão v2 representa a empresa. POST `/auth/cadastro-empresa` recebe `{ nome, slug, email, senha }`;
+POST `/auth/login` recebe `{ email, senha }`. Ambos retornam `{ token, empresa: { id, nome, slug, email } }`.
+GET `/auth/me` e GET `/empresa` retornam essa conta, sem senha. PUT `/empresa` altera `{ nome, slug }`.
+PUT `/empresa/senha` recebe `{ senhaAtual, novaSenha }` e invalida as outras sessões da empresa.
+Slug tem 3–60 caracteres, letras minúsculas/números separados por hífen; é único.
+GET `/public/slugs/{slug}/disponivel` retorna `{ slug, disponivel }`; o cadastro confere novamente.
+Senha tem mínimo de 8 caracteres. O mock usa somente senhas fictícias e tokens locais.
+
+Leituras sem token (somente GET): `/public/empresas`, `/public/empresas/{slug}` (empresa pública e cena),
+`/public/empresas/{slug}/estacionamentos`, `/public/estacionamentos/{id}` e `/public/estacionamentos/{id}/status`.
+As rotas `/publico/campi/*` abaixo continuam como aliases para preservar links durante a migração.
+Nunca se envia Authorization em `/public/*` ou `/publico/*`. Respostas não expõem contas ou chaves dos sensores.
+Favoritos, destino e alertas do visitante ficam no aparelho, sem endpoint no servidor.
+O token resolve a empresa no mock; CRUDs privados filtram por ela, inclusive ao acessar um ID conhecido.
+A consulta permanece sempre aberta, sem interruptor de publicação.
+
+O modelo por áreas/âncoras e os endpoints de posição serão acrescentados nas fases D/E.
+
+---
+
 # Contrato HTTP — BatSinal (empresa + consulta pública)
 
 Prefixo: `http://localhost:8000/api`. JSON em camelCase; datas ISO 8601. O mock MSW implementa

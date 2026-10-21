@@ -16,11 +16,11 @@ O mock funciona sem backend, chave ou `.env`. Fontes são empacotadas, sem CDN.
 
 ## Visitantes e empresas
 
-- Alunos/professores consultam **sem cadastro e sem login**. A entrada abre o único campus cadastrado
-  ou mostra uma escolha de campi. Exemplo: `/c/unisagrado`.
-- Somente empresas se cadastram em `/cadastro`: nome da empresa, responsável, e-mail e senha.
-  O responsável entra em `/login` e administra seus estacionamentos, layouts e sensores.
-- Cada empresa tem um responsável no MVP. Não existem roles USER/ADMIN, cadastro de motorista,
+- Alunos/professores consultam **sem cadastro e sem login**. A consulta abre o campus escolhido
+  A página inicial oferece acesso direto à Unisagrado ou cadastro da empresa. Exemplo: `/c/unisagrado`.
+- Somente empresas se cadastram em `/cadastrar-empresa`: nome, slug do mapa, e-mail e senha.
+  A empresa entra em `/entrar` e administra seus estacionamentos, layouts e sensores.
+- Cada empresa tem uma conta no MVP. Não existem roles USER/ADMIN, cadastro de motorista,
   gerenciamento de usuários, veículos ou favoritos.
 - A consulta de todos os campi é sempre pública, desde o cadastro da empresa. Não há controle de visibilidade.
   Login é exigido apenas para acessar e alterar dados administrativos.
@@ -125,3 +125,5 @@ O worker MSW já está versionado; ao atualizar a dependência, regenere com `np
 - O grupo deve testar os próprios dispositivos, mapear acessos reais e revisar o código.
 
 [Uso de IA](docs/USO_DE_IA.md) · [Roteiro de revisão](docs/ROTEIRO_DE_REVISAO.md) · [Design](docs/DESIGN.md)
+
+V2 — Fase A: favoritos, último destino e alertas de vaga são locais ao aparelho e separados por campus. O aviso exige a aba aberta. Cadastro confere disponibilidade do slug e entra automaticamente no painel. O primeiro acesso mostra um checklist; Minha empresa permite editar nome/slug e trocar a senha.

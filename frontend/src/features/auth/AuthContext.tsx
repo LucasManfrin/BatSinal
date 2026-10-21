@@ -2,19 +2,19 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { api, json, TOKEN_KEY } from '../../lib/api';
-import type { Sessao, Administrador } from '../../types';
+import type { Sessao, ContaEmpresa } from '../../types';
 import { Loading } from '../../components/ui';
 
 interface AuthState {
-  user: Administrador | null;
+  user: ContaEmpresa | null;
   loading: boolean;
-  login: (email: string, senha: string) => Promise<Administrador>;
-  register: (body: Record<string, string>) => Promise<Administrador>;
+  login: (email: string, senha: string) => Promise<ContaEmpresa>;
+  register: (body: Record<string, string>) => Promise<ContaEmpresa>;
   logout: () => void;
 }
 const Context = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Administrador | null>(null);
+  const [user, setUser] = useState<ContaEmpresa | null>(null);
   const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
   const logout = useCallback(() => {
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     if (localStorage.getItem(TOKEN_KEY))
-      api<Administrador>('/auth/me')
+      api<ContaEmpresa>('/auth/me')
         .then((u) => {
           if (mounted) setUser(u);
         })
@@ -46,8 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const session = await api<Sessao>(path, { method: 'POST', body: json(body) });
     queryClient.clear();
     localStorage.setItem(TOKEN_KEY, session.token);
-    setUser(session.administrador);
-    return session.administrador;
+    setUser(session.empresa);
+    return session.empresa;
   }
   return (
     <Context.Provider
@@ -72,6 +72,6 @@ export function CompanyGuard() {
   const { user, loading } = useAuth();
   const location = useLocation();
   if (loading) return <Loading />;
-  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  if (!user) return <Navigate to="/entrar" state={{ from: location.pathname }} replace />;
   return <Outlet />;
 }

@@ -5,7 +5,6 @@ import type {
   PontoOcupacao,
   Sensor,
   StatusVagaAtual,
-  Administrador,
   MapaCampus,
 } from '../types';
 import { gerarGrid } from '../lib/utils';
@@ -17,7 +16,7 @@ export interface MockStore {
   accessSchema?: number;
   campusSchema?: number;
   mapas?: Record<string, MapaCampus>;
-  administradores: (Administrador & { senha: string })[];
+  contas: Record<string, { email: string; senha: string }>;
   estacionamentos: DetalheEstacionamento[];
   sensores: Sensor[];
   status: StatusVagaAtual[];
@@ -134,19 +133,11 @@ export function createSeed(): MockStore {
   );
   return {
     navigationSchema: 1,
-    accessSchema: 3,
+    accessSchema: 4,
     campusSchema: 1,
     mapas: { unisagrado: createCampusMap() },
     empresas: [{ id: 'unisagrado', nome: 'Unisagrado', slug: 'unisagrado' }],
-    administradores: [
-      {
-        id: 'admin',
-        empresaId: 'unisagrado',
-        nome: 'Lucas Oliveira',
-        email: 'admin@unisagrado.demo',
-        senha: DEMO_PASSWORD,
-      },
-    ],
+    contas: { unisagrado: { email: 'admin@unisagrado.demo', senha: DEMO_PASSWORD } },
     estacionamentos,
     status,
     sensores,
@@ -155,37 +146,44 @@ export function createSeed(): MockStore {
   };
 }
 export const STORAGE_KEY = 'batsinal.mock.v1';
-interface LegacyStore extends Omit<MockStore, 'empresas' | 'administradores'> {
+interface LegacyStore extends Omit<MockStore, 'empresas' | 'contas'> {
   empresas: (Pick<Empresa, 'id' | 'nome'> & Partial<Empresa>)[];
-  administradores?: MockStore['administradores'];
-  usuarios?: (Administrador & { senha: string; role?: string })[];
+  contas?: MockStore['contas'];
+  administradores?: { id: string; empresaId: string; email: string; senha: string }[];
+  usuarios?: { id: string; empresaId: string; email: string; senha: string; role?: string }[];
 }
 export function migrateStore(saved: LegacyStore): MockStore {
-  const administradores =
-    saved.administradores ??
-    (saved.usuarios ?? [])
-      .filter((u) => u.role === 'ADMIN')
-      .map(({ id, empresaId, nome, email, senha }) => ({ id, empresaId, nome, email, senha }));
+  const antigos = saved.administradores ?? (saved.usuarios ?? []).filter((u) => u.role === 'ADMIN');
+  const contas =
+    saved.contas ??
+    Object.fromEntries(antigos.map((u) => [u.empresaId, { email: u.email, senha: u.senha }]));
+  const empresas = saved.empresas.map((e) => ({
+    id: e.id,
+    nome: e.nome,
+    slug: e.slug ?? (e.id === 'unisagrado' ? 'unisagrado' : 'campus-' + e.id),
+  }));
+  const sessoes = Object.fromEntries(
+    Object.entries(saved.sessoes).flatMap(([token, id]) => {
+      const empresaId = saved.contas ? id : antigos.find((u) => u.id === id)?.empresaId;
+      return empresaId && contas[empresaId] && empresas.some((e) => e.id === empresaId)
+        ? [[token, empresaId]]
+        : [];
+    }),
+  );
   return {
     navigationSchema: saved.navigationSchema,
-    accessSchema: 3,
+    accessSchema: 4,
     campusSchema: 1,
     mapas:
       saved.mapas ??
-      (saved.empresas.some((e) => e.id === 'unisagrado') ? { unisagrado: createCampusMap() } : {}),
-    empresas: saved.empresas.map((e) => ({
-      id: e.id,
-      nome: e.nome,
-      slug: e.slug ?? (e.id === 'unisagrado' ? 'unisagrado' : 'campus-' + e.id),
-    })),
-    administradores,
+      (empresas.some((e) => e.id === 'unisagrado') ? { unisagrado: createCampusMap() } : {}),
+    empresas,
+    contas,
+    sessoes,
     estacionamentos: saved.estacionamentos,
     sensores: saved.sensores,
     status: saved.status,
     historico: saved.historico,
-    sessoes: Object.fromEntries(
-      Object.entries(saved.sessoes).filter(([, id]) => administradores.some((a) => a.id === id)),
-    ),
   };
 }
 function loadStore(): MockStore {
@@ -206,7 +204,7 @@ function loadStore(): MockStore {
         });
         saved.navigationSchema = 1;
       }
-      if (legacy.accessSchema !== 3 || legacy.navigationSchema !== 1 || legacy.campusSchema !== 1) {
+      if (legacy.accessSchema !== 4 || legacy.navigationSchema !== 1 || legacy.campusSchema !== 1) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
         } catch {

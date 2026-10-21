@@ -161,11 +161,11 @@ export function AppLayout() {
             </>
           ) : (
             <>
-              <Link to="/login" onClick={() => setAccountOpen(false)}>
+              <Link to="/entrar" onClick={() => setAccountOpen(false)}>
                 <UserRound size={18} />
                 Acesso para empresas
               </Link>
-              <Link to="/cadastro" onClick={() => setAccountOpen(false)}>
+              <Link to="/cadastrar-empresa" onClick={() => setAccountOpen(false)}>
                 <ArrowRight size={18} />
                 Cadastrar empresa
               </Link>

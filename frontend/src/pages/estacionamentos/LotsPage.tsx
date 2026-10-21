@@ -1,12 +1,14 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useRef, useState } from 'react';
-import { ArrowRight, Car, MapPin, Navigation } from 'lucide-react';
+import { ArrowRight, Bell, Car, MapPin, Navigation, Star } from 'lucide-react';
 import { useCampusScene } from '../../features/estacionamentos/queries';
 import { Button, EmptyState, ErrorState, Loading, Select } from '../../components/ui';
 import { CampusScene } from '../../components/lot/CampusScene';
 import { ApiError } from '../../lib/api';
 import { campusStatus, distanceCampus, nearbySlots } from '../../lib/campus';
 import type { ConsultaCampus, TipoVaga } from '../../types';
+import { useFavoritos, useUltimoDestino, useAlertaDeVaga } from '../../features/visitante/hooks';
+import { toast } from 'sonner';
 import { SectorLotsPage } from './SectorLotsPage';
 
 export function LotsPage() {
@@ -38,6 +40,9 @@ function CampusConsult({
   retry: () => void;
 }) {
   const mapa = data.mapa!;
+  const { campusSlug = '' } = useParams();
+  const { favoritos, alternar } = useFavoritos(campusSlug);
+  const [ultimoDestino, setUltimoDestino] = useUltimoDestino(campusSlug);
   const [params, setParams] = useSearchParams();
   const [freeOnly, setFreeOnly] = useState(true);
   const [type, setType] = useState<TipoVaga | ''>('');
@@ -52,7 +57,9 @@ function CampusConsult({
       );
     }
   };
-  const destination = mapa.predios.find((building) => building.id === params.get('bloco'));
+  const destination = mapa.predios.find(
+    (building) => building.id === (params.get('bloco') ?? ultimoDestino),
+  );
   const gate = mapa.portoes.find((entry) => entry.veiculos && entry.id === params.get('entrada'));
   const vagas = failed
     ? data.vagas.map((vaga) => ({ ...vaga, status: 'SEM_SINAL' as const }))
@@ -64,6 +71,20 @@ function CampusConsult({
   const nearby = filtered.filter(
     (vaga) => !destination || distanceCampus(vaga.ponto, destination.entrada) <= 220,
   );
+  const regionFree = vagas.filter(
+    (vaga) =>
+      vaga.status === 'LIVRE' &&
+      (!destination || distanceCampus(vaga.ponto, destination.entrada) <= 220),
+  ).length;
+  const alert = useAlertaDeVaga(
+    campusSlug,
+    destination?.id ?? 'campus',
+    failed ? null : regionFree,
+    () =>
+      toast.success(
+        `Abriu uma vaga ${destination ? 'perto de ' + destination.nome : 'no campus'}.`,
+      ),
+  );
   const ordered = nearbySlots(nearby, destination?.entrada);
   const shown = showAll ? ordered : ordered.slice(0, 6);
   const selected = vagas.find((vaga) => vaga.id === selectedId);
@@ -73,6 +94,7 @@ function CampusConsult({
     if (value) next.set(key, value);
     else next.delete(key);
     setParams(next, { replace: true });
+    if (key === 'bloco') setUltimoDestino(value);
     setSelectedId('');
     setShowAll(false);
   };
@@ -190,6 +212,42 @@ function CampusConsult({
                 <Navigation size={13} />
                 {gate.nome} destacado no mapa
               </p>
+            )}
+          </div>
+          <div className="visitor-actions">
+            {destination && (
+              <Button
+                variant="ghost"
+                aria-pressed={favoritos.includes(destination.id)}
+                onClick={() => alternar(destination.id)}
+              >
+                <Star size={16} />
+                {favoritos.includes(destination.id) ? 'Destino favorito' : 'Favoritar destino'}
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              disabled={regionFree > 0 && !alert.ativo}
+              onClick={alert.alternar}
+            >
+              <Bell size={16} />
+              {alert.ativo ? 'Cancelar aviso' : 'Avisar quando abrir vaga'}
+            </Button>
+            <small>O aviso funciona enquanto esta aba estiver aberta.</small>
+            {!!favoritos.length && (
+              <div>
+                {mapa.predios
+                  .filter((p) => favoritos.includes(p.id))
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      className="text-link"
+                      onClick={() => changeParam('bloco', p.id)}
+                    >
+                      {p.nome}
+                    </button>
+                  ))}
+              </div>
             )}
           </div>
           <div className="campus-nearby-list">

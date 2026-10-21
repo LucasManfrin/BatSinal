@@ -6,7 +6,7 @@ import type {
   CampusPublico,
   ConsultaCampus,
   DetalheEstacionamento,
-  Empresa,
+  ContaEmpresa,
   EstacionamentoResumo,
   Sensor,
   StatusVagaAtual,
@@ -21,8 +21,8 @@ export function usePublicCampi() {
 export function useCompany() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ['empresa', user?.empresaId],
-    queryFn: () => api<Empresa>('/empresa'),
+    queryKey: ['empresa', user?.id],
+    queryFn: () => api<ContaEmpresa>('/empresa'),
     enabled: Boolean(user),
   });
 }
@@ -30,7 +30,7 @@ function useScope() {
   const { campusSlug } = useParams();
   const { user } = useAuth();
   return {
-    key: campusSlug ? `publico:${campusSlug}` : `empresa:${user?.empresaId ?? ''}`,
+    key: campusSlug ? `publico:${campusSlug}` : `empresa:${user?.id ?? ''}`,
     enabled: Boolean(campusSlug || user),
     prefix: campusSlug ? `/publico/campi/${encodeURIComponent(campusSlug)}` : '',
   };

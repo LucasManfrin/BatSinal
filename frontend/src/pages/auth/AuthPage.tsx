@@ -1,10 +1,11 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Button, Field, Input } from '../../components/ui';
 import { Logo } from '../../components/layout/Logo';
-import { ApiError, USE_MOCK } from '../../lib/api';
+import { api, ApiError, USE_MOCK } from '../../lib/api';
+import { slugValido, sugerirSlug } from '../../lib/slug';
 import { mensagemErro } from '../../lib/utils';
 
 export function AuthPage({ register = false }: { register?: boolean }) {
@@ -12,8 +13,33 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [form, setForm] = useState({ email: '', senha: '', nome: '', nomeEmpresa: '' });
+  const [form, setForm] = useState({ email: '', senha: '', nome: '', slug: '' });
+  const [slugEdited, setSlugEdited] = useState(false);
+  const [availability, setAvailability] = useState<
+    'idle' | 'checking' | 'available' | 'taken' | 'error'
+  >('idle');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!register || !slugValido(form.slug)) {
+      setAvailability('idle');
+      return;
+    }
+    let active = true;
+    setAvailability('checking');
+    const timer = window.setTimeout(() => {
+      void api<{ disponivel: boolean }>(`/public/slugs/${encodeURIComponent(form.slug)}/disponivel`)
+        .then((result) => {
+          if (active) setAvailability(result.disponivel ? 'available' : 'taken');
+        })
+        .catch(() => {
+          if (active) setAvailability('error');
+        });
+    }, 300);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [form.slug, register]);
   if (user) return <Navigate to={'/admin'} replace />;
   const strength = [
     form.senha.length >= 8,
@@ -22,7 +48,12 @@ export function AuthPage({ register = false }: { register?: boolean }) {
     /\d/.test(form.senha),
   ].filter(Boolean).length;
   const update = (key: keyof typeof form, value: string) => {
-    setForm((old) => ({ ...old, [key]: value }));
+    if (key === 'slug') setSlugEdited(true);
+    setForm((old) => ({
+      ...old,
+      [key]: value,
+      ...(key === 'nome' && !slugEdited ? { slug: sugerirSlug(value) } : {}),
+    }));
     setErrors((old) => ({ ...old, [key]: '', geral: '' }));
   };
   async function submit(event: FormEvent) {
@@ -31,9 +62,9 @@ export function AuthPage({ register = false }: { register?: boolean }) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Informe um e-mail válido.';
     if (form.senha.length < 8) next.senha = 'A senha precisa ter pelo menos 8 caracteres.';
     if (register) {
-      if (form.nome.trim().length < 2) next.nome = 'Informe seu nome.';
-      if (form.nomeEmpresa.trim().length < 2) next.nomeEmpresa = 'Informe o nome da empresa.';
-      if (strength < 4) next.senha = 'Use 8 caracteres, minúscula, maiúscula e número.';
+      if (form.nome.trim().length < 2) next.nome = 'Informe o nome da empresa.';
+      if (!slugValido(form.slug)) next.slug = 'Use de 3 a 60 letras minúsculas, números e hífens.';
+      if (availability === 'taken') next.slug = 'Este endereço já está em uso.';
     }
     setErrors(next);
     if (Object.keys(next).length) return;
@@ -55,7 +86,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
         value={form[key]}
         onChange={(e) => update(key, e.target.value)}
         placeholder={placeholder}
-        autoComplete={key === 'nome' ? 'name' : key === 'nomeEmpresa' ? 'organization' : 'email'}
+        autoComplete={key === 'nome' ? 'organization' : key === 'email' ? 'email' : 'off'}
         aria-invalid={Boolean(errors[key])}
       />
     </Field>
@@ -71,14 +102,26 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           <h2>{register ? 'Cadastrar empresa' : 'Entrar como empresa'}</h2>
           <p>
             {register
-              ? 'Cadastre a empresa e o responsável pelos estacionamentos.'
+              ? 'Escolha o endereço público do mapa. Apenas a empresa precisa de conta.'
               : 'Gerencie o mapa, os bolsões e os sensores da sua empresa.'}
           </p>
           <form onSubmit={submit} noValidate className="form-stack">
             {register && (
               <>
-                {field('nomeEmpresa', 'Nome da empresa', 'Ex.: Unisagrado')}
-                {field('nome', 'Nome do responsável', 'Nome e sobrenome')}
+                {field('nome', 'Nome da empresa', 'Ex.: Unisagrado')}
+                {field('slug', 'Endereço do mapa', 'Ex.: unisagrado')}
+                <p className="small-note" role="status">
+                  /c/{form.slug || 'sua-empresa'} ·{' '}
+                  {availability === 'checking'
+                    ? 'Conferindo endereço…'
+                    : availability === 'available'
+                      ? 'Endereço disponível'
+                      : availability === 'taken'
+                        ? 'Endereço já utilizado'
+                        : availability === 'error'
+                          ? 'A disponibilidade será conferida ao cadastrar.'
+                          : 'Você pode editar o endereço sugerido.'}
+                </p>
               </>
             )}
             {field('email', 'E-mail', 'voce@empresa.com.br')}
@@ -109,7 +152,10 @@ export function AuthPage({ register = false }: { register?: boolean }) {
                     <span key={i} className={strength >= i ? 'filled' : ''} />
                   ))}
                 </div>
-                <small>8 caracteres, maiúscula, minúscula e número.</small>
+                <small>
+                  Força da senha: {['muito fraca', 'fraca', 'razoável', 'boa', 'forte'][strength]}.
+                  Mínimo de 8 caracteres.
+                </small>
               </div>
             )}
             {errors.geral && (
@@ -124,7 +170,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           </form>
           <p className="auth-alternative">
             {register ? 'Já tem uma conta?' : 'Primeiro acesso da empresa?'}{' '}
-            <Link to={register ? '/login' : '/cadastro'}>
+            <Link to={register ? '/entrar' : '/cadastrar-empresa'}>
               {register ? 'Entrar' : 'Cadastrar empresa'} <ArrowRight size={14} />
             </Link>
           </p>
