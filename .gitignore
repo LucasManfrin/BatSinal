@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.local
+.idea/
+.vscode/
+target/
+__pycache__/
+.venv/
+*.log
+.DS_Store
+Thumbs.db
+frontend/test-results/
