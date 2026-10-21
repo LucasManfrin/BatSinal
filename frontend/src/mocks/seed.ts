@@ -6,10 +6,17 @@ import type {
   Sensor,
   StatusVagaAtual,
   MapaCampus,
+  AreaEstacionamento,
+  Ancora,
 } from '../types';
 import { createCampusMap } from './campus';
+import { mappedPositions } from './positions';
 
 export interface MockStore {
+  positionSchema?: number;
+  areas: AreaEstacionamento[];
+  ancoras: Ancora[];
+  layoutsLegados?: Record<string, unknown>;
   navigationSchema?: number;
   empresas: Empresa[];
   accessSchema?: number;
@@ -35,16 +42,11 @@ const demoAccess = [
 ];
 export function createSeed(): MockStore {
   const names = ['Estacionamento Central', 'Bloco Acadêmico', 'Complexo Esportivo'];
-  const estacionamentos = names.map((nome, index): DetalheEstacionamento => {
+  const initialLots = names.map((nome, index) => {
     const id = `est-${index + 1}`;
     const vagas = Array.from({ length: index === 0 ? 40 : index === 1 ? 32 : 20 }, (_, i) => ({
       estacionamentoId: id,
       rotulo: `${String.fromCharCode(65 + Math.floor(i / (index === 1 ? 8 : 10)))}${(i % (index === 1 ? 8 : 10)) + 1}`,
-      x: 48 + (i % (index === 1 ? 8 : 10)) * 63,
-      y: 48 + Math.floor(i / (index === 1 ? 8 : 10)) * 138,
-      largura: 53,
-      altura: 86,
-      rotacao: 0,
     })).map((vaga, i) => ({
       ...vaga,
       id: `${id}-vaga-${i + 1}`,
@@ -66,32 +68,20 @@ export function createSeed(): MockStore {
       largura: 780,
       altura: 680,
       vagas,
-      elementos: [
-        {
-          id: `${id}-via`,
-          estacionamentoId: id,
-          tipo: 'ENTRADA',
-          x: 48,
-          y: 628,
-          largura: 280,
-          altura: 24,
-          rotacao: 0,
-          texto: 'Entrada',
-        },
-        {
-          id: `${id}-saida`,
-          estacionamentoId: id,
-          tipo: 'SAIDA',
-          x: 490,
-          y: 628,
-          largura: 240,
-          altura: 24,
-          rotacao: 0,
-          texto: 'Saída',
-        },
-      ],
     };
   });
+  const mapa = createCampusMap();
+  const { estacionamentos, areas, ancoras } = mappedPositions(
+    initialLots as unknown as DetalheEstacionamento[],
+    { unisagrado: mapa },
+  );
+  // A demonstração nova tem três peças na bandeja; migrações não removem posições existentes.
+  estacionamentos
+    .flatMap((l) => l.vagas)
+    .slice(0, 3)
+    .forEach((v) => {
+      v.ancoraId = undefined;
+    });
   const status = estacionamentos.flatMap((lot, li) =>
     lot.vagas.map((vaga, i): StatusVagaAtual => ({
       vagaId: vaga.id,
@@ -135,6 +125,9 @@ export function createSeed(): MockStore {
     ]),
   );
   return {
+    positionSchema: 1,
+    areas,
+    ancoras,
     navigationSchema: 1,
     accessSchema: 4,
     campusSchema: 1,
@@ -149,9 +142,11 @@ export function createSeed(): MockStore {
   };
 }
 export const STORAGE_KEY = 'batsinal.mock.v1';
-interface LegacyStore extends Omit<MockStore, 'empresas' | 'contas'> {
+interface LegacyStore extends Omit<MockStore, 'empresas' | 'contas' | 'areas' | 'ancoras'> {
   empresas: (Pick<Empresa, 'id' | 'nome'> & Partial<Empresa>)[];
   contas?: MockStore['contas'];
+  areas?: AreaEstacionamento[];
+  ancoras?: Ancora[];
   administradores?: { id: string; empresaId: string; email: string; senha: string }[];
   usuarios?: { id: string; empresaId: string; email: string; senha: string; role?: string }[];
 }
@@ -173,7 +168,24 @@ export function migrateStore(saved: LegacyStore): MockStore {
         : [];
     }),
   );
+  const mapas =
+    saved.mapas ??
+    (empresas.some((e) => e.id === 'unisagrado') ? { unisagrado: createCampusMap() } : {});
+  const positions =
+    saved.positionSchema === 1 && saved.areas && saved.ancoras
+      ? { areas: saved.areas, ancoras: saved.ancoras, estacionamentos: saved.estacionamentos }
+      : mappedPositions(saved.estacionamentos, mapas);
   return {
+    positionSchema: 1,
+    areas: positions.areas,
+    ancoras: positions.ancoras,
+    layoutsLegados:
+      saved.layoutsLegados ??
+      (saved.positionSchema !== 1
+        ? Object.fromEntries(
+            saved.estacionamentos.map((lot) => [lot.id, JSON.parse(JSON.stringify(lot))]),
+          )
+        : undefined),
     navigationSchema: saved.navigationSchema,
     accessSchema: 4,
     campusSchema: 1,
@@ -183,7 +195,7 @@ export function migrateStore(saved: LegacyStore): MockStore {
     empresas,
     contas,
     sessoes,
-    estacionamentos: saved.estacionamentos,
+    estacionamentos: positions.estacionamentos,
     sensores: saved.sensores,
     status: saved.status,
     historico: saved.historico,
@@ -207,7 +219,12 @@ function loadStore(): MockStore {
         });
         saved.navigationSchema = 1;
       }
-      if (legacy.accessSchema !== 4 || legacy.navigationSchema !== 1 || legacy.campusSchema !== 1) {
+      if (
+        legacy.accessSchema !== 4 ||
+        legacy.navigationSchema !== 1 ||
+        legacy.campusSchema !== 1 ||
+        legacy.positionSchema !== 1
+      ) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
         } catch {

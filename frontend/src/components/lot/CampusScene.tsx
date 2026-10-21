@@ -12,6 +12,7 @@ export function CampusScene({
   matches,
   onDestination,
   onSelect,
+  onArea,
 }: {
   mapa: MapaCampus;
   vagas: VagaCampus[];
@@ -21,6 +22,7 @@ export function CampusScene({
   matches: Set<string>;
   onDestination: (id: string) => void;
   onSelect: (id: string) => void;
+  onArea?: (id: string) => void;
 }) {
   const [flat, setFlat] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -187,7 +189,17 @@ export function CampusScene({
           </g>
         ))}
         {mapa.areas.map((area) => (
-          <polygon key={area.id} points={points(area.contorno)} className="campus-parking-area" />
+          <polygon
+            key={area.id}
+            points={points(area.contorno)}
+            className="campus-parking-area"
+            role="button"
+            tabIndex={0}
+            data-map-action="area"
+            aria-label={`Ver de perto: ${area.nome}`}
+            onClick={() => onArea?.(area.id)}
+            onKeyDown={(event) => activate(event, () => onArea?.(area.id))}
+          />
         ))}
         {destination && (
           <polygon

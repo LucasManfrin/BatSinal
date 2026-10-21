@@ -80,7 +80,7 @@ describe('consulta e perfil redesenhados', () => {
   it('atualiza a planta com leituras HTTP e gera navegação pelas coordenadas', async () => {
     const { client } = show(<LotsPage />);
     const plan = await screen.findByRole('region', { name: 'Planta de Estacionamento Central' });
-    const spot = store.estacionamentos[0].vagas[0];
+    const spot = store.estacionamentos[0].vagas[30];
     expect(
       within(plan).getByRole('button', { name: `Vaga ${spot.rotulo}, Livre, PCD` }),
     ).toBeInTheDocument();

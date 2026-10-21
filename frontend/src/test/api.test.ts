@@ -58,7 +58,7 @@ describe('fluxos HTTP da demonstração', () => {
     localStorage.removeItem(TOKEN_KEY);
     const lots = await api<EstacionamentoResumo[]>('/publico/campi/unisagrado/estacionamentos');
     expect(lots).toHaveLength(3);
-    expect(await api('/publico/campi/unisagrado/estacionamentos/est-1/status')).toHaveLength(40);
+    expect(await api('/publico/campi/unisagrado/estacionamentos/est-1/status')).toHaveLength(37);
     await expect(
       api('/estacionamentos', { method: 'POST', body: json({ nome: 'Indevido' }) }),
     ).rejects.toMatchObject({ details: { status: 401 } });

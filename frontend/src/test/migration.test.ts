@@ -5,7 +5,7 @@ it('atualiza o seed antigo sem apagar cadastros, posições ou dados de acesso e
   const saved = createSeed();
   delete saved.navigationSchema;
   saved.estacionamentos[0].nome = 'Central editado';
-  saved.estacionamentos[0].vagas[0].x = 123;
+  saved.estacionamentos[0].vagas[0].rotulo = 'Vaga revisada';
   saved.estacionamentos[0].portao = 'Acesso editado';
   delete saved.estacionamentos[0].caminhadaMinutos;
   delete saved.estacionamentos[0].caminhadaDestino;
@@ -17,7 +17,7 @@ it('atualiza o seed antigo sem apagar cadastros, posições ou dados de acesso e
     portao: 'Acesso editado',
     caminhadaMinutos: 2,
   });
-  expect(store.estacionamentos[0].vagas[0].x).toBe(123);
+  expect(store.estacionamentos[0].vagas[0].rotulo).toBe('Vaga revisada');
   expect(store.navigationSchema).toBe(1);
 });
 

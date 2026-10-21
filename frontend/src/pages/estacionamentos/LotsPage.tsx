@@ -10,9 +10,11 @@ import type { ConsultaCampus, TipoVaga } from '../../types';
 import { useFavoritos, useUltimoDestino, useAlertaDeVaga } from '../../features/visitante/hooks';
 import { toast } from 'sonner';
 import { SectorLotsPage } from './SectorLotsPage';
+import { AreaView } from './AreaView';
 
 export function LotsPage() {
   const query = useCampusScene();
+  const [params, setParams] = useSearchParams();
   if (query.isPending) return <Loading />;
   if (query.error instanceof ApiError && query.error.details.status === 404)
     return (
@@ -25,6 +27,17 @@ export function LotsPage() {
   if (!query.data) return <ErrorState retry={() => void query.refetch()} />;
   // Conserva a consulta existente nos campi que ainda não têm mapa cadastrado.
   if (!query.data.mapa) return <SectorLotsPage />;
+  if (params.get('area'))
+    return (
+      <AreaView
+        id={params.get('area')!}
+        onBack={() => {
+          const next = new URLSearchParams(params);
+          next.delete('area');
+          setParams(next, { replace: true });
+        }}
+      />
+    );
   return (
     <CampusConsult
       data={query.data}
@@ -241,6 +254,21 @@ function CampusConsult({
             )}
           </div>
           <UpdatedAt at={updatedAt} />
+          <Button
+            className="area-closeup"
+            onClick={() =>
+              changeParam(
+                'area',
+                selected?.areaId ??
+                  closestFree?.areaId ??
+                  ordered[0]?.areaId ??
+                  mapa.areas[0]?.id ??
+                  '',
+              )
+            }
+          >
+            Ver de perto <ArrowRight size={16} />
+          </Button>
           <div className="visitor-actions">
             {destination && (
               <Button
@@ -331,6 +359,7 @@ function CampusConsult({
             matches={matches}
             onDestination={(id) => changeParam('bloco', id)}
             onSelect={selectSlot}
+            onArea={(id) => changeParam('area', id)}
           />
           <div className="campus-legend" aria-label="Legenda das vagas">
             <span>

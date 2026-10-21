@@ -342,3 +342,20 @@ Os pares principais de texto foram calculados por luminância relativa (4,63:1 a
 registrados em DESIGN.md. Não foi declarada auditoria completa de acessibilidade.
 A IA leu a tela sem depender do logo: os textos citam bloco, vaga, portão e sensor específicos.
 Revisão visual de desktop e celular foi feita pela IA; revisão humana continua pendente.
+
+## V2 — Fase D: cena 3D e âncoras
+
+A IA preservou os vetores do campus e derivou 92 âncoras das posições já mapeadas, retirando x/y livres
+do modelo Vaga. Área é um trecho da geometria existente; vaga guarda apenas o vínculo à âncora.
+O seed novo demonstra três peças sem posição; migrações preservam os vínculos anteriores e guardam
+um snapshot dos layouts legados, sem reutilizá-los como editor. Favoritos/destino e credenciais foram preservados.
+A cena usa Three.js, Fiber 8 (compatível com React 18) e Drei, com câmera ortográfica, rotação limitada,
+frameloop demand, dpr até 2, volumes extrudados dos blocos e rótulos HTML. Sem assets remotos.
+Mais de 100 peças usam instâncias; há lista e planta 2D quando WebGL não está disponível.
+O mapa público abre a área por Ver de perto ou seleção do trecho, com transição reduzível; há retorno ao campus.
+O painel usa a mesma cena em modo de consulta. A posição atual vem da âncora, não do desenho inicial.
+A IA consultou as documentações oficiais referenciadas em frontend/DESIGN.md. Tipos duplicados de
+Three.js foram alinhados pelo override do monorepo. A prévia também exigiu regenerar o pré-bundle do Vite
+após instalar as bibliotecas; a configuração inclui explicitamente as dependências 3D.
+Testes acrescentados: progresso por área, ordenação relativa e abertura pública com fallback e retorno.
+Backend real e banco seguem propostos. Revisão humana ainda pendente.

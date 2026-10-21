@@ -1,130 +1,72 @@
-# Contrato v2 — migração por fases
+# API BatSinal v2 — MSW local
 
-A sessão v2 representa a empresa. POST `/auth/cadastro-empresa` recebe `{ nome, slug, email, senha }`;
-POST `/auth/login` recebe `{ email, senha }`. Ambos retornam `{ token, empresa: { id, nome, slug, email } }`.
-GET `/auth/me` e GET `/empresa` retornam essa conta, sem senha. PUT `/empresa` altera `{ nome, slug }`.
-PUT `/empresa/senha` recebe `{ senhaAtual, novaSenha }` e invalida as outras sessões da empresa.
-Slug tem 3–60 caracteres, letras minúsculas/números separados por hífen; é único.
-GET `/public/slugs/{slug}/disponivel` retorna `{ slug, disponivel }`; o cadastro confere novamente.
-Senha tem mínimo de 8 caracteres. O mock usa somente senhas fictícias e tokens locais.
+O frontend usa HTTP/JSON. Este contrato é demonstrado pelo MSW, sem backend real.
+Token opaco em `Authorization: Bearer ...` somente nas rotas privadas. A sessão representa a empresa,
+sem papéis ou conta de motorista. A empresa é resolvida do token, nunca do corpo enviado pelo cliente.
+IDs conhecidos de outra empresa devolvem 404; visitante sem token recebe 401 ao tentar administrar.
 
-Leituras sem token (somente GET): `/public/empresas`, `/public/empresas/{slug}` (empresa pública e cena),
-`/public/empresas/{slug}/estacionamentos`, `/public/estacionamentos/{id}` e `/public/estacionamentos/{id}/status`.
-As rotas `/publico/campi/*` abaixo continuam como aliases para preservar links durante a migração.
-Nunca se envia Authorization em `/public/*` ou `/publico/*`. Respostas não expõem contas ou chaves dos sensores.
-Favoritos, destino e alertas do visitante ficam no aparelho, sem endpoint no servidor.
-O token resolve a empresa no mock; CRUDs privados filtram por ela, inclusive ao acessar um ID conhecido.
-A consulta permanece sempre aberta, sem interruptor de publicação.
+## Conta da empresa
 
-O modelo por áreas/âncoras e os endpoints de posição serão acrescentados nas fases D/E.
+| Método e rota | Corpo | Resposta |
+| --- | --- | --- |
+| POST `/auth/cadastro-empresa` | `{ nome, slug, email, senha }` | `{ token, empresa: { id, nome, slug, email } }` |
+| POST `/auth/login` | `{ email, senha }` | mesma sessão |
+| GET `/auth/me` | — | conta da empresa, sem senha |
+| GET `/empresa` | — | conta da empresa |
+| PUT `/empresa` | `{ nome, slug }` | conta atualizada |
+| PUT `/empresa/senha` | `{ senhaAtual, novaSenha }` | null; invalida as outras sessões |
+| GET `/public/slugs/{slug}/disponivel` | — | `{ slug, disponivel }` |
 
----
+Nome tem ao menos 2 caracteres; senha ao menos 8; e-mail é único. Slug é único e tem 3–60 letras
+minúsculas/números separados por hífens. A sugestão é editável, e a validação no cadastro previne corrida.
 
-# Contrato HTTP — BatSinal (empresa + consulta pública)
+## Consulta pública — somente leitura
 
-Prefixo: `http://localhost:8000/api`. JSON em camelCase; datas ISO 8601. O mock MSW implementa
-as rotas abaixo, exceto as explicitamente marcadas como planejadas. Não há API real nesta entrega.
-
-Visitantes não têm conta ou role. A empresa possui um responsável autenticado por Bearer token.
-Cadastro cria empresa e responsável; a resposta não tem campo `role`.
-
-## Convenções
-
-- GET/PUT/DELETE: 200; POST: 201; DELETE retorna `null`.
-- Erro: `{ "status": 422, "mensagem": "Confira os campos.", "campos": { "email": "E-mail inválido." } }`.
-- 401: sem sessão; 404: recurso ausente ou de outra empresa; 405: método não permitido;
-  409: conflito; 422: validação. Backend real também pode retornar 400 com o mesmo formato.
-- Rotas da empresa filtram pelo `empresaId` resolvido da sessão, nunca pelo corpo enviado pelo navegador.
-- Tipos completos: `frontend/src/types/index.ts`. `StatusVaga`: LIVRE, OCUPADA, SEM_SINAL.
-
-## Consulta pública — sem Authorization
-
-| Método / rota | Resposta |
+| GET | Resposta |
 | --- | --- |
-| GET `/publico/campi` | `{ id, nome, slug }[]` de todos os campi cadastrados |
-| GET `/publico/campi/{slug}/mapa` | `ConsultaCampus`: `{ mapa, vagas, vagasSemPosicao }` |
-| GET `/publico/campi/{slug}/estacionamentos` | `EstacionamentoResumo[]` sem layouts internos ou sensores |
-| GET `/publico/campi/{slug}/estacionamentos/{id}` | Layout de consulta, sem `sensorId` nas vagas |
-| GET `/publico/campi/{slug}/estacionamentos/{id}/status` | `{ vagaId, status, atualizadoEm }[]` |
+| `/public/empresas` | `{ id, nome, slug }[]` |
+| `/public/empresas/{slug}` | `{ empresa, mapa, vagas, vagasSemPosicao }` |
+| `/public/empresas/{slug}/estacionamentos` | resumos com livres/total das vagas posicionadas |
+| `/public/estacionamentos/{id}` | estacionamento com vagas posicionadas, sem sensorId |
+| `/public/estacionamentos/{id}/status` | `{ vagaId, status, atualizadoEm }[]` das posicionadas |
+| `/public/areas/{id}` | `DetalheArea`: área, âncoras, vagas posicionadas com status e mapa de contexto |
 
-Essas rotas nunca retornam e-mails de responsáveis, senhas, hashes, IDs ou chaves dos sensores.
-O ID do bolsão deve pertencer ao campus indicado. A consulta é sempre aberta, sem aprovação ou
-controle de visibilidade. Escritas em `/publico/*` devolvem 405. Analytics e sensores não são públicos.
+Consulta sempre aberta. Nenhuma resposta pública contém e-mail de conta, senha, sensorId ou chave.
+Escrita em `/public/*` e `/publico/*` devolve 405. Os aliases `/publico/campi/*` continuam lendo os mesmos
+recursos para links anteriores. O cliente não envia token em nenhuma dessas rotas.
 
-`mapa` é a cena em coordenadas locais (`MapaCampus`) ou `null` se ainda não cadastrada.
-Inclui polígonos dos blocos/áreas, alturas, portões, vias e posições vinculadas por `vagaId`.
-`vagas` contém somente as vagas existentes da empresa que têm posição, com tipo, rótulo e status
-atual, sem identificação de sensor. `vagasSemPosicao` conta os cadastros sem localização.
-O seed Unisagrado é aproximado. Detalhes em [MAPA_CAMPUS.md](MAPA_CAMPUS.md).
+## Domínio e posições mapeadas
 
-## Empresa e autenticação
+`Vaga`: `{ id, estacionamentoId, areaId, rotulo, tipo, ancoraId?, sensorId? }`.
+`Ancora`: `{ id, areaId, x, z, rotacao, largura, profundidade, tiposAceitos, vagaPadraoId? }`.
+`AreaEstacionamento`: `{ id, empresaId, estacionamentoId, nome, contorno, versao }`.
+Posição/rotação/tamanho vêm da âncora; a vaga não tem coordenadas livres. Tipos: COMUM, PCD e MOTO.
+As âncoras do seed derivam das posições existentes do campus, com x/z = coordenadas do mapa / 10.
+A conversão é uma unidade de maquete, não metro. A geometria original do campus foi preservada.
+Três vagas do seed novo começam na bandeja; migração não desposiciona vagas de quem já usava a demo.
 
-| Método / rota | Acesso | Corpo | Resposta |
-| --- | --- | --- | --- |
-| POST `/auth/cadastro-empresa` | Público | `{ nomeEmpresa, nome, email, senha }` | `{ token, administrador }` |
-| POST `/auth/login` | Público | `{ email, senha }` | `{ token, administrador }` |
-| GET `/auth/me` | Responsável | — | `{ id, empresaId, nome, email }` |
-| GET `/empresa` | Responsável | — | `{ id, nome, slug }` |
+GET `/areas`, GET `/areas/{id}` e GET `/vagas?areaId={id}` são privados e filtrados pela empresa.
+CRUD e escrita magnética serão concluídos na Fase E: PUT `/vagas/{id}/posicao` recebe `{ ancoraId: string | null }`;
+POST `/areas/{id}/restaurar-padrao` restaura os vínculos mapeados. Atualização exige versão para evitar sobrescrita.
 
-Senha demonstrativa exige 8 caracteres, minúscula, maiúscula e número. E-mail é único.
-Slug é criado a partir do nome, com sufixo se já existir. Empresa nova já pode ser consultada sem login.
-Não existe campo `publicado` nem endpoint para fechar a consulta. Sessões mock usam tokens opacos e senhas fictícias; segurança real
-está no [planejamento do backend](ARQUITETURA_BACKEND.md).
+## Estacionamentos, sensores e leituras
 
-Não existem cadastro/login de visitante, roles USER/ADMIN, CRUD de usuários ou favoritos no contrato atual.
-Os antigos endpoints `/usuarios` e `/favoritos` foram retirados. Rotas antigas da interface redirecionam.
+CRUD privado `/estacionamentos` e `/sensores`. Estacionamento exige nome; metadados antigos de acesso
+são preservados, sem prometer tempo de caminhada. Um sensor se vincula a uma única vaga da mesma empresa.
+POST `/sensores` retorna `deviceKey` ilustrativa uma única vez; GET não a retorna.
+A consulta atualiza a cada 3 s. Sem sensor ou leitura válida há mais de 60 s: SEM_SINAL.
+O simulador escreve no store; telas reais continuam usando HTTP. Leituras do seed são sintéticas.
 
-## Estacionamentos — responsável autenticado
+GET `/estacionamentos/{id}/ocupacao?de=ISO&ate=ISO&granularidade=hora|dia|30min` e `/heatmap` são privados.
+Ocupação é indisponibilidade, incluindo SEM_SINAL; histórico sintético de 14 dias.
 
-| Método / rota | Corpo / consulta | Resposta |
-| --- | --- | --- |
-| GET `/estacionamentos` | — | Resumos da própria empresa |
-| POST `/estacionamentos` | `{ nome, descricao?, latitude, longitude, largura, altura, portao?, caminhadaMinutos?, caminhadaDestino? }` | Detalhe |
-| GET `/estacionamentos/{id}` | — | Campos do estacionamento, vagas e elementos |
-| PUT `/estacionamentos/{id}` | Mesmos campos do cadastro | Detalhe |
-| DELETE `/estacionamentos/{id}` | — | `null` |
-| POST `/estacionamentos/{id}/layout-padrao` | `{ linhas, colunas, largura?, altura?, espacamento? }` | Detalhe |
-| PUT `/estacionamentos/{id}/layout` | `{ vagas, elementos }` | Detalhe |
-| GET `/estacionamentos/{id}/status` | — | Status das vagas |
+## Respostas e limites
 
-Resumo inclui `totalVagas`, `vagasLivres`, `tendencia` e `livresPorTipo: { COMUM, PCD, MOTO }`.
-Tendência compara livres atuais com a leitura disponível até 15 minutos antes.
-Dimensões do bolsão: 200..10000; latitude -90..90 e longitude -180..180.
-Grid: 1..20 linhas e 1..30 colunas; padrão 53×86, espaço 10; precisa caber no layout.
-Rótulos de vaga são únicos e não vazios. Salvar layout é atômico; geração substitui as vagas anteriores.
+Erros: `{ status, mensagem, campos? }`. 401 sessão ausente; 404 ausente/outra empresa;
+405 método proibido; 409 conflito de slug/posição/versão; 422 campos inválidos.
+POST retorna 201; demais operações 200, exclusão null. O mock armazena somente credenciais fictícias.
 
-Portão e destino aceitam até 100 caracteres. Minutos: inteiro 1..120; tempo e destino devem vir juntos.
-Para limpar, enviar `caminhadaMinutos: null` e `caminhadaDestino: ""`; para portão, `portao: ""`.
-Omitir campos opcionais no PUT preserva seus valores anteriores. Seed de acesso/caminhada é fictício.
-
-## Sensores — responsável autenticado
-
-| Método / rota | Corpo | Resposta |
-| --- | --- | --- |
-| GET `/sensores` | — | `Sensor[]` da empresa |
-| POST `/sensores` | `{ nome, vagaId? }` | Sensor + `deviceKey` ilustrativa, exibida uma vez |
-| PUT `/sensores/{id}` | `{ nome, vagaId? }` | Sensor |
-| DELETE `/sensores/{id}` | — | `null` |
-
-Um sensor por vaga e vice-versa. Sem sensor ou leitura há mais de 60 segundos, SEM_SINAL.
-
-## Analytics — responsável autenticado
-
-- GET `/estacionamentos/{id}/ocupacao?de=ISO&ate=ISO&granularidade=30min|hora|dia`:
-  `{ instante, ocupacao, livres }[]`.
-- GET `/estacionamentos/{id}/heatmap`: `{ dia, hora, ocupacao }[]`, dia 0=segunda, hora 0..23.
-
-Ocupação significa indisponibilidade: (total − livres)/total; inclui sem sinal. Seed sintético de 14 dias.
-
-## Planejado para a API real — ainda não implementado no mock
-
-- GET/PUT `/empresa/mapa`: cena e GeoJSON, PUT com `{ versao, cena, geojson }`; conflito de versão: 409.
-- PUT `/dispositivo/vagas/{id}/status`: chave do sensor vinculado em `X-Device-Key`;
-  `{ status: "LIVRE" | "OCUPADA" }`; hora de recebimento definida pelo servidor.
-- Controle `layoutVersao` ao salvar o layout na API real.
-
-Mapas, esquema SQL e limites estão em [ARQUITETURA_BACKEND.md](ARQUITETURA_BACKEND.md).
-O frontend só acessa HTTP/JSON. Backend real precisará de CORS para as origens locais,
-hash de senha, validade de token, autenticação de dispositivo e testes de isolamento.
-
-V2 — Fase B: removidos POST `/estacionamentos/{id}/layout-padrao` e PUT `/estacionamentos/{id}/layout`. As descrições antigas desses endpoints abaixo são históricas e serão substituídas pelo contrato de âncoras na fase D/E.
+Não existem endpoints de usuários, favoritos ou editor livre. Preferências locais do visitante:
+`batsinal:favoritos:{slug}`, `batsinal:destino:{slug}` e `batsinal:alertas:{slug}`.
+O aviso de vaga é toast na aba aberta, sem push ou serviço em segundo plano.
+A proposta PostgreSQL e a validação necessária da API real estão em ARQUITETURA_BACKEND.md.

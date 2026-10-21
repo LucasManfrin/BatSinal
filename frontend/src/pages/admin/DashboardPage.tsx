@@ -12,9 +12,16 @@ import {
   ReferenceDot,
 } from 'recharts';
 import { ArrowRight } from 'lucide-react';
-import { useLot, useLots, useSensors, useStatuses } from '../../features/estacionamentos/queries';
+import {
+  useLot,
+  useLots,
+  useSensors,
+  useStatuses,
+  useAreas,
+  useArea,
+} from '../../features/estacionamentos/queries';
 import { CompanyChecklist } from '../../components/company/CompanyChecklist';
-import { SectorPlan } from '../../components/lot/SectorPlan';
+import { AreaScene } from '../../components/area/AreaScene';
 import { api } from '../../lib/api';
 import { ocupacao } from '../../lib/utils';
 import { EmptyState, ErrorState, Loading, Select, UpdatedAt } from '../../components/ui';
@@ -22,9 +29,13 @@ import type { PontoOcupacao, CelulaHeatmap } from '../../types';
 export function DashboardPage() {
   const lots = useLots();
   const sensors = useSensors();
+  const areas = useAreas();
+  const [selected, setSelected] = useState('');
   const [chosen, setChosen] = useState('');
   const [period, setPeriod] = useState('hoje');
   const id = lots.data?.some((l) => l.id === chosen) ? chosen : (lots.data?.[0]?.id ?? '');
+  const areaId = areas.data?.find((a) => a.estacionamentoId === id)?.id ?? '';
+  const area = useArea(areaId);
   const lot = useLot(id);
   const statuses = useStatuses(id);
   const today = useQuery({
@@ -129,7 +140,19 @@ export function DashboardPage() {
               Posicionar vagas <ArrowRight size={16} />
             </Link>
           </div>
-          <SectorPlan id={id} />
+          <p className="small-note">
+            {area.data?.area.nome ?? 'Esta empresa ainda não tem área mapeada.'}
+          </p>
+          {area.data ? (
+            <AreaScene data={area.data} modo="ver" selectedId={selected} onSelect={setSelected} />
+          ) : (
+            <EmptyState title="A área precisa de posições mapeadas antes de receber peças." />
+          )}
+          <p aria-live="polite">
+            {selected
+              ? `Vaga ${area.data?.vagas.find((v) => v.id === selected)?.rotulo ?? ''}`
+              : 'Escolha uma peça para conferir a vaga.'}
+          </p>
         </section>
         <aside>
           <h2>Vagas e sensores</h2>

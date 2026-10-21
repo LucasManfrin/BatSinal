@@ -33,23 +33,28 @@ export interface Vaga {
   estacionamentoId: string;
   rotulo: string;
   tipo: TipoVaga;
-  x: number;
-  y: number;
-  largura: number;
-  altura: number;
-  rotacao: number;
+  areaId: string;
+  ancoraId?: string;
   sensorId?: string;
 }
-export interface ElementoLayout {
+export interface Ancora {
   id: string;
-  estacionamentoId: string;
-  tipo: 'VIA' | 'ENTRADA' | 'SAIDA' | 'TEXTO';
+  areaId: string;
   x: number;
-  y: number;
-  largura: number;
-  altura: number;
+  z: number;
   rotacao: number;
-  texto?: string;
+  largura: number;
+  profundidade: number;
+  tiposAceitos: TipoVaga[];
+  vagaPadraoId?: string;
+}
+export interface AreaEstacionamento {
+  id: string;
+  empresaId: string;
+  estacionamentoId: string;
+  nome: string;
+  contorno: PontoCampus[];
+  versao: number;
 }
 export interface StatusVagaAtual {
   vagaId: string;
@@ -63,11 +68,19 @@ export interface Sensor {
   vagaId?: string;
   ultimoSinalEm?: string;
 }
-export interface Layout {
+export interface DetalheEstacionamento extends Estacionamento {
   vagas: Vaga[];
-  elementos: ElementoLayout[];
 }
-export interface DetalheEstacionamento extends Estacionamento, Layout {}
+export interface VagaComStatus extends Vaga {
+  status: StatusVaga;
+  atualizadoEm: string;
+}
+export interface DetalheArea {
+  area: AreaEstacionamento;
+  ancoras: Ancora[];
+  vagas: VagaComStatus[];
+  mapa: MapaCampus | null;
+}
 export interface Sessao {
   token: string;
   empresa: ContaEmpresa;

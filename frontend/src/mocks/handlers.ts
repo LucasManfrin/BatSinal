@@ -7,6 +7,7 @@ import type {
   EstacionamentoResumo,
   Vaga,
   ConsultaCampus,
+  DetalheArea,
 } from '../types';
 import { heatmap, persist, store } from './seed';
 import { slugValido } from '../lib/slug';
@@ -146,25 +147,49 @@ function resumo(lot: DetalheEstacionamento): EstacionamentoResumo {
   };
 }
 function publicLot(lot: DetalheEstacionamento, summary = false) {
-  const { vagas, elementos, ...base } = lot;
+  const { vagas, ...base } = lot;
   if (summary) {
-    const { totalVagas, vagasLivres, tendencia, livresPorTipo } = resumo(lot);
+    const { totalVagas, vagasLivres, tendencia, livresPorTipo } = resumo({
+      ...lot,
+      vagas: lot.vagas.filter((v) => v.ancoraId),
+    });
     return { ...base, totalVagas, vagasLivres, tendencia, livresPorTipo };
   }
   return {
     ...base,
-    elementos,
-    vagas: vagas.map(({ id, estacionamentoId, rotulo, tipo, x, y, largura, altura, rotacao }) => ({
-      id,
-      estacionamentoId,
-      rotulo,
-      tipo,
-      x,
-      y,
-      largura,
-      altura,
-      rotacao,
-    })),
+    vagas: vagas
+      .filter((v) => v.ancoraId)
+      .map(({ id, estacionamentoId, areaId, rotulo, tipo, ancoraId }) => ({
+        id,
+        estacionamentoId,
+        areaId,
+        rotulo,
+        tipo,
+        ancoraId,
+      })),
+  };
+}
+function areaDetail(id: string, empresaId?: string): DetalheArea {
+  const area = store.areas.find((a) => a.id === id && (!empresaId || a.empresaId === empresaId));
+  if (!area) throw new MockError(404, 'Área não encontrada.');
+  const lot = store.estacionamentos.find(
+    (l) => l.id === area.estacionamentoId && l.empresaId === area.empresaId,
+  )!;
+  const statuses = lotStatus(lot);
+  return {
+    area,
+    mapa: store.mapas?.[area.empresaId] ?? null,
+    ancoras: store.ancoras.filter((a) => a.areaId === id),
+    vagas: lot.vagas
+      .filter((v) => v.areaId === id && (empresaId || v.ancoraId))
+      .map((v) => {
+        const { sensorId, ...base } = v;
+        return {
+          ...base,
+          ...(empresaId && sensorId ? { sensorId } : {}),
+          ...statuses.find((s) => s.vagaId === v.id)!,
+        };
+      }),
   };
 }
 function publicCampus(empresaId: string): ConsultaCampus {
@@ -172,9 +197,10 @@ function publicCampus(empresaId: string): ConsultaCampus {
   const lots = store.estacionamentos.filter((lot) => lot.empresaId === empresaId);
   const slots = new Map(lots.flatMap((lot) => lot.vagas).map((v) => [v.id, v]));
   const statuses = new Map(lots.flatMap(lotStatus).map((s) => [s.vagaId, s]));
-  const vagas = (mapa?.posicoes ?? []).flatMap((position) => {
-    const slot = slots.get(position.vagaId);
-    if (!slot) return [];
+  const vagas = [...slots.values()].flatMap((slot) => {
+    const anchor = store.ancoras.find((a) => a.id === slot.ancoraId && a.areaId === slot.areaId);
+    if (!anchor || !store.areas.some((a) => a.id === slot.areaId && a.empresaId === empresaId))
+      return [];
     return [
       {
         id: slot.id,
@@ -182,9 +208,9 @@ function publicCampus(empresaId: string): ConsultaCampus {
         tipo: slot.tipo,
         status: statuses.get(slot.id)!.status,
         atualizadoEm: statuses.get(slot.id)!.atualizadoEm,
-        areaId: position.areaId,
-        ponto: position.ponto,
-        rotacao: position.rotacao,
+        areaId: slot.areaId,
+        ponto: [anchor.x * 10, anchor.z * 10] as [number, number],
+        rotacao: anchor.rotacao,
       },
     ];
   });
@@ -224,7 +250,10 @@ export const handlers = [
             );
             if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
             if (!detail) result = publicLot(lot);
-            else if (detail === 'status' && path.length === 6) result = lotStatus(lot);
+            else if (detail === 'status' && path.length === 6)
+              result = lotStatus(lot).filter((status) =>
+                lot.vagas.some((v) => v.id === status.vagaId && v.ancoraId),
+              );
             else throw new MockError(404, 'Rota não encontrada.');
           }
         }
@@ -250,9 +279,13 @@ export const handlers = [
           const lot = store.estacionamentos.find((l) => l.id === action);
           if (!lot) throw new MockError(404, 'Estacionamento não encontrado.');
           if (path.length === 3) result = publicLot(lot);
-          else if (path[3] === 'status' && path.length === 4) result = lotStatus(lot);
+          else if (path[3] === 'status' && path.length === 4)
+            result = lotStatus(lot).filter((status) =>
+              lot.vagas.some((v) => v.id === status.vagaId && v.ancoraId),
+            );
           else throw new MockError(404, 'Rota não encontrada.');
-        } else throw new MockError(404, 'Rota não encontrada.');
+        } else if (id === 'areas' && action && path.length === 3) result = areaDetail(action);
+        else throw new MockError(404, 'Rota não encontrada.');
       } else if (resource === 'auth' && id === 'login' && method === 'POST') {
         const entry = Object.entries(store.contas).find(
           ([, c]) => c.email === String(body.email).toLowerCase() && c.senha === body.senha,
@@ -275,7 +308,23 @@ export const handlers = [
       } else {
         const user = authenticated(request);
         const admin = () => authenticated(request);
-        if (resource === 'auth' && id === 'me' && method === 'GET') result = account(user.id);
+        if (resource === 'areas' && method === 'GET')
+          result = id
+            ? areaDetail(id, user.id)
+            : store.areas.filter(
+                (a) =>
+                  a.empresaId === user.id &&
+                  (!url.searchParams.get('estacionamentoId') ||
+                    a.estacionamentoId === url.searchParams.get('estacionamentoId')),
+              );
+        else if (resource === 'vagas' && method === 'GET' && !id)
+          result = store.estacionamentos
+            .filter((l) => l.empresaId === user.id)
+            .flatMap((l) => l.vagas)
+            .filter(
+              (v) => !url.searchParams.get('areaId') || v.areaId === url.searchParams.get('areaId'),
+            );
+        else if (resource === 'auth' && id === 'me' && method === 'GET') result = account(user.id);
         else if (resource === 'empresa' && id === 'senha' && method === 'PUT') {
           if (body.senhaAtual !== store.contas[user.id].senha)
             throw new MockError(422, 'A senha atual não confere.');
@@ -316,7 +365,6 @@ export const handlers = [
                 largura: num(body, 'largura', 780, 200, 10000),
                 altura: num(body, 'altura', 680, 200, 10000),
                 vagas: [],
-                elementos: [],
               };
               store.estacionamentos.push(lot);
               store.historico[lot.id] = [];
