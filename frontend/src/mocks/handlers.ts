@@ -485,10 +485,10 @@ export function simulateStatus(vagaId: string, status: 'LIVRE' | 'OCUPADA' | 'SE
   persist();
 }
 export function heartbeat() {
-  store.sensores.forEach((s) => {
+  store.sensores.forEach((s, index) => {
     const current = store.status.find((v) => v.vagaId === s.vagaId);
     if (current && current.status !== 'SEM_SINAL') {
-      s.ultimoSinalEm = new Date().toISOString();
+      s.ultimoSinalEm = new Date(Date.now() - (2 + (index % 19)) * 1000).toISOString();
       current.atualizadoEm = s.ultimoSinalEm;
     }
   });

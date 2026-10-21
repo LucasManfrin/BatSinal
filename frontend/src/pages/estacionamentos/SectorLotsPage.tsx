@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Car, Clock, MapPin, Navigation, Search, X } from 'lucide-react';
+import { Car, MapPin, Navigation, Search, X } from 'lucide-react';
 import { useLots } from '../../features/estacionamentos/queries';
 import { Button, EmptyState, ErrorState, Input, Loading, Select } from '../../components/ui';
 import { SectorPlan } from '../../components/lot/SectorPlan';
@@ -56,7 +56,7 @@ export function SectorLotsPage() {
     <div className="mobility-page">
       <div className="mobility-page-title">
         <h1>Estacionamentos</h1>
-        <span>{query.data.length} bolsões · leituras a cada 3 s</span>
+        <span>{query.data.length} estacionamentos</span>
       </div>
       <div className="mobility-workspace">
         <section className="lot-results" id="bolsoes" aria-label="Bolsões de estacionamento">
@@ -209,12 +209,6 @@ function ParkingRow({
           {!lot.totalVagas ? 'Sem layout' : lot.vagasLivres ? 'Disponível' : 'Sem vagas livres'}
         </span>
       </div>
-      <p className="lot-walk">
-        <Clock size={13} />
-        {lot.caminhadaMinutos != null && lot.caminhadaDestino
-          ? `${lot.caminhadaMinutos} min a pé até ${lot.caminhadaDestino}`
-          : 'Tempo a pé não informado'}
-      </p>
       <div className="lot-occupancy">
         <div
           role="meter"

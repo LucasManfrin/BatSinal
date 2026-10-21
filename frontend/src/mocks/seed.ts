@@ -96,7 +96,9 @@ export function createSeed(): MockStore {
     lot.vagas.map((vaga, i): StatusVagaAtual => ({
       vagaId: vaga.id,
       status: i === 18 ? 'SEM_SINAL' : i % (li === 0 ? 3 : 4) === 0 ? 'LIVRE' : 'OCUPADA',
-      atualizadoEm: new Date(Date.now() - (i === 18 ? 120000 : i * 200)).toISOString(),
+      atualizadoEm: new Date(
+        Date.now() - (i === 18 ? 120000 : (2 + (i % 23)) * 1000),
+      ).toISOString(),
     })),
   );
   const sensores = estacionamentos.flatMap((lot) =>

@@ -12,7 +12,7 @@ export function tendencia(antes: number, agora: number) {
 }
 export function tempoDesde(date?: string) {
   if (!date) return 'Nunca';
-  const seconds = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
+  const seconds = Math.max(1, Math.floor((Date.now() - new Date(date).getTime()) / 1000));
   return seconds < 60
     ? `há ${seconds} s`
     : seconds < 3600

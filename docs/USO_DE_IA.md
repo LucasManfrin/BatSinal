@@ -326,3 +326,19 @@ canvas Konva, gerador de grid, snap e detecção de sobreposição. O detalhe e 
 Konva, react-konva e Zustand foram retirados. Foram removidos endpoints e testes do editor livre,
 preservando testes de ocupação e leituras. A rota Posicionar vagas começa como consulta das posições
 existentes, antes da implantação da cena/encaixe nas fases D/E. A geometria do campus não foi alterada.
+
+## V2 — Fase C: identidade de maquete
+
+A IA criou `frontend/DESIGN.md`, instalou Barlow Condensed e Atkinson Hyperlegible localmente,
+retirou as fontes anteriores e substituiu as três folhas de estilo antigas por uma base quente.
+Modo claro é o padrão para aparelhos sem preferência; escolha noturna existente é respeitada.
+O campus conserva seus vetores e passa a ter volumes de papel/argila, base visível, status com símbolos,
+legenda integrada, destino sobre o desenho e lista em painel inferior recolhível no celular.
+O contador saiu do cabeçalho. O painel administrativo ganhou resumo e pico calculados, linha sem
+preenchimento, anotação do pico e heatmap de uma matiz com observação obtida das amostras.
+Formulários, busca e detalhes usam painéis não modais; exclusão permanece em modal.
+Foram retirados tempos de caminhada da consulta e do formulário, sem apagar dados antigos.
+Os pares principais de texto foram calculados por luminância relativa (4,63:1 a 15,01:1),
+registrados em DESIGN.md. Não foi declarada auditoria completa de acessibilidade.
+A IA leu a tela sem depender do logo: os textos citam bloco, vaga, portão e sensor específicos.
+Revisão visual de desktop e celular foi feita pela IA; revisão humana continua pendente.

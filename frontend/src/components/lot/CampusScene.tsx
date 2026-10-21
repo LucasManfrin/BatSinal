@@ -93,9 +93,7 @@ export function CampusScene({
             2D
           </button>
         </div>
-        <span>
-          UNISAGRADO <span>/</span> CAMPUS
-        </span>
+        <span>Maquete do campus</span>
         <div className="campus-zoom-controls">
           <button
             aria-label="Diminuir mapa"
@@ -148,6 +146,9 @@ export function CampusScene({
         }}
       >
         <defs>
+          <pattern id="campus-slot-hatch" width="5" height="5" patternUnits="userSpaceOnUse">
+            <path d="M0 5L5 0" stroke="#6a645a" strokeWidth="1" />
+          </pattern>
           <pattern id="campus-map-grid" width="32" height="32" patternUnits="userSpaceOnUse">
             <circle cx="1" cy="1" r="0.7" fill="currentColor" opacity="0.16" />
           </pattern>
@@ -230,6 +231,18 @@ export function CampusScene({
                 {vaga.rotulo} · {campusStatus[vaga.status]} · {vaga.tipo}
               </title>
               <polygon points={points(footprint)} />
+              {vaga.status === 'SEM_SINAL' && (
+                <polygon points={points(footprint)} style={{ fill: 'url(#campus-slot-hatch)' }} />
+              )}
+              {vaga.status === 'LIVRE' && (
+                <path
+                  d={`M${x - 3} ${y}l2 2 4-5`}
+                  fill="none"
+                  stroke="#f3efe6"
+                  strokeWidth="1.5"
+                  pointerEvents="none"
+                />
+              )}
               {selectedId === vaga.id && (
                 <circle cx={x} cy={y} r="23" className="campus-selection-ring" />
               )}

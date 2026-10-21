@@ -198,7 +198,6 @@ export function SectorPlan({ id }: { id: string }) {
       )}
       <footer className="sector-footer">
         <span role="status">{description}</span>
-        <span>Atualização a cada 3 s</span>
       </footer>
     </section>
   );

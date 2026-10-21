@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -107,18 +107,13 @@ describe('consulta e perfil redesenhados', () => {
     store.estacionamentos[0].caminhadaDestino = undefined;
     show(<LotsPage />);
     expect(await screen.findByText('Acesso não informado')).toBeInTheDocument();
-    expect(screen.getByText('Tempo a pé não informado')).toBeInTheDocument();
+    expect(screen.queryByText(/min a pé/)).not.toBeInTheDocument();
   });
   it('oferece cadastro somente para empresas e consulta pública sem conta', async () => {
     const user = userEvent.setup();
     show(<AppLayout />);
-    await waitFor(() =>
-      expect(
-        screen.getByRole('status', { name: 'Total de vagas livres no campus' }),
-      ).toHaveTextContent('26'),
-    );
     await user.click(screen.getByRole('button', { name: 'Abrir menu' }));
-    const dialog = screen.getByRole('dialog');
+    const dialog = screen.getByRole('complementary', { name: 'Consulta de vagas' });
     expect(within(dialog).getByRole('link', { name: 'Cadastrar empresa' })).toHaveAttribute(
       'href',
       '/cadastrar-empresa',

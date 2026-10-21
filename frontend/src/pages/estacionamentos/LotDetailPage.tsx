@@ -11,7 +11,7 @@ import {
   EmptyState,
   ErrorState,
   Legend,
-  LiveDot,
+  UpdatedAt,
   Loading,
   Sheet,
   SpotStatusBadge,
@@ -64,7 +64,7 @@ export function LotDetailPage() {
           </p>
         </div>
         <div className="heading-actions">
-          <LiveDot />
+          <UpdatedAt at={statuses.dataUpdatedAt} />
         </div>
       </div>
       <Card className="detail-card">

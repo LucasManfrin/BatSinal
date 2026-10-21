@@ -16,7 +16,6 @@ import {
   ErrorState,
   Field,
   Input,
-  LiveDot,
   Loading,
   Select,
 } from '../../components/ui';
@@ -196,7 +195,6 @@ export function ManagementPage({ resource }: { resource: Resource }) {
             />
           </div>
           <span className="muted">{rows.length} registros</span>
-          {resource === 'sensores' && <LiveDot />}
         </div>
         {query.isPending ? (
           <Loading />
@@ -222,7 +220,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
                     <>
                       <th>Vagas livres</th>
                       <th>Capacidade</th>
-                      <th>Layout</th>
+                      <th>Posições</th>
                     </>
                   ) : resource === 'sensores' ? (
                     <>
@@ -319,10 +317,6 @@ export function ManagementPage({ resource }: { resource: Resource }) {
             <>
               {field('descricao', 'Descrição')}
               {field('portao', 'Portão de acesso (opcional)')}
-              <div className="form-grid">
-                {field('caminhadaMinutos', 'Minutos a pé (opcional)', 'number')}
-                {field('caminhadaDestino', 'Destino a pé (ex.: os blocos A e B)')}
-              </div>
               <CampusMap
                 point={[Number(form.latitude) || -22.327, Number(form.longitude) || -49.054]}
                 onPick={(latitude, longitude) =>
@@ -336,8 +330,6 @@ export function ManagementPage({ resource }: { resource: Resource }) {
               <div className="form-grid">
                 {field('latitude', 'Latitude', 'number')}
                 {field('longitude', 'Longitude', 'number')}
-                {field('largura', 'Largura do canvas', 'number')}
-                {field('altura', 'Altura do canvas', 'number')}
               </div>
             </>
           )}
@@ -377,6 +369,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
         </form>
       </Dialog>
       <Dialog
+        destructive
         open={Boolean(deleting)}
         onOpenChange={(open) => {
           if (!open) setDeleting(null);

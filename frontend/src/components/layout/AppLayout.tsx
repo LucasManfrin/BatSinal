@@ -54,7 +54,6 @@ export function AppLayout() {
     .map((n) => n[0])
     .slice(0, 2)
     .join('');
-  const total = lots.data?.reduce((sum, lot) => sum + lot.vagasLivres, 0);
   const searchResults =
     lots.data?.filter((lot) => lot.nome.toLowerCase().includes(search.toLowerCase())) ?? [];
   const mapped = Boolean(campusSlug && scene.data?.mapa);
@@ -92,15 +91,6 @@ export function AppLayout() {
               <span>{campus}</span>
             )}
           </span>
-          <div
-            className="header-availability"
-            role="status"
-            aria-label="Total de vagas livres no campus"
-          >
-            <Car size={18} />
-            <strong>{lots.isError ? '—' : (total ?? '…')}</strong>
-            <span>{lots.isError ? 'indisponível' : 'vagas livres'}</span>
-          </div>
           <button
             className="account-trigger"
             aria-label="Abrir menu"
