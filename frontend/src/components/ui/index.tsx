@@ -1,5 +1,8 @@
 import {
   forwardRef,
+  cloneElement,
+  isValidElement,
+  useId,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -51,10 +54,16 @@ export function Field({
   error?: string;
   children: ReactNode;
 }) {
+  const labelId = useId();
+  const control =
+    isValidElement<{ 'aria-labelledby'?: string }>(children) &&
+    (children.type === Input || children.type === Select)
+      ? cloneElement(children, { 'aria-labelledby': labelId })
+      : children;
   return (
     <label className="field">
-      <span>{label}</span>
-      {children}
+      <span id={labelId}>{label}</span>
+      {control}
       {error && (
         <small className="field-error" role="alert">
           {error}

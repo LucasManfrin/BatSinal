@@ -97,8 +97,13 @@ export function Simulator() {
           <Button
             variant="secondary"
             onClick={() => {
-              lot.data?.vagas.forEach((v) => {
-                if (v.sensorId) void change(v.id, 'OCUPADA');
+              void import('../../mocks/handlers').then(({ simulateStatus }) => {
+                lot.data?.vagas.forEach((v) => {
+                  if (v.sensorId) simulateStatus(v.id, 'OCUPADA');
+                });
+                void client.invalidateQueries({ queryKey: ['status'] });
+                void client.invalidateQueries({ queryKey: ['estacionamentos'] });
+                void client.invalidateQueries({ queryKey: ['sensores'] });
               });
             }}
           >

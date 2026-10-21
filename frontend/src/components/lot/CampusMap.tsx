@@ -1,5 +1,14 @@
-import { useEffect, useState } from 'react';
-import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip as MapTooltip, useMapEvents } from 'react-leaflet';
+import { useEffect, useRef, useState } from 'react';
+import {
+  CircleMarker,
+  MapContainer,
+  Popup,
+  TileLayer,
+  Tooltip as MapTooltip,
+  useMapEvents,
+  ZoomControl,
+  AttributionControl,
+} from 'react-leaflet';
 import { Link } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import type { EstacionamentoResumo } from '../../types';
@@ -22,14 +31,18 @@ export function CampusMap({
 }) {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const failCallback = useRef(onFail);
+  useEffect(() => {
+    failCallback.current = onFail;
+  }, [onFail]);
   useEffect(() => {
     if (loaded) return;
     const timer = window.setTimeout(() => {
       setFailed(true);
-      onFail?.();
+      failCallback.current?.();
     }, 10000);
     return () => window.clearTimeout(timer);
-  }, [loaded, onFail]);
+  }, [loaded]);
   if (failed)
     return (
       <div className="map-fallback">
@@ -40,7 +53,15 @@ export function CampusMap({
     );
   return (
     <div className="campus-map">
-      <MapContainer center={point ?? [-22.326, -49.053]} zoom={17} scrollWheelZoom={false}>
+      <MapContainer
+        center={point ?? [-22.326, -49.053]}
+        zoom={17}
+        scrollWheelZoom={false}
+        zoomControl={false}
+        attributionControl={false}
+      >
+        <ZoomControl zoomInTitle="Aumentar zoom" zoomOutTitle="Diminuir zoom" />
+        <AttributionControl prefix={false} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -72,7 +93,10 @@ export function CampusMap({
               fillOpacity: 0.95,
             }}
           >
-          <MapTooltip permanent direction="center" className="map-count" opacity={1}>{lot.vagasLivres}</MapTooltip><Popup>
+            <MapTooltip permanent direction="center" className="map-count" opacity={1}>
+              {lot.vagasLivres}
+            </MapTooltip>
+            <Popup>
               <strong>{lot.nome}</strong>
               <p>
                 {lot.vagasLivres} livres de {lot.totalVagas}

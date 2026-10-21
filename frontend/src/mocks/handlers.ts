@@ -444,7 +444,7 @@ export const handlers = [
         }
         if (result === undefined) throw new MockError(404, 'Rota não encontrada.');
       }
-      persist();
+      if (method !== 'GET') persist();
       return new HttpResponse(JSON.stringify(result), {
         status: method === 'POST' ? 201 : 200,
         headers: { 'Content-Type': 'application/json' },

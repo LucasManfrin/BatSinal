@@ -3389,3 +3389,78 @@ tbody tr:last-child td {
     scroll-behavior: auto !important;
   }
 }
+
+.map-count.leaflet-tooltip {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #071b0d;
+  font:
+    600 16px 'JetBrains Mono',
+    monospace;
+  padding: 0;
+}
+.map-count.leaflet-tooltip:before {
+  display: none;
+}
+
+.sidebar {
+  overflow-y: auto;
+}
+.sidebar .brand small {
+  white-space: nowrap;
+  font-size: 6.2px;
+  letter-spacing: 1.1px;
+}
+.editor-object-list label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+.editor-object-list input {
+  accent-color: var(--accent);
+}
+@media (max-height: 800px) {
+  .sidebar-brand {
+    padding-bottom: 18px;
+  }
+  .workspace {
+    margin-bottom: 19px;
+  }
+  .sidebar-switch {
+    margin-top: 16px;
+  }
+  .sidebar-bottom {
+    padding-top: 16px;
+  }
+  .system-status {
+    margin-bottom: 6px;
+  }
+  .sidebar-person {
+    margin-top: 6px;
+    min-height: 65px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+
+.app-shell:has(.editor-save-bar) .simulator {
+  bottom: 21px;
+}
+.editor-save-bar {
+  padding-right: 145px;
+}
+@media (max-width: 760px) {
+  .app-shell:has(.editor-save-bar) .simulator {
+    bottom: 15px;
+  }
+  .editor-save-bar {
+    padding-right: 10px;
+  }
+}

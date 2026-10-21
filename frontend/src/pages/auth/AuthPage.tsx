@@ -127,7 +127,7 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           PROJETO ACADÊMICO · UNISAGRADO <span>2026</span>
         </footer>
       </section>
-      <section className="auth-form-side">
+      <section className="auth-form-side" id="conteudo">
         <div className="auth-mobile-brand">
           <Logo />
         </div>

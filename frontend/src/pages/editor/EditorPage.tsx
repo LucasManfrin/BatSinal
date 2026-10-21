@@ -540,17 +540,20 @@ export function EditorPage() {
           <details className="editor-object-list">
             <summary>Selecionar pela lista</summary>
             {all.map((item) => (
-              <button
-                key={item.id}
-                aria-pressed={editor.selected.includes(item.id)}
-                onClick={(e) =>
-                  editor.select(
-                    e.shiftKey ? [...new Set([...editor.selected, item.id])] : [item.id],
-                  )
-                }
-              >
+              <label key={item.id}>
+                <input
+                  type="checkbox"
+                  checked={editor.selected.includes(item.id)}
+                  onChange={(e) =>
+                    editor.select(
+                      e.target.checked
+                        ? [...editor.selected, item.id]
+                        : editor.selected.filter((id) => id !== item.id),
+                    )
+                  }
+                />
                 {'rotulo' in item ? `Vaga ${item.rotulo}` : `${item.tipo}: ${item.texto ?? ''}`}
-              </button>
+              </label>
             ))}
           </details>
         </aside>

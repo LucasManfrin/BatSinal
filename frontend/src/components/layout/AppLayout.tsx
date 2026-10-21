@@ -45,10 +45,17 @@ const userLinks: NavItem[] = [
 export function AppLayout() {
   const { user, logout } = useAuth();
   const [mobile, setMobile] = useState(false);
+  const [narrow, setNarrow] = useState(() => window.matchMedia('(max-width: 760px)').matches);
   const [help, setHelp] = useState(false);
   const [notifications, setNotifications] = useState(false);
   const [light, setLight] = useState(() => localStorage.getItem('batsinal.theme') === 'light');
   const location = useLocation();
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 760px)');
+    const changed = () => setNarrow(media.matches);
+    media.addEventListener('change', changed);
+    return () => media.removeEventListener('change', changed);
+  }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = light ? 'light' : 'dark';
   }, [light]);
@@ -65,7 +72,11 @@ export function AppLayout() {
   }
   return (
     <div className={`app-shell ${admin ? 'admin-shell' : 'user-shell'}`}>
-      <aside className={`sidebar ${mobile ? 'sidebar-open' : ''}`}>
+      <aside
+        className={`sidebar ${mobile ? 'sidebar-open' : ''}`}
+        aria-hidden={narrow && !mobile}
+        {...(narrow && !mobile ? { inert: '' } : {})}
+      >
         <div className="sidebar-brand">
           <Logo />
           <button
@@ -77,10 +88,11 @@ export function AppLayout() {
           </button>
         </div>
         <div className="workspace">
-          <span className="workspace-icon">U</span>
+          <span className="workspace-icon">{user?.empresaId === 'unisagrado' ? 'U' : 'C'}</span>
           <div>
             <strong>
-              Unisagrado<span className="muted"> / campus</span>
+              {user?.empresaId === 'unisagrado' ? 'Unisagrado' : 'Meu campus'}
+              <span className="muted"> / campus</span>
             </strong>
             <small>{admin ? 'Área de administração' : 'Encontre seu lugar'}</small>
           </div>

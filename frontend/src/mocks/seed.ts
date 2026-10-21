@@ -152,7 +152,7 @@ export function createSeed(): MockStore {
     sessoes: {},
   };
 }
-const STORAGE_KEY = 'batsinal.mock.v1';
+export const STORAGE_KEY = 'batsinal.mock.v1';
 function loadStore(): MockStore {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

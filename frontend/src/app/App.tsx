@@ -9,11 +9,21 @@ import { ProfilePage } from '../pages/perfil/ProfilePage';
 import { Button, EmptyState, Loading } from '../components/ui';
 
 // Bibliotecas de mapa, canvas e gráficos só carregam quando a tela precisa delas.
-const LotsPage = lazy(() => import('../pages/estacionamentos/LotsPage').then(m => ({ default: m.LotsPage })));
-const LotDetailPage = lazy(() => import('../pages/estacionamentos/LotDetailPage').then(m => ({ default: m.LotDetailPage })));
-const DashboardPage = lazy(() => import('../pages/admin/DashboardPage').then(m => ({ default: m.DashboardPage })));
-const ManagementPage = lazy(() => import('../pages/admin/ManagementPage').then(m => ({ default: m.ManagementPage })));
-const EditorPage = lazy(() => import('../pages/editor/EditorPage').then(m => ({ default: m.EditorPage })));
+const LotsPage = lazy(() =>
+  import('../pages/estacionamentos/LotsPage').then((m) => ({ default: m.LotsPage })),
+);
+const LotDetailPage = lazy(() =>
+  import('../pages/estacionamentos/LotDetailPage').then((m) => ({ default: m.LotDetailPage })),
+);
+const DashboardPage = lazy(() =>
+  import('../pages/admin/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+);
+const ManagementPage = lazy(() =>
+  import('../pages/admin/ManagementPage').then((m) => ({ default: m.ManagementPage })),
+);
+const EditorPage = lazy(() =>
+  import('../pages/editor/EditorPage').then((m) => ({ default: m.EditorPage })),
+);
 
 const client = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 1000, refetchOnWindowFocus: true } },
@@ -81,7 +91,9 @@ function AuthRoot() {
       <a className="skip-link" href="#conteudo">
         Pular para o conteúdo
       </a>
-      <Suspense fallback={<Loading />}><Outlet /></Suspense>
+      <Suspense fallback={<Loading />}>
+        <Outlet />
+      </Suspense>
     </>
   );
 }
@@ -89,7 +101,7 @@ export function App() {
   return (
     <QueryClientProvider client={client}>
       <RouterProvider router={router} />
-      <Toaster theme="system" richColors closeButton position="top-right" />
+      <Toaster theme="system" richColors containerAriaLabel="Notificações" position="top-right" />
     </QueryClientProvider>
   );
 }
