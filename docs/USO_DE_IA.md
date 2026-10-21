@@ -202,3 +202,42 @@ temas claro/escuro, navegação administrativa horizontal e campos de portão/ca
 Os portões, tempos e coordenadas reais ainda precisam de validação do grupo. Conferência por IA e testes
 automatizados não constituem revisão humana nem certificação de acessibilidade.
 
+## Simplificação do produto — empresas e consulta sem conta
+
+O usuário decidiu restringir o cadastro a empresas, dispensar contas de alunos/professores e iniciar
+o planejamento do backend/banco. A IA verificou Git limpo e os arquivos existentes antes de alterar o modelo.
+
+Implementação nesta fase:
+
+- Removidos role USER/ADMIN, cadastro/gestão de usuários, perfil de motorista, veículos e favoritos.
+  Empresa cadastra um responsável e a sessão retorna `administrador`, sem role.
+- Rotas públicas `/c/{slug}` e detalhe disponíveis sem sessão. A entrada direciona ao único campus
+  publicado ou mostra a escolha de campi. Não há token ou simulador na consulta de visitante.
+- API mock pública separada: somente leitura, somente empresas publicadas e DTO sem dados de conta,
+  identificação ou chave de sensor. Consultas administrativas continuam autenticadas e isoladas por empresa.
+- Cadastro novo inicia fechado; Minha empresa mostra responsável, endereço e controle de publicação.
+  Fechar nega a consulta pública e não apaga layouts. Unisagrado seed continua publicado para demonstração.
+- Migração local preserva empresas, layouts, sensores, histórico e sessões administrativas. Contas USER
+  antigas deixam de autenticar e suas sessões são invalidadas. Dados locais de preferências antigas
+  não são usados nem removidos por limpeza geral do navegador.
+- Cadastro/login agora se apresentam como acesso de empresa; o formulário oferece consulta sem conta.
+  Rotas antigas de perfil/usuários/favoritos redirecionam para o fluxo atual.
+
+Planejamento produzido: [arquitetura](ARQUITETURA_BACKEND.md), esquema SQL proposto de oito tabelas,
+JSON Schema do mapa e GeoJSON inicial vazio para a Unisagrado. O mapa do campus ficará em JSONB;
+vagas e elementos do bolsão ficam em tabelas, com coordenadas próprias do editor.
+Foram consultadas documentações oficiais de FastAPI, PostgreSQL, SQLAlchemy e Alembic, referenciadas no plano.
+Não foi implementada API Python, iniciado PostgreSQL, aplicado SQL ou desenhado o mapa real nesta fase.
+
+Verificações: 34 testes em sete arquivos (os casos de funcionalidades retiradas foram substituídos por
+consulta anônima, publicação, privacidade, proteção administrativa e migração das sessões), lint/Prettier
+e build de produção. Os arquivos JSON do plano foram conferidos como JSON válido; o SQL não foi executado
+nem o JSON Schema validado por um motor de schemas. As regras adicionais do mapa estão documentadas.
+Conferência visual pela IA: consulta após sair da conta, menu do visitante, formulário de cadastro exclusivo
+de empresa, redirecionamento de `/admin` sem sessão para login e área Minha empresa após login demonstrativo.
+Publicar/fechar foi verificado por testes HTTP e de interface automatizados. Capturas estão em DESIGN.md.
+
+Revisão humana pendente: confirmar portões/percursos reais, desenhar o mapa do campus, revisar esquema SQL
+e relações, testar celulares e tecnologias assistivas e conferir segurança antes de implementar a API real.
+O plano não equivale a um backend pronto. Nenhuma revisão humana foi registrada pela IA.
+

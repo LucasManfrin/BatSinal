@@ -24,16 +24,19 @@ Erros de formulário continuam tendo texto explícito e cor de erro.
 
 ## Organização e ações
 
-- Header horizontal: logo, campus, total de vagas livres e avatar. O menu da conta mantém favoritos,
-  perfil, busca global, tema, administração e saída. Ctrl+K continua abrindo a busca.
+- Header horizontal: logo, campus, total de vagas livres e menu. Visitantes consultam sem conta;
+  o menu oferece busca, tema e acesso para empresas. O responsável também acessa administração,
+  Minha empresa e saída. Ctrl+K continua abrindo a busca.
 - Administração com navegação horizontal, sem coluna lateral.
 - Lista compacta: nome, portão, livres/total, minutos e destino a pé, fração indisponível e navegação.
 - Nome do bolsão é um botão de seleção. A planta usa `vagas`, `elementos` e dimensões do layout salvo,
   com status consultados por HTTP a cada 3 segundos. Não é um mapa decorativo ou uma grade inventada.
 - Cada vaga tem seleção por mouse ou teclado. Detalhes aparecem abaixo do desenho; há lista HTML alternativa.
-- Filtros por nome, disponibilidade, favorito e tipo mantidos. Nenhum resultado também limpa a seleção da planta.
+- Filtros por nome, disponibilidade e tipo. Nenhum resultado também limpa a seleção da planta.
 - Desktop com lista e planta lado a lado; mobile empilhado, com acesso direto à planta e retorno aos bolsões.
-- Simulador no fluxo da página, sem cobrir o mapa. Editor, CRUDs, autenticação e perfil preservados.
+- Simulador apenas na administração autenticada. Visitantes não alteram dados.
+- Cadastro exclusivo de empresas. Não há perfil, favoritos ou veículos de motoristas.
+- Minha empresa reúne responsável, endereço do campus e publicação da consulta.
 
 ## Origem dos dados
 
@@ -47,9 +50,14 @@ rotas externas e tiles opcionais do cadastro exigem internet.
 
 ## Capturas da implementação atual
 
+- [Cadastro exclusivo de empresa](cadastro-empresa.png)
+- [Menu da consulta sem conta](consulta-sem-conta.png)
+- [Minha empresa e publicação](minha-empresa.png)
+
 - [Consulta desktop](mobility-estacionamentos.png)
 - [Lista em 360 px](mobility-mobile.png)
 - [Planta em 360 px](mobility-mobile-planta.png)
 
-As capturas documentam dados simulados. O grupo ainda deve validar os acessos reais, celulares e tecnologias assistivas.
+As capturas documentam dados simulados. As imagens `mobility-*` registram a composição de mobilidade
+antes de retirar as contas de visitantes. O grupo ainda deve validar os acessos reais, celulares e tecnologias assistivas.
 As imagens `redesign-*.png` registram a versão anterior, substituída por esta direção.

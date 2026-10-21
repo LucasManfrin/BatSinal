@@ -4,12 +4,12 @@ Cada integrante deve conseguir seguir uma requisição desde a tela até o mock 
 
 | Área | O que explicar | O que conferir manualmente |
 | --- | --- | --- |
-| Autenticação | Context, token e RoleGuard | USER digitando `/admin` volta à consulta; login inválido mostra erro |
-| Consulta | queryKey, cache e polling de 3 s | Contador e cores mudam sem recarregar; favoritos podem ser removidos |
+| Acesso | Context, sessão do responsável e CompanyGuard | Visitante consulta sem conta; `/admin` sem sessão abre login; login inválido mostra erro |
+| Consulta | queryKey por campus/empresa, cache e polling de 3 s | Contador e cores mudam sem recarregar; visitante não envia token ou altera dados |
 | Lista e planta | seleção e geometria retornada pela API | Filtrar por nome e tipo; trocar bolsão; consultar vaga pelo teclado; verificar ocupada e sem sinal separadamente |
 | Acesso e rota | campos opcionais e coordenadas cadastradas | Editar portão/minutos/destino; conferir estados sem informação; validar destino do link antes de usar dados reais |
-| Perfil | preferências locais por conta e favoritos via HTTP | Adicionar veículo, cancelar/confirmar remoção, aplicar preferência na consulta e conferir visitas recentes |
-| Cabeçalho e busca | consulta compartilhada, menu do avatar e navegação | Abrir favoritos/perfil/administração pelo avatar; buscar com Ctrl+K; conferir total de vagas |
+| Empresa | responsável, slug e publicação | Cadastrar empresa; começar fechada; publicar e consultar sem sessão; fechar novamente |
+| Cabeçalho e busca | consulta compartilhada, menu e navegação | Visitante acessa consulta e cadastro de empresa; responsável acessa administração e Minha empresa; buscar com Ctrl+K |
 | Mock | empresa da sessão, handlers e seed | Nova empresa não enxerga o campus seed; CRUD persiste ao recarregar |
 | Canvas | coordenadas lógicas e escala | Zoom, pan, centralizar, clicar numa vaga e consultar pela lista HTML |
 | Editor | snapshots de undo/redo e baseline | Arrastar, rotacionar, duplicar, excluir, desfazer e sair com alterações |
