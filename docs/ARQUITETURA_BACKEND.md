@@ -1,9 +1,8 @@
-# Backend e banco — base e plano v2
+# Backend e banco — v2
 
-Status: **infraestrutura preparada; domínio pendente**. A experiência atual roda no navegador com MSW.
-FastAPI já tem health/readiness, configuração e conexão. Compose, lock de dependências e migração
-Alembic `0001` estão em `backend/`. O SQL foi analisado offline; não foi aplicado em PostgreSQL.
-Autenticação, consulta, CRUD, modelos ORM e sensores reais ainda não foram implementados.
+Status: **contrato implementado em FastAPI + PostgreSQL**, com migrações `0001`/`0002` aplicadas e
+testadas (upgrade/downgrade) em PostgreSQL 17. O frontend continua com MSW por padrão e funciona
+contra a API real com `VITE_USE_MOCK=false`. Sensores físicos (ESP32) ainda não foram construídos.
 Comandos em [backend/README.md](../backend/README.md) e continuidade em [HANDOFF.md](HANDOFF.md).
 
 ## Modelo de acesso
@@ -27,13 +26,14 @@ Uma transação por escrita, sem microserviços, fila, Redis ou WebSocket no MVP
 ```text
 backend/
   app/
-    main.py, config.py, db.py, models.py, schemas.py
-    auth.py
-    routers/     # conta, consulta pública, estacionamentos, áreas, vagas, sensores
-    services/    # posicionamento, importação do mapa, ocupação
-  migrations/
-  tests/
-  database/      # somente propostas por enquanto
+    main.py, config.py, db.py, models.py, schemas.py, errors.py
+    auth.py, security.py, seed.py
+    routers/     # conta, publico, estacionamentos, areas (+vagas), sensores (+leituras, simulador)
+    services/    # consulta (DTOs), posicionamento, ocupacao
+  migrations/    # 0001 esquema v2, 0002 campos do contrato
+  tests/         # infraestrutura + integração em PostgreSQL (batsinal_test)
+  database/      # SQL de referência, seed exportado do mock, GeoJSON vazio
+  scripts/       # exportador do seed a partir do mock
 ```
 
 Schemas da API usam camelCase; modelos/tabelas, snake_case. O contrato demonstrado está em
@@ -125,12 +125,30 @@ Validar importações (coordenadas finitas e limitadas, IDs, contornos e tipos) 
 Criar migrações Alembic preservando contas, mapas, vagas e sensores; o SQL proposto não deve ser
 executado como atualização direta de um banco antigo.
 
-## Ordem para implementar
+## Decisões da implementação
 
-1. Implementar ORM alinhado à migração existente e testar upgrade/downgrade, isolamento e restrições em PostgreSQL.
-2. Conta da empresa e sessões, consulta pública e CRUD administrativo.
-3. Transação de posicionamento, troca, versão, lote e padrão, com testes concorrentes.
-4. Importação validada do mapa e endpoint autenticado de leituras dos dispositivos.
-5. Agregação de histórico e integração do frontend com `VITE_USE_MOCK=false`.
+- **Senhas**: `hashlib.scrypt` (n=2^14, r=8, p=1, salt de 16 bytes), parâmetros gravados no hash.
+  Login com e-mail inexistente também calcula um hash, para tempo semelhante.
+- **Sessões**: token opaco de 256 bits; o banco guarda SHA-256 e `expira_em` (7 dias, configurável).
+  `POST /auth/logout` apaga a sessão; trocar a senha apaga as demais.
+- **Dispositivos**: `POST /leituras` com `X-Device-Key`; chave `bs_...` de 256 bits, só o hash no banco.
+  `ultimo_status` NULL também significa SEM_SINAL (usado pelo simulador).
+- **Posicionamento**: `SELECT ... FOR UPDATE` na área, versão obrigatória, lote validado antes de alterar.
+  Criar/editar/excluir vaga também bloqueia a área e incrementa a versão. Um teste concorrente garante
+  que dois movimentos com a mesma versão resultam em um 200 e um 409.
+- **Histórico**: tarefa assíncrona no processo da API (sem fila), a cada 10 s, faz UPSERT da amostra
+  do intervalo de 5 min e apaga o que passou de 14 dias. Leituras também atualizam a amostra na hora.
+  Ocupação por hora/dia usa `date_trunc` com o fuso `America/Sao_Paulo` (PostgreSQL 16+).
+- **Mapa**: `mapas_campus.cena` guarda a cena do mock com IDs de áreas/vagas convertidos para UUID.
+  A resposta substitui os nomes das áreas pelos atuais e omite áreas excluídas.
+- **Simulador**: `BATSINAL_SIMULADOR=true` libera `/simulador/leituras` e repete leituras dos sensores
+  simulados, como o heartbeat do mock. Deve ficar desligado com sensores reais.
+- **ORM**: alinhado às colunas das migrações; constraints compostas ficam só nas migrações, por isso
+  o autogenerate segue desligado (`target_metadata = None`).
 
-A apresentação atual não depende dessas etapas: usa exclusivamente dados simulados.
+## Próximos passos
+
+1. Firmware do ESP32 enviando `POST /leituras` periodicamente (ver `hardware/README.md`).
+2. Validar no campus posições, tipos e vínculos dos sensores; substituir dados sintéticos.
+3. Importador de prédios/portões/vias com validação (contornos, limites); hoje só via seed.
+4. Para produção: HTTPS, limite de tentativas de login, backups e logs estruturados.

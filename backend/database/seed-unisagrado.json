@@ -1,0 +1,4266 @@
+{
+ "geradoDe": "frontend/src/mocks/{campus,positions,seed}.ts",
+ "empresa": {
+  "id": "unisagrado",
+  "nome": "Unisagrado",
+  "slug": "unisagrado",
+  "email": "admin@unisagrado.demo"
+ },
+ "mapa": {
+  "versao": 1,
+  "nome": "Unisagrado",
+  "aproximado": true,
+  "limite": [
+   [
+    20,
+    0
+   ],
+   [
+    1300,
+    0
+   ],
+   [
+    1325,
+    90
+   ],
+   [
+    1325,
+    420
+   ],
+   [
+    1280,
+    465
+   ],
+   [
+    60,
+    465
+   ],
+   [
+    0,
+    410
+   ],
+   [
+    0,
+    60
+   ]
+  ],
+  "predios": [
+   {
+    "id": "ab",
+    "nome": "Blocos A e B",
+    "contorno": [
+     [
+      90,
+      105
+     ],
+     [
+      290,
+      105
+     ],
+     [
+      290,
+      265
+     ],
+     [
+      90,
+      265
+     ]
+    ],
+    "altura": 50,
+    "entrada": [
+     185,
+     275
+    ]
+   },
+   {
+    "id": "cde",
+    "nome": "Blocos C, D e E",
+    "contorno": [
+     [
+      320,
+      105
+     ],
+     [
+      455,
+      105
+     ],
+     [
+      455,
+      265
+     ],
+     [
+      320,
+      265
+     ]
+    ],
+    "altura": 58,
+    "entrada": [
+     388,
+     275
+    ]
+   },
+   {
+    "id": "fg",
+    "nome": "Blocos F e G",
+    "contorno": [
+     [
+      475,
+      105
+     ],
+     [
+      610,
+      105
+     ],
+     [
+      610,
+      265
+     ],
+     [
+      475,
+      265
+     ]
+    ],
+    "altura": 62,
+    "entrada": [
+     540,
+     275
+    ]
+   },
+   {
+    "id": "j",
+    "nome": "Bloco J",
+    "contorno": [
+     [
+      700,
+      110
+     ],
+     [
+      940,
+      110
+     ],
+     [
+      940,
+      262
+     ],
+     [
+      855,
+      262
+     ],
+     [
+      855,
+      248
+     ],
+     [
+      700,
+      248
+     ]
+    ],
+    "altura": 78,
+    "entrada": [
+     820,
+     276
+    ]
+   },
+   {
+    "id": "k",
+    "nome": "Bloco K",
+    "contorno": [
+     [
+      700,
+      65
+     ],
+     [
+      940,
+      65
+     ],
+     [
+      940,
+      100
+     ],
+     [
+      700,
+      100
+     ]
+    ],
+    "altura": 64,
+    "entrada": [
+     965,
+     92
+    ]
+   },
+   {
+    "id": "o",
+    "nome": "Bloco O",
+    "contorno": [
+     [
+      978,
+      110
+     ],
+     [
+      1055,
+      110
+     ],
+     [
+      1055,
+      255
+     ],
+     [
+      978,
+      255
+     ]
+    ],
+    "altura": 60,
+    "entrada": [
+     1018,
+     272
+    ]
+   },
+   {
+    "id": "l",
+    "nome": "Bloco L",
+    "contorno": [
+     [
+      1090,
+      100
+     ],
+     [
+      1225,
+      100
+     ],
+     [
+      1225,
+      245
+     ],
+     [
+      1090,
+      245
+     ]
+    ],
+    "altura": 54,
+    "entrada": [
+     1155,
+     267
+    ]
+   },
+   {
+    "id": "quadra",
+    "nome": "Quadra",
+    "contorno": [
+     [
+      1090,
+      59
+     ],
+     [
+      1225,
+      59
+     ],
+     [
+      1225,
+      91
+     ],
+     [
+      1090,
+      91
+     ]
+    ],
+    "altura": 33,
+    "entrada": [
+     1239,
+     77
+    ]
+   },
+   {
+    "id": "idea",
+    "nome": "IDEA",
+    "contorno": [
+     [
+      435,
+      440
+     ],
+     [
+      615,
+      440
+     ],
+     [
+      615,
+      458
+     ],
+     [
+      435,
+      458
+     ]
+    ],
+    "altura": 22,
+    "entrada": [
+     525,
+     430
+    ]
+   }
+  ],
+  "portoes": [
+   {
+    "id": "p1",
+    "nome": "Portão 1",
+    "ponto": [
+     70,
+     465
+    ],
+    "veiculos": true
+   },
+   {
+    "id": "p2",
+    "nome": "Portão 2 · pedestres",
+    "ponto": [
+     0,
+     310
+    ],
+    "veiculos": false
+   },
+   {
+    "id": "p3",
+    "nome": "Portão 3",
+    "ponto": [
+     1325,
+     355
+    ],
+    "veiculos": true
+   },
+   {
+    "id": "p4",
+    "nome": "Portão 4",
+    "ponto": [
+     1280,
+     0
+    ],
+    "veiculos": true
+   }
+  ],
+  "vias": [
+   {
+    "id": "frontal",
+    "pontos": [
+     [
+      40,
+      465
+     ],
+     [
+      40,
+      355
+     ],
+     [
+      635,
+      355
+     ],
+     [
+      680,
+      350
+     ],
+     [
+      1285,
+      350
+     ],
+     [
+      1325,
+      355
+     ]
+    ],
+    "largura": 44
+   },
+   {
+    "id": "lateral",
+    "pontos": [
+     [
+      40,
+      355
+     ],
+     [
+      40,
+      65
+     ],
+     [
+      640,
+      65
+     ],
+     [
+      660,
+      85
+     ]
+    ],
+    "largura": 29
+   },
+   {
+    "id": "central",
+    "pontos": [
+     [
+      635,
+      355
+     ],
+     [
+      655,
+      280
+     ],
+     [
+      674,
+      70
+     ],
+     [
+      1058,
+      70
+     ],
+     [
+      1280,
+      25
+     ],
+     [
+      1280,
+      0
+     ]
+    ],
+    "largura": 27
+   },
+   {
+    "id": "retorno",
+    "pontos": [
+     [
+      40,
+      435
+     ],
+     [
+      315,
+      435
+     ],
+     [
+      345,
+      380
+     ],
+     [
+      630,
+      435
+     ],
+     [
+      910,
+      435
+     ],
+     [
+      960,
+      355
+     ]
+    ],
+    "largura": 26
+   },
+   {
+    "id": "leste",
+    "pontos": [
+     [
+      1285,
+      350
+     ],
+     [
+      1305,
+      275
+     ],
+     [
+      1305,
+      92
+     ],
+     [
+      1280,
+      25
+     ]
+    ],
+    "largura": 28
+   }
+  ],
+  "areas": [
+   {
+    "id": "frente-ab",
+    "nome": "Em frente aos blocos A e B",
+    "contorno": [
+     [
+      92,
+      286
+     ],
+     [
+      325,
+      286
+     ],
+     [
+      333,
+      335
+     ],
+     [
+      85,
+      335
+     ]
+    ]
+   },
+   {
+    "id": "frente-cde",
+    "nome": "Em frente aos blocos C, D e E",
+    "contorno": [
+     [
+      342,
+      286
+     ],
+     [
+      575,
+      286
+     ],
+     [
+      583,
+      335
+     ],
+     [
+      335,
+      335
+     ]
+    ]
+   },
+   {
+    "id": "canteiro-1",
+    "nome": "Canteiro próximo ao Portão 1",
+    "contorno": [
+     [
+      117,
+      390
+     ],
+     [
+      300,
+      366
+     ],
+     [
+      308,
+      415
+     ],
+     [
+      110,
+      439
+     ]
+    ]
+   },
+   {
+    "id": "canteiro-2",
+    "nome": "Canteiro próximo ao IDEA",
+    "contorno": [
+     [
+      427,
+      386
+     ],
+     [
+      615,
+      362
+     ],
+     [
+      623,
+      411
+     ],
+     [
+      420,
+      435
+     ]
+    ]
+   },
+   {
+    "id": "lateral-afg",
+    "nome": "Lateral dos blocos A a G",
+    "contorno": [
+     [
+      67,
+      16
+     ],
+     [
+      575,
+      16
+     ],
+     [
+      583,
+      65
+     ],
+     [
+      60,
+      65
+     ]
+    ]
+   },
+   {
+    "id": "frente-j",
+    "nome": "Em frente ao Bloco J",
+    "contorno": [
+     [
+      672,
+      282
+     ],
+     [
+      900,
+      282
+     ],
+     [
+      908,
+      331
+     ],
+     [
+      665,
+      331
+     ]
+    ]
+   },
+   {
+    "id": "lado-j",
+    "nome": "Ao lado do Bloco J",
+    "contorno": [
+     [
+      625,
+      116
+     ],
+     [
+      663,
+      121
+     ],
+     [
+      663,
+      259
+     ],
+     [
+      625,
+      264
+     ]
+    ]
+   },
+   {
+    "id": "canteiro-j",
+    "nome": "Canteiro em frente ao Bloco J",
+    "contorno": [
+     [
+      734,
+      390
+     ],
+     [
+      868,
+      376
+     ],
+     [
+      876,
+      425
+     ],
+     [
+      727,
+      439
+     ]
+    ]
+   },
+   {
+    "id": "frente-l",
+    "nome": "Em frente ao Bloco L",
+    "contorno": [
+     [
+      1075,
+      276
+     ],
+     [
+      1230,
+      276
+     ],
+     [
+      1238,
+      325
+     ],
+     [
+      1068,
+      325
+     ]
+    ]
+   },
+   {
+    "id": "lado-l",
+    "nome": "Lateral do Bloco L",
+    "contorno": [
+     [
+      1251,
+      114
+     ],
+     [
+      1289,
+      119
+     ],
+     [
+      1289,
+      265
+     ],
+     [
+      1251,
+      270
+     ]
+    ]
+   },
+   {
+    "id": "portao-4",
+    "nome": "Próximo ao Portão 4",
+    "contorno": [
+     [
+      1097,
+      14
+     ],
+     [
+      1195,
+      14
+     ],
+     [
+      1203,
+      63
+     ],
+     [
+      1090,
+      63
+     ]
+    ]
+   }
+  ],
+  "posicoes": [
+   {
+    "vagaId": "est-1-vaga-1",
+    "areaId": "frente-ab",
+    "ponto": [
+     105,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-2",
+    "areaId": "frente-ab",
+    "ponto": [
+     123.63636363636364,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-3",
+    "areaId": "frente-ab",
+    "ponto": [
+     142.27272727272728,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-4",
+    "areaId": "frente-ab",
+    "ponto": [
+     160.9090909090909,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-5",
+    "areaId": "frente-ab",
+    "ponto": [
+     179.54545454545456,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-6",
+    "areaId": "frente-ab",
+    "ponto": [
+     198.1818181818182,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-7",
+    "areaId": "frente-ab",
+    "ponto": [
+     216.8181818181818,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-8",
+    "areaId": "frente-ab",
+    "ponto": [
+     235.45454545454547,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-9",
+    "areaId": "frente-ab",
+    "ponto": [
+     254.0909090909091,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-10",
+    "areaId": "frente-ab",
+    "ponto": [
+     272.72727272727275,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-11",
+    "areaId": "frente-ab",
+    "ponto": [
+     291.3636363636364,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-12",
+    "areaId": "frente-ab",
+    "ponto": [
+     310,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-13",
+    "areaId": "frente-cde",
+    "ponto": [
+     355,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-14",
+    "areaId": "frente-cde",
+    "ponto": [
+     373.6363636363636,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-15",
+    "areaId": "frente-cde",
+    "ponto": [
+     392.27272727272725,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-16",
+    "areaId": "frente-cde",
+    "ponto": [
+     410.9090909090909,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-17",
+    "areaId": "frente-cde",
+    "ponto": [
+     429.54545454545456,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-18",
+    "areaId": "frente-cde",
+    "ponto": [
+     448.1818181818182,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-19",
+    "areaId": "frente-cde",
+    "ponto": [
+     466.8181818181818,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-20",
+    "areaId": "frente-cde",
+    "ponto": [
+     485.4545454545455,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-21",
+    "areaId": "frente-cde",
+    "ponto": [
+     504.0909090909091,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-22",
+    "areaId": "frente-cde",
+    "ponto": [
+     522.7272727272727,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-23",
+    "areaId": "frente-cde",
+    "ponto": [
+     541.3636363636364,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-24",
+    "areaId": "frente-cde",
+    "ponto": [
+     560,
+     310
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-1-vaga-25",
+    "areaId": "canteiro-1",
+    "ponto": [
+     130,
+     414
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-26",
+    "areaId": "canteiro-1",
+    "ponto": [
+     152.14285714285714,
+     410.57142857142856
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-27",
+    "areaId": "canteiro-1",
+    "ponto": [
+     174.28571428571428,
+     407.14285714285717
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-28",
+    "areaId": "canteiro-1",
+    "ponto": [
+     196.42857142857144,
+     403.7142857142857
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-29",
+    "areaId": "canteiro-1",
+    "ponto": [
+     218.57142857142856,
+     400.2857142857143
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-30",
+    "areaId": "canteiro-1",
+    "ponto": [
+     240.71428571428572,
+     396.85714285714283
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-31",
+    "areaId": "canteiro-1",
+    "ponto": [
+     262.8571428571429,
+     393.42857142857144
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-32",
+    "areaId": "canteiro-1",
+    "ponto": [
+     285,
+     390
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-33",
+    "areaId": "canteiro-2",
+    "ponto": [
+     440,
+     410
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-34",
+    "areaId": "canteiro-2",
+    "ponto": [
+     462.85714285714283,
+     406.57142857142856
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-35",
+    "areaId": "canteiro-2",
+    "ponto": [
+     485.7142857142857,
+     403.14285714285717
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-36",
+    "areaId": "canteiro-2",
+    "ponto": [
+     508.57142857142856,
+     399.7142857142857
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-37",
+    "areaId": "canteiro-2",
+    "ponto": [
+     531.4285714285714,
+     396.2857142857143
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-38",
+    "areaId": "canteiro-2",
+    "ponto": [
+     554.2857142857143,
+     392.85714285714283
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-39",
+    "areaId": "canteiro-2",
+    "ponto": [
+     577.1428571428571,
+     389.42857142857144
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-1-vaga-40",
+    "areaId": "canteiro-2",
+    "ponto": [
+     600,
+     386
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-2-vaga-1",
+    "areaId": "lateral-afg",
+    "ponto": [
+     80,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-2",
+    "areaId": "lateral-afg",
+    "ponto": [
+     112,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-3",
+    "areaId": "lateral-afg",
+    "ponto": [
+     144,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-4",
+    "areaId": "lateral-afg",
+    "ponto": [
+     176,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-5",
+    "areaId": "lateral-afg",
+    "ponto": [
+     208,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-6",
+    "areaId": "lateral-afg",
+    "ponto": [
+     240,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-7",
+    "areaId": "lateral-afg",
+    "ponto": [
+     272,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-8",
+    "areaId": "lateral-afg",
+    "ponto": [
+     304,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-9",
+    "areaId": "lateral-afg",
+    "ponto": [
+     336,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-10",
+    "areaId": "lateral-afg",
+    "ponto": [
+     368,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-11",
+    "areaId": "lateral-afg",
+    "ponto": [
+     400,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-12",
+    "areaId": "lateral-afg",
+    "ponto": [
+     432,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-13",
+    "areaId": "lateral-afg",
+    "ponto": [
+     464,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-14",
+    "areaId": "lateral-afg",
+    "ponto": [
+     496,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-15",
+    "areaId": "lateral-afg",
+    "ponto": [
+     528,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-16",
+    "areaId": "lateral-afg",
+    "ponto": [
+     560,
+     40
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-2-vaga-17",
+    "areaId": "frente-j",
+    "ponto": [
+     685,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-18",
+    "areaId": "frente-j",
+    "ponto": [
+     707.2222222222222,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-19",
+    "areaId": "frente-j",
+    "ponto": [
+     729.4444444444445,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-20",
+    "areaId": "frente-j",
+    "ponto": [
+     751.6666666666666,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-21",
+    "areaId": "frente-j",
+    "ponto": [
+     773.8888888888889,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-22",
+    "areaId": "frente-j",
+    "ponto": [
+     796.1111111111111,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-23",
+    "areaId": "frente-j",
+    "ponto": [
+     818.3333333333334,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-24",
+    "areaId": "frente-j",
+    "ponto": [
+     840.5555555555555,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-25",
+    "areaId": "frente-j",
+    "ponto": [
+     862.7777777777778,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-26",
+    "areaId": "frente-j",
+    "ponto": [
+     885,
+     306
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-2-vaga-27",
+    "areaId": "lado-j",
+    "ponto": [
+     644,
+     130
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-2-vaga-28",
+    "areaId": "lado-j",
+    "ponto": [
+     644,
+     153
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-2-vaga-29",
+    "areaId": "lado-j",
+    "ponto": [
+     644,
+     176
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-2-vaga-30",
+    "areaId": "lado-j",
+    "ponto": [
+     644,
+     199
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-2-vaga-31",
+    "areaId": "lado-j",
+    "ponto": [
+     644,
+     222
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-2-vaga-32",
+    "areaId": "lado-j",
+    "ponto": [
+     644,
+     245
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-3-vaga-1",
+    "areaId": "canteiro-j",
+    "ponto": [
+     747,
+     414
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-3-vaga-2",
+    "areaId": "canteiro-j",
+    "ponto": [
+     773.5,
+     410.5
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-3-vaga-3",
+    "areaId": "canteiro-j",
+    "ponto": [
+     800,
+     407
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-3-vaga-4",
+    "areaId": "canteiro-j",
+    "ponto": [
+     826.5,
+     403.5
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-3-vaga-5",
+    "areaId": "canteiro-j",
+    "ponto": [
+     853,
+     400
+    ],
+    "rotacao": 18
+   },
+   {
+    "vagaId": "est-3-vaga-6",
+    "areaId": "frente-l",
+    "ponto": [
+     1088,
+     300
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-3-vaga-7",
+    "areaId": "frente-l",
+    "ponto": [
+     1113.4,
+     300
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-3-vaga-8",
+    "areaId": "frente-l",
+    "ponto": [
+     1138.8,
+     300
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-3-vaga-9",
+    "areaId": "frente-l",
+    "ponto": [
+     1164.2,
+     300
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-3-vaga-10",
+    "areaId": "frente-l",
+    "ponto": [
+     1189.6,
+     300
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-3-vaga-11",
+    "areaId": "frente-l",
+    "ponto": [
+     1215,
+     300
+    ],
+    "rotacao": -16
+   },
+   {
+    "vagaId": "est-3-vaga-12",
+    "areaId": "lado-l",
+    "ponto": [
+     1270,
+     128
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-3-vaga-13",
+    "areaId": "lado-l",
+    "ponto": [
+     1270,
+     152.6
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-3-vaga-14",
+    "areaId": "lado-l",
+    "ponto": [
+     1270,
+     177.2
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-3-vaga-15",
+    "areaId": "lado-l",
+    "ponto": [
+     1270,
+     201.8
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-3-vaga-16",
+    "areaId": "lado-l",
+    "ponto": [
+     1270,
+     226.4
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-3-vaga-17",
+    "areaId": "lado-l",
+    "ponto": [
+     1270,
+     251
+    ],
+    "rotacao": 90
+   },
+   {
+    "vagaId": "est-3-vaga-18",
+    "areaId": "portao-4",
+    "ponto": [
+     1110,
+     38
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-3-vaga-19",
+    "areaId": "portao-4",
+    "ponto": [
+     1145,
+     38
+    ],
+    "rotacao": 0
+   },
+   {
+    "vagaId": "est-3-vaga-20",
+    "areaId": "portao-4",
+    "ponto": [
+     1180,
+     38
+    ],
+    "rotacao": 0
+   }
+  ]
+ },
+ "estacionamentos": [
+  {
+   "id": "est-1",
+   "empresaId": "unisagrado",
+   "nome": "Estacionamento Central",
+   "descricao": "Acesso principal · Rua Irmã Arminda",
+   "portao": "Portão 1 · Rua Irmã Arminda",
+   "caminhadaMinutos": 2,
+   "caminhadaDestino": "os blocos A e B",
+   "latitude": -22.327,
+   "longitude": -49.054,
+   "largura": 780,
+   "altura": 680,
+   "vagas": [
+    {
+     "id": "est-1-vaga-1",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A1",
+     "tipo": "PCD"
+    },
+    {
+     "id": "est-1-vaga-2",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A2",
+     "tipo": "COMUM"
+    },
+    {
+     "id": "est-1-vaga-3",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A3",
+     "tipo": "COMUM"
+    },
+    {
+     "id": "est-1-vaga-4",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-4"
+    },
+    {
+     "id": "est-1-vaga-5",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-5"
+    },
+    {
+     "id": "est-1-vaga-6",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A6",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-6"
+    },
+    {
+     "id": "est-1-vaga-7",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-7"
+    },
+    {
+     "id": "est-1-vaga-8",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-8"
+    },
+    {
+     "id": "est-1-vaga-9",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A9",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-9"
+    },
+    {
+     "id": "est-1-vaga-10",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "A10",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-10"
+    },
+    {
+     "id": "est-1-vaga-11",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "B1",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-11"
+    },
+    {
+     "id": "est-1-vaga-12",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-ab",
+     "rotulo": "B2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-12"
+    },
+    {
+     "id": "est-1-vaga-13",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-13"
+    },
+    {
+     "id": "est-1-vaga-14",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B4",
+     "tipo": "MOTO",
+     "ancoraId": "ancora-est-1-vaga-14"
+    },
+    {
+     "id": "est-1-vaga-15",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-15"
+    },
+    {
+     "id": "est-1-vaga-16",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B6",
+     "tipo": "PCD",
+     "ancoraId": "ancora-est-1-vaga-16"
+    },
+    {
+     "id": "est-1-vaga-17",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-17"
+    },
+    {
+     "id": "est-1-vaga-18",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-18"
+    },
+    {
+     "id": "est-1-vaga-19",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B9",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-19"
+    },
+    {
+     "id": "est-1-vaga-20",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "B10",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-20"
+    },
+    {
+     "id": "est-1-vaga-21",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "C1",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-21"
+    },
+    {
+     "id": "est-1-vaga-22",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "C2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-22"
+    },
+    {
+     "id": "est-1-vaga-23",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "C3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-23"
+    },
+    {
+     "id": "est-1-vaga-24",
+     "estacionamentoId": "est-1",
+     "areaId": "frente-cde",
+     "rotulo": "C4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-24"
+    },
+    {
+     "id": "est-1-vaga-25",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "C5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-25"
+    },
+    {
+     "id": "est-1-vaga-26",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "C6",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-26"
+    },
+    {
+     "id": "est-1-vaga-27",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "C7",
+     "tipo": "MOTO",
+     "ancoraId": "ancora-est-1-vaga-27"
+    },
+    {
+     "id": "est-1-vaga-28",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "C8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-28"
+    },
+    {
+     "id": "est-1-vaga-29",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "C9",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-29"
+    },
+    {
+     "id": "est-1-vaga-30",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "C10",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-30"
+    },
+    {
+     "id": "est-1-vaga-31",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "D1",
+     "tipo": "PCD",
+     "ancoraId": "ancora-est-1-vaga-31"
+    },
+    {
+     "id": "est-1-vaga-32",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-1",
+     "rotulo": "D2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-32"
+    },
+    {
+     "id": "est-1-vaga-33",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-33"
+    },
+    {
+     "id": "est-1-vaga-34",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-34"
+    },
+    {
+     "id": "est-1-vaga-35",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-35"
+    },
+    {
+     "id": "est-1-vaga-36",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D6",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-36"
+    },
+    {
+     "id": "est-1-vaga-37",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-37"
+    },
+    {
+     "id": "est-1-vaga-38",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-38"
+    },
+    {
+     "id": "est-1-vaga-39",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D9",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-1-vaga-39"
+    },
+    {
+     "id": "est-1-vaga-40",
+     "estacionamentoId": "est-1",
+     "areaId": "canteiro-2",
+     "rotulo": "D10",
+     "tipo": "MOTO",
+     "ancoraId": "ancora-est-1-vaga-40"
+    }
+   ]
+  },
+  {
+   "id": "est-2",
+   "empresaId": "unisagrado",
+   "nome": "Bloco Acadêmico",
+   "descricao": "Próximo aos blocos de salas de aula",
+   "portao": "Portão 2 · Acesso acadêmico",
+   "caminhadaMinutos": 1,
+   "caminhadaDestino": "o bloco C",
+   "latitude": -22.3256,
+   "longitude": -49.0529,
+   "largura": 780,
+   "altura": 680,
+   "vagas": [
+    {
+     "id": "est-2-vaga-1",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A1",
+     "tipo": "PCD",
+     "ancoraId": "ancora-est-2-vaga-1"
+    },
+    {
+     "id": "est-2-vaga-2",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-2"
+    },
+    {
+     "id": "est-2-vaga-3",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-3"
+    },
+    {
+     "id": "est-2-vaga-4",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-4"
+    },
+    {
+     "id": "est-2-vaga-5",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-5"
+    },
+    {
+     "id": "est-2-vaga-6",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A6",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-6"
+    },
+    {
+     "id": "est-2-vaga-7",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-7"
+    },
+    {
+     "id": "est-2-vaga-8",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "A8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-8"
+    },
+    {
+     "id": "est-2-vaga-9",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B1",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-9"
+    },
+    {
+     "id": "est-2-vaga-10",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-10"
+    },
+    {
+     "id": "est-2-vaga-11",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-11"
+    },
+    {
+     "id": "est-2-vaga-12",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-12"
+    },
+    {
+     "id": "est-2-vaga-13",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-13"
+    },
+    {
+     "id": "est-2-vaga-14",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B6",
+     "tipo": "MOTO",
+     "ancoraId": "ancora-est-2-vaga-14"
+    },
+    {
+     "id": "est-2-vaga-15",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-15"
+    },
+    {
+     "id": "est-2-vaga-16",
+     "estacionamentoId": "est-2",
+     "areaId": "lateral-afg",
+     "rotulo": "B8",
+     "tipo": "PCD",
+     "ancoraId": "ancora-est-2-vaga-16"
+    },
+    {
+     "id": "est-2-vaga-17",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C1",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-17"
+    },
+    {
+     "id": "est-2-vaga-18",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-18"
+    },
+    {
+     "id": "est-2-vaga-19",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-19"
+    },
+    {
+     "id": "est-2-vaga-20",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-20"
+    },
+    {
+     "id": "est-2-vaga-21",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-21"
+    },
+    {
+     "id": "est-2-vaga-22",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C6",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-22"
+    },
+    {
+     "id": "est-2-vaga-23",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-23"
+    },
+    {
+     "id": "est-2-vaga-24",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "C8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-24"
+    },
+    {
+     "id": "est-2-vaga-25",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "D1",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-25"
+    },
+    {
+     "id": "est-2-vaga-26",
+     "estacionamentoId": "est-2",
+     "areaId": "frente-j",
+     "rotulo": "D2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-26"
+    },
+    {
+     "id": "est-2-vaga-27",
+     "estacionamentoId": "est-2",
+     "areaId": "lado-j",
+     "rotulo": "D3",
+     "tipo": "MOTO",
+     "ancoraId": "ancora-est-2-vaga-27"
+    },
+    {
+     "id": "est-2-vaga-28",
+     "estacionamentoId": "est-2",
+     "areaId": "lado-j",
+     "rotulo": "D4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-28"
+    },
+    {
+     "id": "est-2-vaga-29",
+     "estacionamentoId": "est-2",
+     "areaId": "lado-j",
+     "rotulo": "D5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-29"
+    },
+    {
+     "id": "est-2-vaga-30",
+     "estacionamentoId": "est-2",
+     "areaId": "lado-j",
+     "rotulo": "D6",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-30"
+    },
+    {
+     "id": "est-2-vaga-31",
+     "estacionamentoId": "est-2",
+     "areaId": "lado-j",
+     "rotulo": "D7",
+     "tipo": "PCD",
+     "ancoraId": "ancora-est-2-vaga-31"
+    },
+    {
+     "id": "est-2-vaga-32",
+     "estacionamentoId": "est-2",
+     "areaId": "lado-j",
+     "rotulo": "D8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-2-vaga-32"
+    }
+   ]
+  },
+  {
+   "id": "est-3",
+   "empresaId": "unisagrado",
+   "nome": "Complexo Esportivo",
+   "descricao": "Acesso às quadras e ao ginásio",
+   "portao": "Portão 3 · Acesso esportivo",
+   "caminhadaMinutos": 4,
+   "caminhadaDestino": "o ginásio",
+   "latitude": -22.3242,
+   "longitude": -49.0518,
+   "largura": 780,
+   "altura": 680,
+   "vagas": [
+    {
+     "id": "est-3-vaga-1",
+     "estacionamentoId": "est-3",
+     "areaId": "canteiro-j",
+     "rotulo": "A1",
+     "tipo": "PCD",
+     "ancoraId": "ancora-est-3-vaga-1"
+    },
+    {
+     "id": "est-3-vaga-2",
+     "estacionamentoId": "est-3",
+     "areaId": "canteiro-j",
+     "rotulo": "A2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-2"
+    },
+    {
+     "id": "est-3-vaga-3",
+     "estacionamentoId": "est-3",
+     "areaId": "canteiro-j",
+     "rotulo": "A3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-3"
+    },
+    {
+     "id": "est-3-vaga-4",
+     "estacionamentoId": "est-3",
+     "areaId": "canteiro-j",
+     "rotulo": "A4",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-4"
+    },
+    {
+     "id": "est-3-vaga-5",
+     "estacionamentoId": "est-3",
+     "areaId": "canteiro-j",
+     "rotulo": "A5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-5"
+    },
+    {
+     "id": "est-3-vaga-6",
+     "estacionamentoId": "est-3",
+     "areaId": "frente-l",
+     "rotulo": "A6",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-6"
+    },
+    {
+     "id": "est-3-vaga-7",
+     "estacionamentoId": "est-3",
+     "areaId": "frente-l",
+     "rotulo": "A7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-7"
+    },
+    {
+     "id": "est-3-vaga-8",
+     "estacionamentoId": "est-3",
+     "areaId": "frente-l",
+     "rotulo": "A8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-8"
+    },
+    {
+     "id": "est-3-vaga-9",
+     "estacionamentoId": "est-3",
+     "areaId": "frente-l",
+     "rotulo": "A9",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-9"
+    },
+    {
+     "id": "est-3-vaga-10",
+     "estacionamentoId": "est-3",
+     "areaId": "frente-l",
+     "rotulo": "A10",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-10"
+    },
+    {
+     "id": "est-3-vaga-11",
+     "estacionamentoId": "est-3",
+     "areaId": "frente-l",
+     "rotulo": "B1",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-11"
+    },
+    {
+     "id": "est-3-vaga-12",
+     "estacionamentoId": "est-3",
+     "areaId": "lado-l",
+     "rotulo": "B2",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-12"
+    },
+    {
+     "id": "est-3-vaga-13",
+     "estacionamentoId": "est-3",
+     "areaId": "lado-l",
+     "rotulo": "B3",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-13"
+    },
+    {
+     "id": "est-3-vaga-14",
+     "estacionamentoId": "est-3",
+     "areaId": "lado-l",
+     "rotulo": "B4",
+     "tipo": "MOTO",
+     "ancoraId": "ancora-est-3-vaga-14"
+    },
+    {
+     "id": "est-3-vaga-15",
+     "estacionamentoId": "est-3",
+     "areaId": "lado-l",
+     "rotulo": "B5",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-15"
+    },
+    {
+     "id": "est-3-vaga-16",
+     "estacionamentoId": "est-3",
+     "areaId": "lado-l",
+     "rotulo": "B6",
+     "tipo": "PCD",
+     "ancoraId": "ancora-est-3-vaga-16"
+    },
+    {
+     "id": "est-3-vaga-17",
+     "estacionamentoId": "est-3",
+     "areaId": "lado-l",
+     "rotulo": "B7",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-17"
+    },
+    {
+     "id": "est-3-vaga-18",
+     "estacionamentoId": "est-3",
+     "areaId": "portao-4",
+     "rotulo": "B8",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-18"
+    },
+    {
+     "id": "est-3-vaga-19",
+     "estacionamentoId": "est-3",
+     "areaId": "portao-4",
+     "rotulo": "B9",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-19"
+    },
+    {
+     "id": "est-3-vaga-20",
+     "estacionamentoId": "est-3",
+     "areaId": "portao-4",
+     "rotulo": "B10",
+     "tipo": "COMUM",
+     "ancoraId": "ancora-est-3-vaga-20"
+    }
+   ]
+  }
+ ],
+ "areas": [
+  {
+   "id": "frente-ab",
+   "nome": "Em frente aos blocos A e B",
+   "contorno": [
+    [
+     9.2,
+     28.6
+    ],
+    [
+     32.5,
+     28.6
+    ],
+    [
+     33.3,
+     33.5
+    ],
+    [
+     8.5,
+     33.5
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-1",
+   "versao": 1
+  },
+  {
+   "id": "frente-cde",
+   "nome": "Em frente aos blocos C, D e E",
+   "contorno": [
+    [
+     34.2,
+     28.6
+    ],
+    [
+     57.5,
+     28.6
+    ],
+    [
+     58.3,
+     33.5
+    ],
+    [
+     33.5,
+     33.5
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-1",
+   "versao": 1
+  },
+  {
+   "id": "canteiro-1",
+   "nome": "Canteiro próximo ao Portão 1",
+   "contorno": [
+    [
+     11.7,
+     39
+    ],
+    [
+     30,
+     36.6
+    ],
+    [
+     30.8,
+     41.5
+    ],
+    [
+     11,
+     43.9
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-1",
+   "versao": 1
+  },
+  {
+   "id": "canteiro-2",
+   "nome": "Canteiro próximo ao IDEA",
+   "contorno": [
+    [
+     42.7,
+     38.6
+    ],
+    [
+     61.5,
+     36.2
+    ],
+    [
+     62.3,
+     41.1
+    ],
+    [
+     42,
+     43.5
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-1",
+   "versao": 1
+  },
+  {
+   "id": "lateral-afg",
+   "nome": "Lateral dos blocos A a G",
+   "contorno": [
+    [
+     6.7,
+     1.6
+    ],
+    [
+     57.5,
+     1.6
+    ],
+    [
+     58.3,
+     6.5
+    ],
+    [
+     6,
+     6.5
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-2",
+   "versao": 1
+  },
+  {
+   "id": "frente-j",
+   "nome": "Em frente ao Bloco J",
+   "contorno": [
+    [
+     67.2,
+     28.2
+    ],
+    [
+     90,
+     28.2
+    ],
+    [
+     90.8,
+     33.1
+    ],
+    [
+     66.5,
+     33.1
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-2",
+   "versao": 1
+  },
+  {
+   "id": "lado-j",
+   "nome": "Ao lado do Bloco J",
+   "contorno": [
+    [
+     62.5,
+     11.6
+    ],
+    [
+     66.3,
+     12.1
+    ],
+    [
+     66.3,
+     25.9
+    ],
+    [
+     62.5,
+     26.4
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-2",
+   "versao": 1
+  },
+  {
+   "id": "canteiro-j",
+   "nome": "Canteiro em frente ao Bloco J",
+   "contorno": [
+    [
+     73.4,
+     39
+    ],
+    [
+     86.8,
+     37.6
+    ],
+    [
+     87.6,
+     42.5
+    ],
+    [
+     72.7,
+     43.9
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-3",
+   "versao": 1
+  },
+  {
+   "id": "frente-l",
+   "nome": "Em frente ao Bloco L",
+   "contorno": [
+    [
+     107.5,
+     27.6
+    ],
+    [
+     123,
+     27.6
+    ],
+    [
+     123.8,
+     32.5
+    ],
+    [
+     106.8,
+     32.5
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-3",
+   "versao": 1
+  },
+  {
+   "id": "lado-l",
+   "nome": "Lateral do Bloco L",
+   "contorno": [
+    [
+     125.1,
+     11.4
+    ],
+    [
+     128.9,
+     11.9
+    ],
+    [
+     128.9,
+     26.5
+    ],
+    [
+     125.1,
+     27
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-3",
+   "versao": 1
+  },
+  {
+   "id": "portao-4",
+   "nome": "Próximo ao Portão 4",
+   "contorno": [
+    [
+     109.7,
+     1.4
+    ],
+    [
+     119.5,
+     1.4
+    ],
+    [
+     120.3,
+     6.3
+    ],
+    [
+     109,
+     6.3
+    ]
+   ],
+   "empresaId": "unisagrado",
+   "estacionamentoId": "est-3",
+   "versao": 1
+  }
+ ],
+ "ancoras": [
+  {
+   "id": "ancora-est-1-vaga-1",
+   "areaId": "frente-ab",
+   "x": 10.5,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-1-vaga-1"
+  },
+  {
+   "id": "ancora-est-1-vaga-2",
+   "areaId": "frente-ab",
+   "x": 12.363636363636363,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-2"
+  },
+  {
+   "id": "ancora-est-1-vaga-3",
+   "areaId": "frente-ab",
+   "x": 14.227272727272728,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-3"
+  },
+  {
+   "id": "ancora-est-1-vaga-4",
+   "areaId": "frente-ab",
+   "x": 16.09090909090909,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-4"
+  },
+  {
+   "id": "ancora-est-1-vaga-5",
+   "areaId": "frente-ab",
+   "x": 17.954545454545457,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-5"
+  },
+  {
+   "id": "ancora-est-1-vaga-6",
+   "areaId": "frente-ab",
+   "x": 19.81818181818182,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-6"
+  },
+  {
+   "id": "ancora-est-1-vaga-7",
+   "areaId": "frente-ab",
+   "x": 21.68181818181818,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-7"
+  },
+  {
+   "id": "ancora-est-1-vaga-8",
+   "areaId": "frente-ab",
+   "x": 23.545454545454547,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-8"
+  },
+  {
+   "id": "ancora-est-1-vaga-9",
+   "areaId": "frente-ab",
+   "x": 25.40909090909091,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-9"
+  },
+  {
+   "id": "ancora-est-1-vaga-10",
+   "areaId": "frente-ab",
+   "x": 27.272727272727273,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-10"
+  },
+  {
+   "id": "ancora-est-1-vaga-11",
+   "areaId": "frente-ab",
+   "x": 29.136363636363637,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-11"
+  },
+  {
+   "id": "ancora-est-1-vaga-12",
+   "areaId": "frente-ab",
+   "x": 31,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-12"
+  },
+  {
+   "id": "ancora-est-1-vaga-13",
+   "areaId": "frente-cde",
+   "x": 35.5,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-13"
+  },
+  {
+   "id": "ancora-est-1-vaga-14",
+   "areaId": "frente-cde",
+   "x": 37.36363636363636,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "MOTO"
+   ],
+   "vagaPadraoId": "est-1-vaga-14"
+  },
+  {
+   "id": "ancora-est-1-vaga-15",
+   "areaId": "frente-cde",
+   "x": 39.22727272727273,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-15"
+  },
+  {
+   "id": "ancora-est-1-vaga-16",
+   "areaId": "frente-cde",
+   "x": 41.090909090909086,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-1-vaga-16"
+  },
+  {
+   "id": "ancora-est-1-vaga-17",
+   "areaId": "frente-cde",
+   "x": 42.95454545454545,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-17"
+  },
+  {
+   "id": "ancora-est-1-vaga-18",
+   "areaId": "frente-cde",
+   "x": 44.81818181818182,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-18"
+  },
+  {
+   "id": "ancora-est-1-vaga-19",
+   "areaId": "frente-cde",
+   "x": 46.68181818181818,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-19"
+  },
+  {
+   "id": "ancora-est-1-vaga-20",
+   "areaId": "frente-cde",
+   "x": 48.54545454545455,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-20"
+  },
+  {
+   "id": "ancora-est-1-vaga-21",
+   "areaId": "frente-cde",
+   "x": 50.409090909090914,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-21"
+  },
+  {
+   "id": "ancora-est-1-vaga-22",
+   "areaId": "frente-cde",
+   "x": 52.27272727272727,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-22"
+  },
+  {
+   "id": "ancora-est-1-vaga-23",
+   "areaId": "frente-cde",
+   "x": 54.13636363636364,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-23"
+  },
+  {
+   "id": "ancora-est-1-vaga-24",
+   "areaId": "frente-cde",
+   "x": 56,
+   "z": 31,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-24"
+  },
+  {
+   "id": "ancora-est-1-vaga-25",
+   "areaId": "canteiro-1",
+   "x": 13,
+   "z": 41.4,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-25"
+  },
+  {
+   "id": "ancora-est-1-vaga-26",
+   "areaId": "canteiro-1",
+   "x": 15.214285714285714,
+   "z": 41.05714285714286,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-26"
+  },
+  {
+   "id": "ancora-est-1-vaga-27",
+   "areaId": "canteiro-1",
+   "x": 17.428571428571427,
+   "z": 40.714285714285715,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "MOTO"
+   ],
+   "vagaPadraoId": "est-1-vaga-27"
+  },
+  {
+   "id": "ancora-est-1-vaga-28",
+   "areaId": "canteiro-1",
+   "x": 19.642857142857146,
+   "z": 40.371428571428574,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-28"
+  },
+  {
+   "id": "ancora-est-1-vaga-29",
+   "areaId": "canteiro-1",
+   "x": 21.857142857142854,
+   "z": 40.028571428571425,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-29"
+  },
+  {
+   "id": "ancora-est-1-vaga-30",
+   "areaId": "canteiro-1",
+   "x": 24.071428571428573,
+   "z": 39.68571428571428,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-30"
+  },
+  {
+   "id": "ancora-est-1-vaga-31",
+   "areaId": "canteiro-1",
+   "x": 26.28571428571429,
+   "z": 39.34285714285714,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-1-vaga-31"
+  },
+  {
+   "id": "ancora-est-1-vaga-32",
+   "areaId": "canteiro-1",
+   "x": 28.5,
+   "z": 39,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-32"
+  },
+  {
+   "id": "ancora-est-1-vaga-33",
+   "areaId": "canteiro-2",
+   "x": 44,
+   "z": 41,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-33"
+  },
+  {
+   "id": "ancora-est-1-vaga-34",
+   "areaId": "canteiro-2",
+   "x": 46.285714285714285,
+   "z": 40.65714285714286,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-34"
+  },
+  {
+   "id": "ancora-est-1-vaga-35",
+   "areaId": "canteiro-2",
+   "x": 48.57142857142857,
+   "z": 40.31428571428572,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-35"
+  },
+  {
+   "id": "ancora-est-1-vaga-36",
+   "areaId": "canteiro-2",
+   "x": 50.857142857142854,
+   "z": 39.971428571428575,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-36"
+  },
+  {
+   "id": "ancora-est-1-vaga-37",
+   "areaId": "canteiro-2",
+   "x": 53.142857142857146,
+   "z": 39.628571428571426,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-37"
+  },
+  {
+   "id": "ancora-est-1-vaga-38",
+   "areaId": "canteiro-2",
+   "x": 55.42857142857143,
+   "z": 39.285714285714285,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-38"
+  },
+  {
+   "id": "ancora-est-1-vaga-39",
+   "areaId": "canteiro-2",
+   "x": 57.71428571428571,
+   "z": 38.94285714285714,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-1-vaga-39"
+  },
+  {
+   "id": "ancora-est-1-vaga-40",
+   "areaId": "canteiro-2",
+   "x": 60,
+   "z": 38.6,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "MOTO"
+   ],
+   "vagaPadraoId": "est-1-vaga-40"
+  },
+  {
+   "id": "ancora-est-2-vaga-1",
+   "areaId": "lateral-afg",
+   "x": 8,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-2-vaga-1"
+  },
+  {
+   "id": "ancora-est-2-vaga-2",
+   "areaId": "lateral-afg",
+   "x": 11.2,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-2"
+  },
+  {
+   "id": "ancora-est-2-vaga-3",
+   "areaId": "lateral-afg",
+   "x": 14.4,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-3"
+  },
+  {
+   "id": "ancora-est-2-vaga-4",
+   "areaId": "lateral-afg",
+   "x": 17.6,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-4"
+  },
+  {
+   "id": "ancora-est-2-vaga-5",
+   "areaId": "lateral-afg",
+   "x": 20.8,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-5"
+  },
+  {
+   "id": "ancora-est-2-vaga-6",
+   "areaId": "lateral-afg",
+   "x": 24,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-6"
+  },
+  {
+   "id": "ancora-est-2-vaga-7",
+   "areaId": "lateral-afg",
+   "x": 27.2,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-7"
+  },
+  {
+   "id": "ancora-est-2-vaga-8",
+   "areaId": "lateral-afg",
+   "x": 30.4,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-8"
+  },
+  {
+   "id": "ancora-est-2-vaga-9",
+   "areaId": "lateral-afg",
+   "x": 33.6,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-9"
+  },
+  {
+   "id": "ancora-est-2-vaga-10",
+   "areaId": "lateral-afg",
+   "x": 36.8,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-10"
+  },
+  {
+   "id": "ancora-est-2-vaga-11",
+   "areaId": "lateral-afg",
+   "x": 40,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-11"
+  },
+  {
+   "id": "ancora-est-2-vaga-12",
+   "areaId": "lateral-afg",
+   "x": 43.2,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-12"
+  },
+  {
+   "id": "ancora-est-2-vaga-13",
+   "areaId": "lateral-afg",
+   "x": 46.4,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-13"
+  },
+  {
+   "id": "ancora-est-2-vaga-14",
+   "areaId": "lateral-afg",
+   "x": 49.6,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "MOTO"
+   ],
+   "vagaPadraoId": "est-2-vaga-14"
+  },
+  {
+   "id": "ancora-est-2-vaga-15",
+   "areaId": "lateral-afg",
+   "x": 52.8,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-15"
+  },
+  {
+   "id": "ancora-est-2-vaga-16",
+   "areaId": "lateral-afg",
+   "x": 56,
+   "z": 4,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-2-vaga-16"
+  },
+  {
+   "id": "ancora-est-2-vaga-17",
+   "areaId": "frente-j",
+   "x": 68.5,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-17"
+  },
+  {
+   "id": "ancora-est-2-vaga-18",
+   "areaId": "frente-j",
+   "x": 70.72222222222221,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-18"
+  },
+  {
+   "id": "ancora-est-2-vaga-19",
+   "areaId": "frente-j",
+   "x": 72.94444444444444,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-19"
+  },
+  {
+   "id": "ancora-est-2-vaga-20",
+   "areaId": "frente-j",
+   "x": 75.16666666666666,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-20"
+  },
+  {
+   "id": "ancora-est-2-vaga-21",
+   "areaId": "frente-j",
+   "x": 77.38888888888889,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-21"
+  },
+  {
+   "id": "ancora-est-2-vaga-22",
+   "areaId": "frente-j",
+   "x": 79.61111111111111,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-22"
+  },
+  {
+   "id": "ancora-est-2-vaga-23",
+   "areaId": "frente-j",
+   "x": 81.83333333333334,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-23"
+  },
+  {
+   "id": "ancora-est-2-vaga-24",
+   "areaId": "frente-j",
+   "x": 84.05555555555556,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-24"
+  },
+  {
+   "id": "ancora-est-2-vaga-25",
+   "areaId": "frente-j",
+   "x": 86.27777777777779,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-25"
+  },
+  {
+   "id": "ancora-est-2-vaga-26",
+   "areaId": "frente-j",
+   "x": 88.5,
+   "z": 30.6,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-26"
+  },
+  {
+   "id": "ancora-est-2-vaga-27",
+   "areaId": "lado-j",
+   "x": 64.4,
+   "z": 13,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "MOTO"
+   ],
+   "vagaPadraoId": "est-2-vaga-27"
+  },
+  {
+   "id": "ancora-est-2-vaga-28",
+   "areaId": "lado-j",
+   "x": 64.4,
+   "z": 15.3,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-28"
+  },
+  {
+   "id": "ancora-est-2-vaga-29",
+   "areaId": "lado-j",
+   "x": 64.4,
+   "z": 17.6,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-29"
+  },
+  {
+   "id": "ancora-est-2-vaga-30",
+   "areaId": "lado-j",
+   "x": 64.4,
+   "z": 19.9,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-30"
+  },
+  {
+   "id": "ancora-est-2-vaga-31",
+   "areaId": "lado-j",
+   "x": 64.4,
+   "z": 22.2,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-2-vaga-31"
+  },
+  {
+   "id": "ancora-est-2-vaga-32",
+   "areaId": "lado-j",
+   "x": 64.4,
+   "z": 24.5,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-2-vaga-32"
+  },
+  {
+   "id": "ancora-est-3-vaga-1",
+   "areaId": "canteiro-j",
+   "x": 74.7,
+   "z": 41.4,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-3-vaga-1"
+  },
+  {
+   "id": "ancora-est-3-vaga-2",
+   "areaId": "canteiro-j",
+   "x": 77.35,
+   "z": 41.05,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-2"
+  },
+  {
+   "id": "ancora-est-3-vaga-3",
+   "areaId": "canteiro-j",
+   "x": 80,
+   "z": 40.7,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-3"
+  },
+  {
+   "id": "ancora-est-3-vaga-4",
+   "areaId": "canteiro-j",
+   "x": 82.65,
+   "z": 40.35,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-4"
+  },
+  {
+   "id": "ancora-est-3-vaga-5",
+   "areaId": "canteiro-j",
+   "x": 85.3,
+   "z": 40,
+   "rotacao": 18,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-5"
+  },
+  {
+   "id": "ancora-est-3-vaga-6",
+   "areaId": "frente-l",
+   "x": 108.8,
+   "z": 30,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-6"
+  },
+  {
+   "id": "ancora-est-3-vaga-7",
+   "areaId": "frente-l",
+   "x": 111.34,
+   "z": 30,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-7"
+  },
+  {
+   "id": "ancora-est-3-vaga-8",
+   "areaId": "frente-l",
+   "x": 113.88,
+   "z": 30,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-8"
+  },
+  {
+   "id": "ancora-est-3-vaga-9",
+   "areaId": "frente-l",
+   "x": 116.42,
+   "z": 30,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-9"
+  },
+  {
+   "id": "ancora-est-3-vaga-10",
+   "areaId": "frente-l",
+   "x": 118.96,
+   "z": 30,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-10"
+  },
+  {
+   "id": "ancora-est-3-vaga-11",
+   "areaId": "frente-l",
+   "x": 121.5,
+   "z": 30,
+   "rotacao": -16,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-11"
+  },
+  {
+   "id": "ancora-est-3-vaga-12",
+   "areaId": "lado-l",
+   "x": 127,
+   "z": 12.8,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-12"
+  },
+  {
+   "id": "ancora-est-3-vaga-13",
+   "areaId": "lado-l",
+   "x": 127,
+   "z": 15.26,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-13"
+  },
+  {
+   "id": "ancora-est-3-vaga-14",
+   "areaId": "lado-l",
+   "x": 127,
+   "z": 17.72,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "MOTO"
+   ],
+   "vagaPadraoId": "est-3-vaga-14"
+  },
+  {
+   "id": "ancora-est-3-vaga-15",
+   "areaId": "lado-l",
+   "x": 127,
+   "z": 20.18,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-15"
+  },
+  {
+   "id": "ancora-est-3-vaga-16",
+   "areaId": "lado-l",
+   "x": 127,
+   "z": 22.64,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "PCD"
+   ],
+   "vagaPadraoId": "est-3-vaga-16"
+  },
+  {
+   "id": "ancora-est-3-vaga-17",
+   "areaId": "lado-l",
+   "x": 127,
+   "z": 25.1,
+   "rotacao": 90,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-17"
+  },
+  {
+   "id": "ancora-est-3-vaga-18",
+   "areaId": "portao-4",
+   "x": 111,
+   "z": 3.8,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-18"
+  },
+  {
+   "id": "ancora-est-3-vaga-19",
+   "areaId": "portao-4",
+   "x": 114.5,
+   "z": 3.8,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-19"
+  },
+  {
+   "id": "ancora-est-3-vaga-20",
+   "areaId": "portao-4",
+   "x": 118,
+   "z": 3.8,
+   "rotacao": 0,
+   "largura": 1.2,
+   "profundidade": 2.8,
+   "tiposAceitos": [
+    "COMUM"
+   ],
+   "vagaPadraoId": "est-3-vaga-20"
+  }
+ ],
+ "sensores": [
+  {
+   "id": "est-1-sensor-1",
+   "nome": "Sensor A1 · Central",
+   "vagaId": "est-1-vaga-1"
+  },
+  {
+   "id": "est-1-sensor-2",
+   "nome": "Sensor A2 · Central",
+   "vagaId": "est-1-vaga-2"
+  },
+  {
+   "id": "est-1-sensor-3",
+   "nome": "Sensor A3 · Central",
+   "vagaId": "est-1-vaga-3"
+  },
+  {
+   "id": "est-1-sensor-4",
+   "nome": "Sensor A4 · Central",
+   "vagaId": "est-1-vaga-4"
+  },
+  {
+   "id": "est-1-sensor-5",
+   "nome": "Sensor A5 · Central",
+   "vagaId": "est-1-vaga-5"
+  },
+  {
+   "id": "est-1-sensor-6",
+   "nome": "Sensor A6 · Central",
+   "vagaId": "est-1-vaga-6"
+  },
+  {
+   "id": "est-1-sensor-7",
+   "nome": "Sensor A7 · Central",
+   "vagaId": "est-1-vaga-7"
+  },
+  {
+   "id": "est-1-sensor-8",
+   "nome": "Sensor A8 · Central",
+   "vagaId": "est-1-vaga-8"
+  },
+  {
+   "id": "est-1-sensor-9",
+   "nome": "Sensor A9 · Central",
+   "vagaId": "est-1-vaga-9"
+  },
+  {
+   "id": "est-1-sensor-10",
+   "nome": "Sensor A10 · Central",
+   "vagaId": "est-1-vaga-10"
+  },
+  {
+   "id": "est-1-sensor-11",
+   "nome": "Sensor B1 · Central",
+   "vagaId": "est-1-vaga-11"
+  },
+  {
+   "id": "est-1-sensor-12",
+   "nome": "Sensor B2 · Central",
+   "vagaId": "est-1-vaga-12"
+  },
+  {
+   "id": "est-1-sensor-13",
+   "nome": "Sensor B3 · Central",
+   "vagaId": "est-1-vaga-13"
+  },
+  {
+   "id": "est-1-sensor-14",
+   "nome": "Sensor B4 · Central",
+   "vagaId": "est-1-vaga-14"
+  },
+  {
+   "id": "est-1-sensor-15",
+   "nome": "Sensor B5 · Central",
+   "vagaId": "est-1-vaga-15"
+  },
+  {
+   "id": "est-1-sensor-16",
+   "nome": "Sensor B6 · Central",
+   "vagaId": "est-1-vaga-16"
+  },
+  {
+   "id": "est-1-sensor-17",
+   "nome": "Sensor B7 · Central",
+   "vagaId": "est-1-vaga-17"
+  },
+  {
+   "id": "est-1-sensor-18",
+   "nome": "Sensor B8 · Central",
+   "vagaId": "est-1-vaga-18"
+  },
+  {
+   "id": "est-1-sensor-19",
+   "nome": "Sensor B9 · Central",
+   "vagaId": "est-1-vaga-19"
+  },
+  {
+   "id": "est-1-sensor-20",
+   "nome": "Sensor B10 · Central",
+   "vagaId": "est-1-vaga-20"
+  },
+  {
+   "id": "est-1-sensor-21",
+   "nome": "Sensor C1 · Central",
+   "vagaId": "est-1-vaga-21"
+  },
+  {
+   "id": "est-1-sensor-22",
+   "nome": "Sensor C2 · Central",
+   "vagaId": "est-1-vaga-22"
+  },
+  {
+   "id": "est-1-sensor-23",
+   "nome": "Sensor C3 · Central",
+   "vagaId": "est-1-vaga-23"
+  },
+  {
+   "id": "est-1-sensor-24",
+   "nome": "Sensor C4 · Central",
+   "vagaId": "est-1-vaga-24"
+  },
+  {
+   "id": "est-1-sensor-25",
+   "nome": "Sensor C5 · Central",
+   "vagaId": "est-1-vaga-25"
+  },
+  {
+   "id": "est-1-sensor-26",
+   "nome": "Sensor C6 · Central",
+   "vagaId": "est-1-vaga-26"
+  },
+  {
+   "id": "est-1-sensor-27",
+   "nome": "Sensor C7 · Central",
+   "vagaId": "est-1-vaga-27"
+  },
+  {
+   "id": "est-1-sensor-28",
+   "nome": "Sensor C8 · Central",
+   "vagaId": "est-1-vaga-28"
+  },
+  {
+   "id": "est-1-sensor-29",
+   "nome": "Sensor C9 · Central",
+   "vagaId": "est-1-vaga-29"
+  },
+  {
+   "id": "est-1-sensor-30",
+   "nome": "Sensor C10 · Central",
+   "vagaId": "est-1-vaga-30"
+  },
+  {
+   "id": "est-1-sensor-31",
+   "nome": "Sensor D1 · Central",
+   "vagaId": "est-1-vaga-31"
+  },
+  {
+   "id": "est-1-sensor-32",
+   "nome": "Sensor D2 · Central",
+   "vagaId": "est-1-vaga-32"
+  },
+  {
+   "id": "est-1-sensor-33",
+   "nome": "Sensor D3 · Central",
+   "vagaId": "est-1-vaga-33"
+  },
+  {
+   "id": "est-1-sensor-34",
+   "nome": "Sensor D4 · Central",
+   "vagaId": "est-1-vaga-34"
+  },
+  {
+   "id": "est-1-sensor-35",
+   "nome": "Sensor D5 · Central",
+   "vagaId": "est-1-vaga-35"
+  },
+  {
+   "id": "est-1-sensor-36",
+   "nome": "Sensor D6 · Central",
+   "vagaId": "est-1-vaga-36"
+  },
+  {
+   "id": "est-1-sensor-37",
+   "nome": "Sensor D7 · Central",
+   "vagaId": "est-1-vaga-37"
+  },
+  {
+   "id": "est-1-sensor-38",
+   "nome": "Sensor D8 · Central",
+   "vagaId": "est-1-vaga-38"
+  },
+  {
+   "id": "est-1-sensor-39",
+   "nome": "Sensor D9 · Central",
+   "vagaId": "est-1-vaga-39"
+  },
+  {
+   "id": "est-1-sensor-40",
+   "nome": "Sensor D10 · Central",
+   "vagaId": "est-1-vaga-40"
+  },
+  {
+   "id": "est-2-sensor-1",
+   "nome": "Sensor A1 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-1"
+  },
+  {
+   "id": "est-2-sensor-2",
+   "nome": "Sensor A2 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-2"
+  },
+  {
+   "id": "est-2-sensor-3",
+   "nome": "Sensor A3 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-3"
+  },
+  {
+   "id": "est-2-sensor-4",
+   "nome": "Sensor A4 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-4"
+  },
+  {
+   "id": "est-2-sensor-5",
+   "nome": "Sensor A5 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-5"
+  },
+  {
+   "id": "est-2-sensor-6",
+   "nome": "Sensor A6 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-6"
+  },
+  {
+   "id": "est-2-sensor-7",
+   "nome": "Sensor A7 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-7"
+  },
+  {
+   "id": "est-2-sensor-8",
+   "nome": "Sensor A8 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-8"
+  },
+  {
+   "id": "est-2-sensor-9",
+   "nome": "Sensor B1 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-9"
+  },
+  {
+   "id": "est-2-sensor-10",
+   "nome": "Sensor B2 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-10"
+  },
+  {
+   "id": "est-2-sensor-11",
+   "nome": "Sensor B3 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-11"
+  },
+  {
+   "id": "est-2-sensor-12",
+   "nome": "Sensor B4 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-12"
+  },
+  {
+   "id": "est-2-sensor-13",
+   "nome": "Sensor B5 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-13"
+  },
+  {
+   "id": "est-2-sensor-14",
+   "nome": "Sensor B6 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-14"
+  },
+  {
+   "id": "est-2-sensor-15",
+   "nome": "Sensor B7 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-15"
+  },
+  {
+   "id": "est-2-sensor-16",
+   "nome": "Sensor B8 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-16"
+  },
+  {
+   "id": "est-2-sensor-17",
+   "nome": "Sensor C1 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-17"
+  },
+  {
+   "id": "est-2-sensor-18",
+   "nome": "Sensor C2 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-18"
+  },
+  {
+   "id": "est-2-sensor-19",
+   "nome": "Sensor C3 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-19"
+  },
+  {
+   "id": "est-2-sensor-20",
+   "nome": "Sensor C4 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-20"
+  },
+  {
+   "id": "est-2-sensor-21",
+   "nome": "Sensor C5 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-21"
+  },
+  {
+   "id": "est-2-sensor-22",
+   "nome": "Sensor C6 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-22"
+  },
+  {
+   "id": "est-2-sensor-23",
+   "nome": "Sensor C7 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-23"
+  },
+  {
+   "id": "est-2-sensor-24",
+   "nome": "Sensor C8 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-24"
+  },
+  {
+   "id": "est-2-sensor-25",
+   "nome": "Sensor D1 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-25"
+  },
+  {
+   "id": "est-2-sensor-26",
+   "nome": "Sensor D2 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-26"
+  },
+  {
+   "id": "est-2-sensor-27",
+   "nome": "Sensor D3 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-27"
+  },
+  {
+   "id": "est-2-sensor-28",
+   "nome": "Sensor D4 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-28"
+  },
+  {
+   "id": "est-2-sensor-29",
+   "nome": "Sensor D5 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-29"
+  },
+  {
+   "id": "est-2-sensor-30",
+   "nome": "Sensor D6 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-30"
+  },
+  {
+   "id": "est-2-sensor-31",
+   "nome": "Sensor D7 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-31"
+  },
+  {
+   "id": "est-2-sensor-32",
+   "nome": "Sensor D8 · Bloco Acadêmico",
+   "vagaId": "est-2-vaga-32"
+  },
+  {
+   "id": "est-3-sensor-1",
+   "nome": "Sensor A1 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-1"
+  },
+  {
+   "id": "est-3-sensor-2",
+   "nome": "Sensor A2 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-2"
+  },
+  {
+   "id": "est-3-sensor-3",
+   "nome": "Sensor A3 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-3"
+  },
+  {
+   "id": "est-3-sensor-4",
+   "nome": "Sensor A4 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-4"
+  },
+  {
+   "id": "est-3-sensor-5",
+   "nome": "Sensor A5 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-5"
+  },
+  {
+   "id": "est-3-sensor-6",
+   "nome": "Sensor A6 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-6"
+  },
+  {
+   "id": "est-3-sensor-7",
+   "nome": "Sensor A7 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-7"
+  },
+  {
+   "id": "est-3-sensor-8",
+   "nome": "Sensor A8 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-8"
+  },
+  {
+   "id": "est-3-sensor-9",
+   "nome": "Sensor A9 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-9"
+  },
+  {
+   "id": "est-3-sensor-10",
+   "nome": "Sensor A10 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-10"
+  },
+  {
+   "id": "est-3-sensor-11",
+   "nome": "Sensor B1 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-11"
+  },
+  {
+   "id": "est-3-sensor-12",
+   "nome": "Sensor B2 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-12"
+  },
+  {
+   "id": "est-3-sensor-13",
+   "nome": "Sensor B3 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-13"
+  },
+  {
+   "id": "est-3-sensor-14",
+   "nome": "Sensor B4 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-14"
+  },
+  {
+   "id": "est-3-sensor-15",
+   "nome": "Sensor B5 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-15"
+  },
+  {
+   "id": "est-3-sensor-16",
+   "nome": "Sensor B6 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-16"
+  },
+  {
+   "id": "est-3-sensor-17",
+   "nome": "Sensor B7 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-17"
+  },
+  {
+   "id": "est-3-sensor-18",
+   "nome": "Sensor B8 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-18"
+  },
+  {
+   "id": "est-3-sensor-19",
+   "nome": "Sensor B9 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-19"
+  },
+  {
+   "id": "est-3-sensor-20",
+   "nome": "Sensor B10 · Complexo Esportivo",
+   "vagaId": "est-3-vaga-20"
+  }
+ ]
+}

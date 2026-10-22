@@ -1,12 +1,14 @@
-# API BatSinal v2 — MSW local
+# API BatSinal v2
 
-O frontend usa HTTP/JSON. Este contrato é demonstrado pelo MSW, sem backend real.
+O frontend usa HTTP/JSON. Este contrato é implementado pela API FastAPI em `backend/` (prefixo `/api`)
+e também demonstrado pelo MSW, que continua sendo o padrão do frontend (`VITE_USE_MOCK=true`).
 No navegador, `/` consulta a Unisagrado; `/c/:slug` atende outras empresas. Isso não muda os endpoints:
 o cliente continua consultando `/public/empresas/{slug}` para identificar cada campus.
 O alias antigo da Unisagrado redireciona à raiz mantendo query/fragmento.
 
-O bootstrap FastAPI em `backend/` implementa somente `GET /api/health` e `GET /api/ready`.
-As rotas de domínio deste documento ainda são demonstradas **somente pelo MSW**.
+Diferenças deliberadas da API real em relação ao mock: `versao` é **obrigatória** em
+posicionamento, lote e restauração (ausente → 422); senhas não são aparadas; IDs são UUID;
+há `POST /auth/logout`, `POST /leituras`, `POST /sensores/{id}/chave` e o simulador opcional.
 
 Token opaco em `Authorization: Bearer ...` somente nas rotas privadas. A sessão representa a empresa,
 sem papéis ou conta de motorista. A empresa é resolvida do token, nunca do corpo enviado pelo cliente.
@@ -18,6 +20,7 @@ IDs conhecidos de outra empresa devolvem 404; visitante sem token recebe 401 ao 
 | --- | --- | --- |
 | POST `/auth/cadastro-empresa` | `{ nome, slug, email, senha }` | `{ token, empresa: { id, nome, slug, email } }` |
 | POST `/auth/login` | `{ email, senha }` | mesma sessão |
+| POST `/auth/logout` | — | null; revoga a sessão do token (somente API real) |
 | GET `/auth/me` | — | conta da empresa, sem senha |
 | GET `/empresa` | — | conta da empresa |
 | PUT `/empresa` | `{ nome, slug }` | conta atualizada |
@@ -73,7 +76,7 @@ Uma posição recebe uma peça. Trocar uma vaga posicionada com outra ocupada tr
 quando a origem é a bandeja, a peça deslocada vai para a bandeja. Ambos os tipos precisam ser compatíveis.
 Todas as referências e tipos são validados antes de alterar o lote. Cada escrita incrementa `area.versao`.
 O frontend envia a versão nas operações de posicionamento; versão divergente retorna 409, sem sobrescrever.
-O campo é opcional no contrato mock para clientes antigos. Na API real deverá ser obrigatório.
+O campo é opcional no contrato mock para clientes antigos. Na API real é obrigatório (422 sem ele).
 O histórico de desfazer fica na tela e é limpo ao trocar de área/recarregar. A operação é recusada se
 as posições já tiverem mudado fora do histórico. Restaurar não inventa âncoras para áreas importadas.
 
@@ -85,9 +88,17 @@ Não há desenho, escala automática, edição livre ou gerador de posições no
 
 CRUD privado `/estacionamentos` e `/sensores`. Estacionamento exige nome; metadados antigos de acesso
 são preservados, sem prometer tempo de caminhada. Um sensor se vincula a uma única vaga da mesma empresa.
-POST `/sensores` retorna `deviceKey` ilustrativa uma única vez; GET não a retorna.
+POST `/sensores` retorna `deviceKey` uma única vez; GET não a retorna. No banco fica só o hash.
+POST `/sensores/{id}/chave` gera outra chave (201, `deviceKey` uma vez) e invalida a anterior.
 A consulta atualiza a cada 3 s. Sem sensor ou leitura válida há mais de 60 s: SEM_SINAL.
-O simulador escreve no store; telas reais continuam usando HTTP. Leituras do seed são sintéticas.
+Leituras do seed são sintéticas.
+
+| Método e rota | Autenticação | Corpo / resposta |
+| --- | --- | --- |
+| POST `/leituras` | cabeçalho `X-Device-Key` do sensor | `{ status: LIVRE \| OCUPADA }` → 201 `{ sensorId, vagaId?, status, recebidoEm }`; chave inválida 401 |
+| POST `/simulador/leituras` | sessão da empresa | `{ vagaId, status: LIVRE \| OCUPADA \| SEM_SINAL }` → 201; 404 se `BATSINAL_SIMULADOR` desligado; 422 se a vaga não tem sensor |
+
+No mock, o simulador escreve direto no store; com a API real, o painel usa `/simulador/leituras`.
 
 GET `/estacionamentos/{id}/ocupacao?de=ISO&ate=ISO&granularidade=hora|dia|30min` e `/heatmap` são privados.
 Ocupação é indisponibilidade, incluindo SEM_SINAL; histórico sintético de 14 dias.
@@ -97,6 +108,8 @@ Ocupação é indisponibilidade, incluindo SEM_SINAL; histórico sintético de 1
 Erros: `{ status, mensagem, campos? }`. 401 sessão ausente; 404 ausente/outra empresa;
 405 método proibido; 409 conflito de slug/versão/área ocupada; 422 campos ou posições inválidos;
 507 armazenamento local indisponível. Nesse caso, o mock reverte a escrita e informa o erro.
+Na API real, 503 indica banco não configurado; conflitos detectados só no commit (corrida de slug,
+e-mail, rótulo ou âncora) também respondem 409, e cada escrita é uma transação.
 POST retorna 201; demais operações 200, exclusão null. O mock armazena somente credenciais fictícias.
 
 Não existem endpoints de usuários, favoritos ou editor livre. Preferências locais do visitante:

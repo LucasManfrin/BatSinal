@@ -1,8 +1,8 @@
-# Backend BatSinal — base para implementação
+# Backend BatSinal
 
-Já existe uma base executável de FastAPI, configuração, CORS, conexão PostgreSQL e Alembic.
-**As rotas de negócio ainda estão no mock do frontend.** Esta base não substitui o MSW.
-Leia [HANDOFF](../docs/HANDOFF.md) e [AGENTS](AGENTS.md) antes de continuar.
+API FastAPI + PostgreSQL que implementa o [contrato HTTP](../docs/api-contract.md) antes demonstrado
+apenas pelo MSW: conta da empresa, consulta pública, gestão, posicionamento transacional, sensores,
+leituras dos dispositivos e histórico. Leia [HANDOFF](../docs/HANDOFF.md) e [AGENTS](AGENTS.md).
 
 ## Preparar o ambiente
 
@@ -20,34 +20,32 @@ python -m venv .venv
 .venv/Scripts/uv.exe sync --extra dev --locked --inexact
 ```
 
-Nos comandos abaixo, substitua `uv` por `.venv/Scripts/uv.exe` nesse caso. O `uv.lock` é versionado;
-não atualize todas as dependências para começar a trabalhar.
+Nos comandos abaixo, substitua `uv` por `.venv/Scripts/uv.exe` nesse caso. Nenhuma dependência
+nova foi adicionada ao `uv.lock`: hash de senha usa `hashlib.scrypt` da biblioteca padrão.
 
-## Banco de desenvolvimento
+## Subir banco, migrar e importar a demonstração
 
 Com Docker Desktop ativo, dentro de `backend/`:
 
 ```sh
 docker compose up -d db
+cp .env.example .env          # confira a URL e BATSINAL_SIMULADOR
+uv run alembic upgrade head   # revisões 0001 (esquema v2) e 0002 (campos do contrato)
+uv run python -m app.seed     # Unisagrado: 3 estacionamentos, 11 áreas, 92 âncoras/vagas/sensores
 ```
 
-O compose usa PostgreSQL 17, publica **somente 127.0.0.1:55432**, com banco/usuário `batsinal` e
-senha fictícia `batsinal_dev`, destinados a desenvolvimento. O volume nomeado preserva dados.
-Não há inicializador SQL paralelo: o esquema é criado somente pelo Alembic.
+O compose usa PostgreSQL 17 (necessário 16+ por `date_trunc` com fuso), publica **somente
+127.0.0.1:55432**, banco/usuário `batsinal` e senha fictícia `batsinal_dev`. O volume preserva dados.
 
-Copie `.env.example` para `.env` e confira a URL do banco local antes de migrar:
+O seed lê [database/seed-unisagrado.json](database/seed-unisagrado.json), exportado do próprio mock
+por `node backend/scripts/exportar_seed_mock.ts` (na raiz), sem redesenhar a geometria. IDs legíveis
+(`est-1`, `frente-ab`) viram UUID e as referências da cena são atualizadas. Três vagas começam na bandeja.
+Conta fictícia **admin@unisagrado.demo / Demo@123**, gravada só como hash. Cada sensor recebe chave
+aleatória (somente hash); gere uma chave para um dispositivo real com `POST /api/sensores/{id}/chave`.
+Leituras e 14 dias de histórico são sintéticos; use `--sem-dados-sinteticos` para omiti-los.
+Rodar o seed de novo não altera nada se o slug já existir.
 
-```sh
-uv run alembic upgrade head
-uv run alembic current
-```
-
-A revisão `0001` cria o esquema `batsinal` com suas tabelas e constraints, sem seed. Não aplique
-essa revisão em um banco antigo com o mesmo esquema já criado manualmente: primeiro avalie uma
-migração de adoção dos dados. Não use `create_all()` no startup. Veja `AGENTS.md` sobre autogenerate.
-
-Para parar os containers preservando dados: `docker compose stop`. Não é necessário apagar volumes
-para atualizar o código. Não há rotina de reset destrutivo nesta base.
+Para parar preservando dados: `docker compose stop`. Não há rotina de reset destrutivo.
 
 ## Executar a API
 
@@ -55,13 +53,53 @@ para atualizar o código. Não há rotina de reset destrutivo nesta base.
 uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-- `/docs`: documentação do bootstrap.
-- `GET /api/health`: processo ativo, funciona sem PostgreSQL.
-- `GET /api/ready`: testa **somente conexão** com o banco, retorna 503 se ausente/indisponível.
-- CORS permite por padrão os dois endereços locais do Vite em 5173.
+- `/docs`: OpenAPI de todas as rotas. `GET /api/health` e `GET /api/ready` (conexão com o banco).
+- O startup não cria tabelas nem contas; o esquema é exclusivo do Alembic.
+- Uma tarefa em segundo plano grava a cada `BATSINAL_AMOSTRAGEM_SEGUNDOS` (10 s) a amostra do
+  intervalo de 5 min de cada estacionamento (UPSERT) e apaga histórico com mais de 14 dias.
 
-O startup não cria tabelas, contas ou sessões e não conecta automaticamente ao banco.
-Readiness não significa que autenticação ou domínio estão implementados; esses endpoints ainda retornam 404.
+### Frontend contra a API real
+
+Em `frontend/.env`:
+
+```dotenv
+VITE_USE_MOCK=false
+VITE_API_URL=http://localhost:8000/api
+VITE_SHOW_SIMULATOR=true
+```
+
+Reinicie o Vite. Com `BATSINAL_SIMULADOR=true`, o painel Simulador usa `POST /api/simulador/leituras`
+e a tarefa de amostragem repete a última leitura de cada sensor simulado, como o heartbeat do mock.
+Sem isso, toda vaga vira SEM_SINAL 60 s após a última leitura. Desligue o simulador ao usar sensores reais.
+
+## Sensores reais (ESP32)
+
+```http
+POST /api/leituras
+X-Device-Key: bs_...
+Content-Type: application/json
+
+{ "status": "LIVRE" }   // ou "OCUPADA"
+```
+
+A chave aparece uma única vez (`deviceKey`) ao criar o sensor ou gerar uma nova chave.
+O dispositivo deve repetir a leitura a cada poucos segundos (bem menos que 60 s), mesmo sem mudança.
+
+## Estrutura
+
+```text
+app/
+  main.py         factory, CORS, erros, tarefa de amostragem
+  config.py       BATSINAL_* (sessão, expiração do sinal, fuso, retenção, simulador)
+  db.py models.py engine/sessão e ORM alinhado às migrações
+  auth.py security.py  sessão por token opaco (hash SHA-256) e senha scrypt
+  errors.py       ErroApi { status, mensagem, campos? } para todas as falhas
+  schemas.py      corpos de requisição (camelCase)
+  routers/        conta, publico, estacionamentos, areas (+ vagas), sensores (+ leituras, simulador)
+  services/       consulta (DTOs explícitos), posicionamento (bloqueio/versão), ocupacao (histórico)
+  seed.py         importador da demonstração
+migrations/       0001 esquema v2, 0002 campos do contrato
+```
 
 ## Testes e qualidade
 
@@ -72,27 +110,26 @@ uv run pytest
 uv lock --check
 ```
 
-Os sete testes atuais cobrem health/readiness, CORS, driver PostgreSQL e geração/análise do SQL de
-upgrade/downgrade. Funcionam sem banco. PGlAST verifica a sintaxe PostgreSQL, não o comportamento
-das constraints. Acrescente testes de integração em PostgreSQL quando implementar o ORM e as rotas.
+**38 testes.** Os de infraestrutura/SQL offline rodam sem banco. Os de integração usam um banco
+dedicado `batsinal_test` no mesmo PostgreSQL (criado se faltar; sobrescreva com
+`BATSINAL_TEST_DATABASE_URL`, que precisa terminar em `_test`). A cada execução o esquema é recriado
+por `upgrade head → downgrade base → upgrade head`. Sem PostgreSQL acessível, eles são pulados.
 
-Na preparação inicial, o daemon Docker estava desligado. A migração **não foi aplicada** e não
-foi alegada validação de banco real. O frontend continua funcionando sem esse ambiente.
+Cobrem: cadastro/login/logout/expiração/troca de senha com revogação; consulta pública sem segredos
+e 405 em escrita; isolamento por empresa (IDs conhecidos → 404); posicionamento, troca, bandeja,
+tipos, versão obrigatória/409, lote atômico, restaurar padrão, exclusões com limpeza de vínculos;
+dois movimentos concorrentes com a mesma versão (um 200, outro 409); chaves de dispositivo,
+leituras, expiração para SEM_SINAL, simulador, amostragem/retenção, ocupação e heatmap; e as
+restrições do próprio PostgreSQL (âncora única diferida, FKs compostas entre empresas, rótulo sem caixa).
 
-## Fontes de verdade e sequência
+## Fontes de verdade
 
-- [Migração inicial](migrations/versions/0001_initial.py): snapshot versionado do esquema v2.
-- [Referência SQL](database/schema.proposta.sql): desenho que originou `0001`; não executar como segundo inicializador.
-- [Contrato do mock](../docs/api-contract.md): alvo das futuras rotas, ainda não implementadas aqui.
-- [Arquitetura e transações](../docs/ARQUITETURA_BACKEND.md).
-- [Mapa e limites do levantamento](../docs/MAPA_CAMPUS.md).
-- [Exemplo de âncoras](database/ancoras.exemplo.json) e GeoJSON inicial vazio em `database/`.
+- [Migrações](migrations/versions/): não edite revisões aplicadas; crie outra.
+- [Referência SQL](database/schema.proposta.sql): origem de `0001`; não executar como inicializador.
+- [Contrato](../docs/api-contract.md) · [Arquitetura e transações](../docs/ARQUITETURA_BACKEND.md) ·
+  [Mapa e limites do levantamento](../docs/MAPA_CAMPUS.md) · [Exemplo de âncoras](database/ancoras.exemplo.json).
 
-Comece por ORM e testes reais da migração; depois conta/sessão, consulta/CRUD, transações de vagas,
-importação do campus e ingestão dos sensores. Só integre `VITE_USE_MOCK=false` depois de completar
-e testar o contrato. A empresa vem da sessão; visitantes não têm conta e o mapa é sempre público.
-
-Referências usadas na base: [FastAPI Settings](https://fastapi.tiangolo.com/advanced/settings/),
+Referências: [FastAPI Settings](https://fastapi.tiangolo.com/advanced/settings/),
 [SQLAlchemy Engine](https://docs.sqlalchemy.org/en/20/core/engines.html),
 [Alembic](https://alembic.sqlalchemy.org/en/latest/tutorial.html) e
 [imagem oficial PostgreSQL](https://hub.docker.com/_/postgres).

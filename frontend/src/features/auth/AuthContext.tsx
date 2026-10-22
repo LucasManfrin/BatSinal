@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { api, json, TOKEN_KEY } from '../../lib/api';
+import { api, json, TOKEN_KEY, USE_MOCK } from '../../lib/api';
 import type { Sessao, ContaEmpresa } from '../../types';
 import { Loading } from '../../components/ui';
 
@@ -18,6 +18,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
   const logout = useCallback(() => {
+    // A API real revoga a sessão no servidor; api() lê o token antes de ele ser removido.
+    if (!USE_MOCK && localStorage.getItem(TOKEN_KEY))
+      void api('/auth/logout', { method: 'POST' }).catch(() => undefined);
     localStorage.removeItem(TOKEN_KEY);
     setUser(null);
     queryClient.clear();

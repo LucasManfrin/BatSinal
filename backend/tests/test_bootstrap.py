@@ -18,10 +18,12 @@ def client():
 
 
 def test_health_without_database(client):
-    assert client.get("/api/health").json()["stage"] == "bootstrap"
+    assert client.get("/api/health").json()["stage"] == "api"
     assert client.get("/api/ready").status_code == 503
-    # O bootstrap não se apresenta como uma implementação dos endpoints do mock.
-    assert client.get("/api/public/empresas/unisagrado").status_code == 404
+    # Sem banco configurado, as rotas de domínio respondem 503 no formato ErroApi.
+    resposta = client.get("/api/public/empresas/unisagrado")
+    assert resposta.status_code == 503
+    assert resposta.json() == {"status": 503, "mensagem": "Banco não configurado."}
 
 
 def test_ready_does_not_leak_connection_details(client):

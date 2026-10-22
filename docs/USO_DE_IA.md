@@ -437,3 +437,23 @@ Na revisão móvel final, corrigiu o tamanho mínimo das colunas da maquete do p
 passou a respeitar os 375 px disponíveis, mantendo a navegação horizontal em sua própria faixa.
 Capturas desktop: `v2-raiz.png` e `v2-preparacao.png`. Os dados usados na verificação de
 posicionamento foram restaurados pela própria interface.
+
+## Backend e banco de dados — Claude (Anthropic), 21/10/2026
+
+Ferramenta: Claude Code, modelo Claude Opus 5.5. Pedido do usuário: ler o projeto e `/docs` e
+implementar o backend e o banco de dados.
+
+A IA implementou o contrato de `api-contract.md` em FastAPI + SQLAlchemy: conta da empresa com
+senha scrypt e sessões por token opaco (hash no banco, expiração, logout e revogação na troca de senha);
+consulta pública com DTOs explícitos; CRUD de estacionamentos, áreas, vagas e sensores no escopo da
+empresa do token; posicionamento com bloqueio da área, versão obrigatória e lote atômico; leituras de
+dispositivos por chave (`POST /leituras`); simulador opcional; amostragem e retenção do histórico.
+Criou a migração `0002` (dimensões e acesso dos estacionamentos, índices) sem editar a `0001`.
+O seed é exportado do próprio mock (`scripts/exportar_seed_mock.ts`) e importado com IDs convertidos
+para UUID, preservando a geometria. No frontend, só o Simulador e o logout foram adaptados aos dois modos.
+
+Verificação feita pela IA: o Docker Desktop foi iniciado e um PostgreSQL 17 novo foi criado pelo compose
+(sem volume anterior). As migrações foram aplicadas e revertidas de verdade; a suíte de integração roda
+em `batsinal_test`, incluindo constraints, isolamento e concorrência. Frontend: lint (ESLint), 59 testes e
+build passaram; o Prettier acusa apenas finais de linha CRLF desta cópia Windows (`core.autocrlf`).
+**Não** houve revisão manual completa no navegador com `VITE_USE_MOCK=false`. Revisão humana pendente.

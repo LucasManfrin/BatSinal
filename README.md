@@ -103,11 +103,11 @@ Campus, cena 3D, ícones e fontes são locais, sem CDN. Google Maps e tiles opci
 exigem internet; a consulta/lista não depende deles. A maquete 3D é carregada sob demanda;
 o build ainda informa um chunk Three.js de cerca de 688 kB antes de gzip.
 
-O backend tem uma **base executável** de FastAPI, configuração, health/readiness, conexão PostgreSQL,
-Compose e migração Alembic inicial. Dependências estão fixadas em `backend/uv.lock`.
-As rotas de autenticação/consulta/gestão e os modelos ORM ainda serão implementados; o frontend
-continua com MSW. A migração foi validada offline, mas não aplicada em PostgreSQL nesta preparação.
-O mapa ficará em JSONB; áreas, âncoras, vagas e sensores terão tabelas relacionadas.
+O backend (FastAPI + PostgreSQL) **implementa o contrato completo**: conta e sessões, consulta
+pública, gestão, posicionamento transacional, sensores com chave de dispositivo, leituras e histórico.
+O seed importa a Unisagrado do próprio mock. O mapa fica em JSONB; áreas, âncoras, vagas e sensores
+em tabelas relacionadas. O frontend continua com MSW por padrão; para usar a API real, siga
+[backend/README.md](backend/README.md#frontend-contra-a-api-real).
 
 - [Contrato HTTP implementado no mock](docs/api-contract.md)
 - [Como executar e continuar o backend](backend/README.md)
@@ -117,10 +117,9 @@ O mapa ficará em JSONB; áreas, âncoras, vagas e sensores terão tabelas relac
 - [Formato GeoJSON futuro](backend/database/mapa-campus.schema.json)
 - [Mapa geográfico inicial vazio](backend/database/mapa-unisagrado.inicial.geojson)
 
-Quando o contrato completo estiver implementado, configure `VITE_USE_MOCK=false` e `VITE_API_URL`.
-Os endpoints health/readiness do bootstrap não substituem esse contrato. O frontend usa somente HTTP/JSON.
+Com a API em execução, configure `VITE_USE_MOCK=false` e `VITE_API_URL`. O frontend usa somente HTTP/JSON.
 O mock compartilha armazenamento entre abas, mas não oferece bloqueio concorrente de banco;
-a versão reduz sobrescritas e a API real deverá verificar a versão sob bloqueio da área.
+a API real verifica a versão sob bloqueio da área (`SELECT ... FOR UPDATE`).
 
 ## Verificar e revisar
 
@@ -134,7 +133,8 @@ npm run preview
 Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte frontend: **59 testes em 13 arquivos**,
 incluindo ímã, troca atômica, persistência/erro de armazenamento, versão, isolamento, cadastro,
 consulta anônima, raiz pública, aliases, checklist, preferências locais, migração, status, teclado e alternativa sem WebGL.
-Backend: **7 testes**, Ruff e verificação do lock, com comandos em `backend/README.md`.
+Backend: testes de infraestrutura e de integração em PostgreSQL, Ruff e verificação do lock,
+com comandos em `backend/README.md`.
 O worker MSW é versionado; após atualizar MSW, regenere com `npx msw init frontend/public`.
 Durante alterações no próprio mock em desenvolvimento, recarregue a página se o worker perder a conexão.
 

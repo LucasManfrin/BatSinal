@@ -1,42 +1,40 @@
 # API e banco — instruções para os próximos agentes
 
 Leia `README.md` nesta pasta, `../docs/HANDOFF.md`, `../docs/api-contract.md` e
-`../docs/ARQUITETURA_BACKEND.md` antes de implementar o domínio.
+`../docs/ARQUITETURA_BACKEND.md` antes de alterar o domínio.
 
-## Base existente
+## Estado
 
-- FastAPI em `app/main.py`: health, readiness de conexão, CORS e factory testável.
-- Configuração tipada em `app/config.py`; conexão e sessão em `app/db.py`.
-- PostgreSQL via psycopg; Alembic em `migrations/`; revisão inicial `0001` sem seed.
-- Dependências resolvidas em `uv.lock`; Python 3.12–3.14. Não versione `.env` ou `.venv`.
-- Não há modelos ORM de domínio nem rotas do contrato ainda. Crie-os incrementalmente.
+- O contrato do mock está implementado: conta, consulta pública, CRUD, posicionamento, sensores,
+  leituras (`/leituras`), simulador opcional e histórico. Rotas em `app/routers`, regras em `app/services`.
+- Modelos ORM em `app/models.py`, alinhados às revisões `0001` e `0002` (colunas e tipos conferidos
+  com `compare_metadata` em PostgreSQL). Constraints compostas e índices de expressão existem
+  **somente nas migrações**.
+- Dependências fixadas em `uv.lock`; Python 3.12–3.14. Não versione `.env` ou `.venv`.
 
 ## Migrações
 
-`0001_initial.py` é o snapshot inicial do SQL v2. Depois de utilizado, não o edite para evoluir
-o banco: crie outra revisão. `database/schema.proposta.sql` é referência, não inicializador paralelo.
-Não use `Base.metadata.create_all()` na inicialização da API.
+Revisões aplicadas não são editadas: crie outra. `database/schema.proposta.sql` é referência,
+não inicializador. Não use `Base.metadata.create_all()`.
 
-O `target_metadata` do Alembic fica **None** enquanto o ORM estiver incompleto, para que
-autogenerate não interprete metadata vazia como pedido de apagar tabelas. Só o habilite depois
-de modelar o esquema completo e conferir o diff em um PostgreSQL de desenvolvimento.
+`target_metadata` do Alembic continua **None** de propósito: como as constraints compostas e os
+índices de expressão não estão declarados no ORM, o autogenerate proporia removê-los.
+Escreva as próximas revisões à mão e teste upgrade/downgrade (a suíte faz isso em `batsinal_test`).
 
-Vaga/âncora/área/sensor devem pertencer à mesma empresa. A empresa vem da sessão validada.
-Posicionamento exige versão e transação com bloqueio da área; troca e desfazer são atômicos.
-Valide ambos os tipos antes de trocar. Não remova as constraints compostas ou a unicidade diferível.
-Ao excluir vaga, limpe vínculo do sensor e `ancoras.vaga_padrao_id` na mesma transação.
+## Regras que não podem regredir
 
-## Seed e API
-
-Não transporte senhas/chaves em texto do mock ao banco. Gere hashes e somente dados fictícios.
-IDs ilustrativos do mock não são UUID: o importador deverá mapear IDs de empresas, áreas, vagas
-e âncoras e atualizar suas referências no JSON da cena. Blocos/portões locais podem manter IDs do mapa.
-Preserve a geometria de `../frontend/src/mocks/campus.ts`; não a redesenhe ao criar o seed.
-DTO público precisa listar campos explicitamente, sem e-mail, senha, chave ou sensorId.
-Mantenha camelCase no contrato HTTP, snake_case no banco. Padronize erros do domínio com `ErroApi`.
+- A empresa vem da sessão validada; nunca de `empresaId` no corpo. IDs de outra empresa → 404.
+- DTOs públicos listam campos explicitamente, sem e-mail, senha, chave ou sensorId (ver `services/consulta.py`).
+- Posicionamento: versão obrigatória, `SELECT ... FOR UPDATE` na área, lote validado por inteiro
+  antes de alterar. Troca depende da unicidade diferida de `vagas.ancora_id`.
+- Excluir vaga limpa sensor e `ancoras.vaga_padrao_id` na mesma transação; área com vagas → 409.
+- Senhas com scrypt; tokens e chaves de dispositivo guardados só como SHA-256. Trocar a senha revoga
+  as outras sessões. A chave do dispositivo aparece uma única vez.
+- camelCase no HTTP, snake_case no banco. Erros sempre no formato ErroApi (`app/errors.py`).
+- Visitantes não têm conta; não crie endpoints de usuários/favoritos. Mapa sempre público.
 
 ## Testar
 
-Use o ambiente e comandos do README. Os testes atuais não precisam de PostgreSQL:
-cobrem infraestrutura e geração/análise do SQL. Acrescente testes reais de constraints,
-isolamento, concorrência, upgrade/downgrade e rotas quando o domínio for implementado.
+Comandos no README. Os testes de integração precisam do PostgreSQL do compose e usam um banco
+`*_test` recriado a cada execução — nunca aponte `BATSINAL_TEST_DATABASE_URL` para dados reais.
+Acrescente testes de rota e de restrição junto de cada mudança de domínio.

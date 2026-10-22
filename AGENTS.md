@@ -16,12 +16,12 @@ Para interface, leia também `frontend/DESIGN.md`; para API, `backend/README.md`
 ## Verificações
 
 Na raiz: `npm run lint`, `npm run test`, `npm run build`.
-No backend, após `uv sync --extra dev --locked`: `uv run ruff check app migrations tests`,
-`uv run ruff format --check app migrations tests` e `uv run pytest`.
+No backend, após `uv sync --extra dev --locked` e `docker compose up -d db`:
+`uv run ruff check app migrations tests`, `uv run ruff format --check app migrations tests` e `uv run pytest`.
 Revise desktop/celular em mudanças visuais. Reutilize a instância Vite em 5173 se já estiver ativa.
 
 ## Limite atual
 
-O frontend usa MSW. O backend tem infraestrutura e migração inicial, mas ainda não implementa
-autenticação, consulta, CRUD ou sensores reais. Não desligue o mock antes de completar o contrato.
-Não confunda teste sintático de SQL offline com aplicação/teste de restrições em PostgreSQL.
+O frontend usa MSW por padrão. O backend implementa o contrato completo (ver `backend/AGENTS.md`);
+os testes de integração exigem o PostgreSQL do compose. Mudanças no contrato precisam valer nos dois:
+handlers do mock e rotas FastAPI. O firmware dos sensores ainda não existe.

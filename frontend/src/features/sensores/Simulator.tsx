@@ -4,6 +4,18 @@ import { Activity, Radio, RefreshCw, X } from 'lucide-react';
 import { useLot, useLots, useStatuses } from '../estacionamentos/queries';
 import { Button, Select, SpotStatusBadge, Switch } from '../../components/ui';
 import type { StatusVaga } from '../../types';
+import { api, json, USE_MOCK } from '../../lib/api';
+
+// Com o mock, escreve no store local; com a API real, usa o endpoint de demonstração
+// /simulador/leituras (habilitado por BATSINAL_SIMULADOR=true no backend).
+async function simulateStatus(vagaId: string, status: StatusVaga) {
+  if (USE_MOCK) {
+    const handlers = await import('../../mocks/handlers');
+    handlers.simulateStatus(vagaId, status);
+    return;
+  }
+  await api('/simulador/leituras', { method: 'POST', body: json({ vagaId, status }) });
+}
 
 export function Simulator() {
   const [open, setOpen] = useState(false);
@@ -15,8 +27,7 @@ export function Simulator() {
   const statuses = useStatuses(selectedId);
   const client = useQueryClient();
   async function change(vagaId: string, status: StatusVaga) {
-    const { simulateStatus } = await import('../../mocks/handlers');
-    simulateStatus(vagaId, status);
+    await simulateStatus(vagaId, status).catch(() => undefined);
     await client.invalidateQueries({ queryKey: ['status'] });
     await client.invalidateQueries({ queryKey: ['estacionamentos'] });
     await client.invalidateQueries({ queryKey: ['sensores'] });
@@ -27,11 +38,12 @@ export function Simulator() {
     const interval = window.setInterval(() => {
       if (!vagas.length) return;
       const vaga = vagas[Math.floor(Math.random() * vagas.length)];
-      void import('../../mocks/handlers').then(({ simulateStatus }) => {
-        simulateStatus(vaga.id, Math.random() > 0.5 ? 'LIVRE' : 'OCUPADA');
-        void client.invalidateQueries({ queryKey: ['status'] });
-        void client.invalidateQueries({ queryKey: ['estacionamentos'] });
-      });
+      void simulateStatus(vaga.id, Math.random() > 0.5 ? 'LIVRE' : 'OCUPADA')
+        .catch(() => undefined)
+        .then(() => {
+          void client.invalidateQueries({ queryKey: ['status'] });
+          void client.invalidateQueries({ queryKey: ['estacionamentos'] });
+        });
     }, 2500);
     return () => window.clearInterval(interval);
   }, [moving, lot.data, client]);
@@ -99,10 +111,11 @@ export function Simulator() {
           <Button
             variant="secondary"
             onClick={() => {
-              void import('../../mocks/handlers').then(({ simulateStatus }) => {
-                lot.data?.vagas.forEach((v) => {
-                  if (v.sensorId) simulateStatus(v.id, 'OCUPADA');
-                });
+              void Promise.all(
+                (lot.data?.vagas ?? [])
+                  .filter((v) => v.sensorId)
+                  .map((v) => simulateStatus(v.id, 'OCUPADA').catch(() => undefined)),
+              ).then(() => {
                 void client.invalidateQueries({ queryKey: ['status'] });
                 void client.invalidateQueries({ queryKey: ['estacionamentos'] });
                 void client.invalidateQueries({ queryKey: ['sensores'] });
