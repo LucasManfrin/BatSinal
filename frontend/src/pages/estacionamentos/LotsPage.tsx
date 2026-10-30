@@ -12,8 +12,19 @@ import { useFavoritos, useUltimoDestino, useAlertaDeVaga } from '../../features/
 import { toast } from 'sonner';
 import { SectorLotsPage } from './SectorLotsPage';
 import { AreaView } from './AreaView';
+import { AdvertisingBanner } from '../../features/publicidade/AdvertisingBanner';
 
 export function LotsPage() {
+  const campusSlug = useCampusSlug()!;
+  return (
+    <div className="public-consultation">
+      <AdvertisingBanner campusSlug={campusSlug} />
+      <LotsContent />
+    </div>
+  );
+}
+
+function LotsContent() {
   const query = useCampusScene();
   const [params, setParams] = useSearchParams();
   if (query.isPending) return <Loading />;

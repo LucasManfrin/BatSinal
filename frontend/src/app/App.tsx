@@ -9,6 +9,7 @@ import { CompanyPage } from '../pages/empresa/CompanyPage';
 import { CanonicalCampus } from '../components/lot/CanonicalCampus';
 import { PositionPage } from '../pages/admin/PositionPage';
 import { Button, EmptyState, Loading } from '../components/ui';
+import { AdvertisingPage } from '../pages/publicidade/AdvertisingPage';
 
 // Bibliotecas de mapa, canvas e gráficos só carregam quando a tela precisa delas.
 const LotsPage = lazy(() =>
@@ -51,6 +52,8 @@ const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: '/', element: <LotsPage /> },
+          { path: '/anunciar', element: <AdvertisingPage /> },
+          { path: '/c/:campusSlug/anunciar', element: <AdvertisingPage /> },
           {
             path: '/c/:campusSlug',
             element: (

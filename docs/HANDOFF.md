@@ -28,6 +28,14 @@ O frontend continua com `VITE_USE_MOCK=true` por padrão. Para usar a API real, 
 
 ## Onde continuar
 
+Publicidade: a consulta pública tem um banner com altura reservada e página comercial em
+`/anunciar` ou `/c/:slug/anunciar`. Configuração editorial por slug em
+`frontend/src/features/publicidade/config.ts`; começa com `campanha: null`. O canal comercial
+oficial está pendente (`publicidade.contato` vazio). Sem ele, não há envio de propostas.
+Veja [PUBLICIDADE.md](PUBLICIDADE.md) para campos, período, ativação e contato por instituição.
+Não há endpoint novo nem cadastro administrativo de campanhas; os modos MSW/FastAPI usam
+a mesma configuração compilada. Negociação por lances é direta, sem leilão automatizado.
+
 | Próxima etapa | Arquivos de referência | Critério de conclusão |
 | --- | --- | --- |
 | Firmware dos sensores | `hardware/README.md`, `backend/README.md` (Sensores reais) | ESP32 envia `POST /api/leituras` com `X-Device-Key` a cada poucos segundos |

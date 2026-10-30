@@ -34,6 +34,14 @@ para vaga livre. Não há favoritos no servidor, push, e-mail ou conta de motori
 **Ver de perto** ou clicar em uma área abre a maquete 3D do trecho. Selecione uma vaga para ver
 tipo, status e última leitura; **Voltar ao campus** recupera a consulta. Sem WebGL há planta/lista.
 
+## Publicidade
+
+A consulta tem uma única cota publicitária por instituição, com banner responsivo e página
+comercial em `/anunciar` ou `/c/:slug/anunciar`. Inicialmente o espaço está disponível.
+Configure campanha, período e contato em `frontend/src/features/publicidade/config.ts`.
+O canal comercial oficial ainda precisa ser informado; sem ele, não há envio de propostas.
+Veja [o guia de publicidade](docs/PUBLICIDADE.md) para ativar uma campanha e configurar o contato.
+
 ## Empresa
 
 Cadastro em `/cadastrar-empresa`: nome, slug sugerido e editável, e-mail e senha com ao menos
@@ -130,9 +138,10 @@ npm run build
 npm run preview
 ```
 
-Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte frontend: **59 testes em 13 arquivos**,
+Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte frontend: **76 testes em 14 arquivos**,
 incluindo ímã, troca atômica, persistência/erro de armazenamento, versão, isolamento, cadastro,
-consulta anônima, raiz pública, aliases, checklist, preferências locais, migração, status, teclado e alternativa sem WebGL.
+consulta anônima, raiz pública, aliases, checklist, preferências locais, migração, status, teclado,
+publicidade por instituição/período/contato e alternativa sem WebGL.
 Backend: testes de infraestrutura e de integração em PostgreSQL, Ruff e verificação do lock,
 com comandos em `backend/README.md`.
 O worker MSW é versionado; após atualizar MSW, regenere com `npx msw init frontend/public`.

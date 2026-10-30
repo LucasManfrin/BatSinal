@@ -457,3 +457,33 @@ Verificação feita pela IA: o Docker Desktop foi iniciado e um PostgreSQL 17 no
 em `batsinal_test`, incluindo constraints, isolamento e concorrência. Frontend: lint (ESLint), 59 testes e
 build passaram; o Prettier acusa apenas finais de linha CRLF desta cópia Windows (`core.autocrlf`).
 **Não** houve revisão manual completa no navegador com `VITE_USE_MOCK=false`. Revisão humana pendente.
+
+## Espaço publicitário — Codex (OpenAI), 29/10/2026
+
+A pedido do usuário, a IA acrescentou uma única cota publicitária na consulta pública,
+com altura reservada e card móvel. A página comercial descreve público universitário,
+segmentos, campanha de 30 dias e possibilidade de negociar por lances, sem leilão automatizado.
+O retorno à consulta preserva a query e o fragmento. Mapa, geometria, filtros e consulta
+sem login foram preservados; não houve alteração no contrato HTTP, mock ou backend.
+
+A configuração editorial fica em `frontend/src/features/publicidade/config.ts`, por slug.
+Inclui ativação, anunciante, imagem opcional, texto, botão, destino HTTPS e período com fuso.
+A janela usa o relógio do aparelho e é reavaliada com a aba aberta. Imagem ausente/falha usa
+iniciais; configuração incompleta, inativa ou fora do período mantém o espaço disponível.
+O contato comercial geral ou por instituição permanece pendente porque não havia canal
+oficial no projeto. Sem contato, a página informa que não é possível enviar propostas;
+nenhum recebimento é simulado. Instruções em `docs/PUBLICIDADE.md`.
+
+Verificações da IA: ESLint/Prettier, 76 testes frontend em 14 arquivos (17 novos), build,
+Ruff check/format e 38 testes backend com PostgreSQL real passaram. O Docker Desktop estava
+desligado e foi iniciado para executar o compose e os testes no banco dedicado `batsinal_test`.
+O build mantém o aviso já existente do chunk Three.js (~688 kB).
+O Prettier passou a aceitar o final de linha local (`endOfLine: auto`), resolvendo os avisos
+CRLF da cópia Windows sem reformatar os arquivos existentes. Nenhuma dependência foi adicionada.
+
+**Revisão visual desktop/celular pendente:** o host de acesso ao navegador estava indisponível.
+Ao tentar o Edge pela interface nativa, o controle foi encerrado automaticamente por não
+conseguir determinar a URL atual com confiança para aplicar suas regras. Não foram feitos
+novos comandos de interface após o bloqueio, nem declaradas capturas ou revisão visual.
+As rotas `/` e `/anunciar` responderam HTTP 200; navegação por teclado e foco foram
+verificados por testes DOM, que não substituem a revisão visual. Revisão humana pendente.

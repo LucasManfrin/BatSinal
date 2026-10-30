@@ -7,3 +7,7 @@ export function publicCampusPath(slug: string) {
 export function publicLotPath(slug: string, id: string) {
   return `/c/${encodeURIComponent(slug)}/${encodeURIComponent(id)}`;
 }
+
+export function advertisingPath(slug: string) {
+  return slug === DEFAULT_CAMPUS_SLUG ? '/anunciar' : `/c/${encodeURIComponent(slug)}/anunciar`;
+}
