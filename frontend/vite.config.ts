@@ -22,6 +22,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Os testes rodam contra os handlers do MSW, sem backend.
+    env: { VITE_USE_MOCK: 'true' },
     css: false,
     maxWorkers: 2,
     testTimeout: 10000,

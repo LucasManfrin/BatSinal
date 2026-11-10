@@ -23,8 +23,11 @@ SQLAlchemy e PostgreSQL 17 (compose em 127.0.0.1:55432). Migrações `0001` (esq
 Há ingestão de leituras por chave de dispositivo, simulador opcional e histórico agregado real.
 Testes de integração rodam em um banco `batsinal_test` recriado pelo Alembic a cada execução.
 
-O frontend continua com `VITE_USE_MOCK=true` por padrão. Para usar a API real, siga
-`backend/README.md` (seção "Frontend contra a API real"). O Simulador e o logout já tratam os dois modos.
+O frontend usa a API real por padrão; o MSW só roda com `VITE_USE_MOCK=true` (os testes o ligam).
+Veja `backend/README.md` (seção "Frontend contra a API real"). O Simulador e o logout tratam os dois modos.
+`docker compose up --build` na raiz sobe site (nginx), API e banco, com o frontend na API real.
+Pilha verificada em Docker Desktop 29.9 / Compose 5.6: os 53 testes do backend passaram no banco do compose, e
+consulta, login, CRUD, simulador e posicionamento responderam pelo nginx (verificação HTTP, sem navegador).
 
 ## Onde continuar
 
@@ -39,9 +42,9 @@ a mesma configuração compilada. Negociação por lances é direta, sem leilão
 | Próxima etapa | Arquivos de referência | Critério de conclusão |
 | --- | --- | --- |
 | Firmware dos sensores | `hardware/README.md`, `backend/README.md` (Sensores reais) | ESP32 envia `POST /api/leituras` com `X-Device-Key` a cada poucos segundos |
-| Integração no navegador | `frontend/.env.example`, `backend/README.md` | Consulta, gestão, posicionamento e simulador conferidos manualmente com `VITE_USE_MOCK=false` em desktop e celular |
+| Integração no navegador | `frontend/.env.example`, `backend/README.md` | Consulta, gestão, posicionamento e simulador conferidos manualmente com a API real em desktop e celular |
 | Importador do campus | `backend/app/seed.py`, `backend/scripts/exportar_seed_mock.ts` | Importar prédios/portões/vias validados de outras empresas, não só o seed da Unisagrado |
-| Produção | `docs/ARQUITETURA_BACKEND.md` (Próximos passos) | HTTPS, limite de tentativas de login, backups e decisão sobre o MSW como padrão |
+| Produção | `docs/ARQUITETURA_BACKEND.md` (Próximos passos) | HTTPS, limite de tentativas de login e backups |
 
 O seed do mock usa IDs legíveis (`est-1`, `frente-j` etc.); `app/seed.py` gera UUIDs e atualiza as
 referências da cena. Se mudar `campus.ts`/`positions.ts`, reexporte com

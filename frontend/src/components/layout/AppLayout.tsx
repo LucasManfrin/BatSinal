@@ -250,8 +250,7 @@ export function AppLayout() {
           )}
         </div>
       </Dialog>
-      {USE_MOCK &&
-        import.meta.env.VITE_SHOW_SIMULATOR === 'true' &&
+      {import.meta.env.VITE_SHOW_SIMULATOR === 'true' &&
         admin &&
         location.pathname.startsWith('/admin') && <Simulator />}
     </div>

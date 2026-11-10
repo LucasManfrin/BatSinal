@@ -1,6 +1,7 @@
 import type { ErroApi } from '../types';
 
-export const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+// API real por padrão; o MSW só entra com VITE_USE_MOCK=true (a suíte de testes o liga).
+export const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 export const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(
   /\/$/,
   '',

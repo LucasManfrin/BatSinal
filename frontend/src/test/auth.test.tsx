@@ -1,14 +1,15 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { handlers } from '../mocks/handlers';
 import { createSeed, store } from '../mocks/seed';
 import { AuthProvider, CompanyGuard } from '../features/auth/AuthContext';
 import { AuthPage } from '../pages/auth/AuthPage';
-import { TOKEN_KEY } from '../lib/api';
+import { API_URL, TOKEN_KEY } from '../lib/api';
 
 const server = setupServer(...handlers);
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
@@ -39,6 +40,25 @@ function setup(path = '/entrar', register = false) {
   );
   return userEvent.setup();
 }
+describe('sessão com a API fora do ar', () => {
+  afterEach(() => server.resetHandlers());
+  const responder = (status: number) =>
+    server.use(http.get(`${API_URL}/auth/me`, () => new HttpResponse(null, { status })));
+  it('mantém o token quando a API está indisponível', async () => {
+    localStorage.setItem(TOKEN_KEY, 'token-valido');
+    responder(503);
+    setup('/admin');
+    expect(await screen.findByRole('button', { name: /^entrar$/i })).toBeInTheDocument();
+    expect(localStorage.getItem(TOKEN_KEY)).toBe('token-valido');
+  });
+  it('remove o token quando a API recusa a sessão', async () => {
+    localStorage.setItem(TOKEN_KEY, 'token-vencido');
+    responder(401);
+    setup('/admin');
+    expect(await screen.findByRole('button', { name: /^entrar$/i })).toBeInTheDocument();
+    expect(localStorage.getItem(TOKEN_KEY)).toBeNull();
+  });
+});
 describe('login e guardas de rota', () => {
   it('valida e-mail e senha antes de enviar', async () => {
     const user = setup();

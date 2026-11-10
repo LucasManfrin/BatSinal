@@ -11,7 +11,8 @@ services:
     volumes:
       - database:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U batsinal -d batsinal"]
+      # Por TCP: na primeira inicialização o servidor temporário atende só pelo socket Unix.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U batsinal -d batsinal"]
       interval: 5s
       timeout: 3s
       retries: 10

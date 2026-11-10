@@ -392,7 +392,7 @@ export function ManagementPage({ resource }: { resource: Resource }) {
           if (!open) setKey('');
         }}
         title="Chave do dispositivo"
-        description="Esta chave de demonstração aparece uma única vez. Copie antes de fechar."
+        description="Esta chave aparece uma única vez. Copie antes de fechar."
       >
         <code className="device-key">{key}</code>
         <div className="modal-actions">

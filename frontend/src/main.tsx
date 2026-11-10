@@ -7,7 +7,7 @@ import '@fontsource/barlow-condensed/700.css';
 import './styles-v2.css';
 
 async function start() {
-  if (import.meta.env.VITE_USE_MOCK !== 'false') {
+  if (import.meta.env.VITE_USE_MOCK === 'true') {
     const { worker } = await import('./mocks/browser');
     await worker.start({ onUnhandledRequest: 'bypass', quiet: true });
   }

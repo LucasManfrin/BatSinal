@@ -1,8 +1,8 @@
 # Backend e banco — v2
 
 Status: **contrato implementado em FastAPI + PostgreSQL**, com migrações `0001`/`0002` aplicadas e
-testadas (upgrade/downgrade) em PostgreSQL 17. O frontend continua com MSW por padrão e funciona
-contra a API real com `VITE_USE_MOCK=false`. Sensores físicos (ESP32) ainda não foram construídos.
+testadas (upgrade/downgrade) em PostgreSQL 17. O frontend usa a API real por padrão; o MSW
+fica para os testes e para demonstração offline (`VITE_USE_MOCK=true`). Sensores físicos (ESP32) ainda não foram construídos.
 Comandos em [backend/README.md](../backend/README.md) e continuidade em [HANDOFF.md](HANDOFF.md).
 
 ## Modelo de acesso

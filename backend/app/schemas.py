@@ -37,10 +37,15 @@ Rotulo = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, m
 Slug = Annotated[str, BeforeValidator(_slug)]
 Email = Annotated[str, BeforeValidator(_email)]
 Senha = Annotated[str, StringConstraints(min_length=8, max_length=256)]
+# As restrições ficam no tipo interno: aplicadas ao opcional inteiro, também rodariam sobre o
+# None produzido por _vazio_para_none e o Pydantic lançaria TypeError (HTTP 500, não 422).
 TextoOpcional = Annotated[
-    str | None,
+    Annotated[str, StringConstraints(strip_whitespace=True, max_length=100)] | None,
     BeforeValidator(_vazio_para_none),
-    StringConstraints(strip_whitespace=True, max_length=100),
+]
+MinutosOpcional = Annotated[
+    Annotated[int, Field(ge=1, le=120)] | None,
+    BeforeValidator(_vazio_para_none),
 ]
 IdOpcional = Annotated[str | None, BeforeValidator(_vazio_para_none)]
 
@@ -76,9 +81,7 @@ class EstacionamentoEntrada(Entrada):
     descricao: str | None = Field(default=None, max_length=2000)
     portao: TextoOpcional = None
     caminhada_destino: TextoOpcional = None
-    caminhada_minutos: Annotated[
-        int | None, BeforeValidator(_vazio_para_none), Field(ge=1, le=120)
-    ] = None
+    caminhada_minutos: MinutosOpcional = None
     latitude: float = Field(default=-22.327, ge=-90, le=90)
     longitude: float = Field(default=-49.054, ge=-180, le=180)
     largura: float = Field(default=780, ge=200, le=10000)

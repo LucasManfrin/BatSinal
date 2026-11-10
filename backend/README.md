@@ -60,17 +60,36 @@ uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ### Frontend contra a API real
 
-Em `frontend/.env`:
-
-```dotenv
-VITE_USE_MOCK=false
-VITE_API_URL=http://localhost:8000/api
-VITE_SHOW_SIMULATOR=true
-```
-
-Reinicie o Vite. Com `BATSINAL_SIMULADOR=true`, o painel Simulador usa `POST /api/simulador/leituras`
+É o padrão: `npm run dev` chama `http://localhost:8000/api` sem `.env`. Para outro endereço ou para o
+mock MSW (`VITE_USE_MOCK=true`), use `frontend/.env` (modelo em `frontend/.env.example`) e reinicie o
+Vite. A API aceita CORS do Vite em 5173 (dev) e 4173 (preview). Com `BATSINAL_SIMULADOR=true`, o painel Simulador usa `POST /api/simulador/leituras`
 e a tarefa de amostragem repete a última leitura de cada sensor simulado, como o heartbeat do mock.
 Sem isso, toda vaga vira SEM_SINAL 60 s após a última leitura. Desligue o simulador ao usar sensores reais.
+
+## Pilha completa em Docker
+
+Na **raiz** do repositório: `docker compose up --build` (Compose 2.20+, por causa de `include`).
+
+| Serviço | Endereço | Função |
+| --- | --- | --- |
+| `web` | `http://localhost:8080` | nginx com o build do frontend (`VITE_USE_MOCK=false`) e proxy de `/api/` para a API |
+| `api` | `http://127.0.0.1:8000` | ao iniciar: `alembic upgrade head`, `python -m app.seed` (idempotente) e uvicorn |
+| `db` | `127.0.0.1:55432` | o mesmo serviço e volume de `backend/compose.yaml` |
+
+O navegador chama `/api` na mesma origem, então não há CORS nem URL de API fixada no bundle.
+Variáveis opcionais em um `.env` na raiz:
+
+- `BATSINAL_WEB_PORT` (8080): porta do site.
+- `BATSINAL_WEB_BIND` (127.0.0.1): use `0.0.0.0` para abrir no celular ou receber leituras do ESP32
+  (`http://<ip>:8080/api/leituras`). A conta de demonstração tem senha pública: só em rede de confiança.
+- `BATSINAL_SIMULADOR` (true): liga o simulador na API e no painel. Exige `--build` ao mudar, pois
+  também entra no bundle. Use `false` ao ligar sensores reais.
+
+Para parar preservando dados: `docker compose stop`. `docker compose down -v` **apaga o banco**.
+Testes sem Python local: `docker compose run --rm tests` na raiz (Ruff, formatação e pytest). O serviço
+tem perfil `test`, então não sobe no `up`; lê `backend/` em modo somente leitura e usa o banco `batsinal_test`.
+Com `uv` instalado, `uv run pytest` em `backend/` usa o mesmo PostgreSQL e o mesmo banco de teste.
+Não escale a API: a tarefa de amostragem roda dentro do único processo uvicorn.
 
 ## Sensores reais (ESP32)
 
@@ -110,7 +129,7 @@ uv run pytest
 uv lock --check
 ```
 
-**38 testes.** Os de infraestrutura/SQL offline rodam sem banco. Os de integração usam um banco
+**53 testes.** Os de infraestrutura, SQL offline e corpos de requisição rodam sem banco. Os de integração usam um banco
 dedicado `batsinal_test` no mesmo PostgreSQL (criado se faltar; sobrescreva com
 `BATSINAL_TEST_DATABASE_URL`, que precisa terminar em `_test`). A cada execução o esquema é recriado
 por `upgrade head → downgrade base → upgrade head`. Sem PostgreSQL acessível, eles são pulados.

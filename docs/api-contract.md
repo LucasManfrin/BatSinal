@@ -1,7 +1,7 @@
 # API BatSinal v2
 
 O frontend usa HTTP/JSON. Este contrato é implementado pela API FastAPI em `backend/` (prefixo `/api`)
-e também demonstrado pelo MSW, que continua sendo o padrão do frontend (`VITE_USE_MOCK=true`).
+e também demonstrado pelo MSW, usado nos testes e somente com `VITE_USE_MOCK=true`; o frontend usa a API real por padrão.
 No navegador, `/` consulta a Unisagrado; `/c/:slug` atende outras empresas. Isso não muda os endpoints:
 o cliente continua consultando `/public/empresas/{slug}` para identificar cada campus.
 O alias antigo da Unisagrado redireciona à raiz mantendo query/fragmento.

@@ -22,6 +22,8 @@ Revise desktop/celular em mudanças visuais. Reutilize a instância Vite em 5173
 
 ## Limite atual
 
-O frontend usa MSW por padrão. O backend implementa o contrato completo (ver `backend/AGENTS.md`);
+O frontend usa a API real por padrão (Docker e Vite). O MSW só roda com `VITE_USE_MOCK=true`;
+a suíte do frontend o liga em `vite.config.ts`, então os testes não precisam de backend.
+O backend implementa o contrato completo (ver `backend/AGENTS.md`);
 os testes de integração exigem o PostgreSQL do compose. Mudanças no contrato precisam valer nos dois:
 handlers do mock e rotas FastAPI. O firmware dos sensores ainda não existe.

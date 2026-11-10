@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Activity, Radio, RefreshCw, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { useLot, useLots, useStatuses } from '../estacionamentos/queries';
 import { Button, Select, SpotStatusBadge, Switch } from '../../components/ui';
 import type { StatusVaga } from '../../types';
 import { api, json, USE_MOCK } from '../../lib/api';
+import { mensagemErro } from '../../lib/utils';
 
 // Com o mock, escreve no store local; com a API real, usa o endpoint de demonstração
 // /simulador/leituras (habilitado por BATSINAL_SIMULADOR=true no backend).
@@ -27,7 +29,10 @@ export function Simulator() {
   const statuses = useStatuses(selectedId);
   const client = useQueryClient();
   async function change(vagaId: string, status: StatusVaga) {
-    await simulateStatus(vagaId, status).catch(() => undefined);
+    // Ex.: BATSINAL_SIMULADOR desligado na API (404). Sem o aviso, a troca pareceria ignorada.
+    await simulateStatus(vagaId, status).catch((error: unknown) => {
+      toast.error(mensagemErro(error));
+    });
     await client.invalidateQueries({ queryKey: ['status'] });
     await client.invalidateQueries({ queryKey: ['estacionamentos'] });
     await client.invalidateQueries({ queryKey: ['sensores'] });

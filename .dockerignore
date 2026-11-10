@@ -1,0 +1,11 @@
+# Contexto do frontend/Dockerfile: somente o necessário para o build.
+*
+!package.json
+!package-lock.json
+!frontend/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+frontend/*.tsbuildinfo
+frontend/test-results/

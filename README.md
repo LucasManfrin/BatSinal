@@ -1,22 +1,37 @@
 # BatSinal
 
 Consulta pública de vagas e administração de uma maquete de estacionamento com sensores.
-Demonstração acadêmica local para a Unisagrado, com API simulada por MSW.
+Demonstração acadêmica local para a Unisagrado, com API FastAPI e PostgreSQL.
 
 ## Executar
 
-Requer Node.js 20.19+ ou 22.12+ e npm. Na raiz:
+Requer Docker Desktop com Compose 2.20+. Na raiz:
+
+```sh
+docker compose up --build
+```
+
+Abra `http://localhost:8080`: site, API e banco, com dados reais. A primeira subida aplica as
+migrações e importa a Unisagrado. Conta fictícia **admin@unisagrado.demo / Demo@123**, digitada no login.
+A documentação da API fica em `http://localhost:8000/docs`. Testes do backend sem Python local:
+`docker compose run --rm tests`. Mais detalhes em
+[backend/README.md](backend/README.md#pilha-completa-em-docker).
+
+### Desenvolver o frontend com o Vite
+
+Requer Node.js 20.19+ ou 22.12+. Com a pilha Docker no ar (a API em `localhost:8000`):
 
 ```sh
 npm install
 npm run dev
 ```
 
-Abra o endereço informado pelo Vite, normalmente `http://127.0.0.1:5173`. Reutilize a instância
-que já estiver na porta 5173. Não é necessário backend, chave ou arquivo `.env` para a demo.
+Abra `http://127.0.0.1:5173`. Reutilize a instância que já estiver nessa porta. O Vite também usa a
+API real e recarrega o código sem rebuild da imagem. Sem a API no ar, as telas mostram erro de conexão.
 
-Conta fictícia: **admin@unisagrado.demo / Demo@123**. O botão de demonstração preenche o login.
-Use somente dados fictícios: senhas e cadastros do mock ficam no armazenamento local do navegador.
+O mock MSW continua no projeto para os testes e para demonstração offline, mas só é usado se
+`frontend/.env` tiver `VITE_USE_MOCK=true`. Nesse modo, cadastros ficam no armazenamento local do
+navegador e o login tem um botão de demonstração.
 
 ## Visitante sem conta
 
@@ -94,18 +109,19 @@ Veja [MAPA_CAMPUS.md](docs/MAPA_CAMPUS.md). Não há cálculo de trajeto, reserv
 
 ## Simulador e integração futura
 
-Opcionalmente copie `frontend/.env.example` para `frontend/.env`:
+Para o Vite, copie `frontend/.env.example` para `frontend/.env` se precisar mudar algo:
 
 ```dotenv
-VITE_USE_MOCK=true
+VITE_USE_MOCK=false
 VITE_API_URL=http://localhost:8000/api
 VITE_SHOW_SIMULATOR=true
 ```
 
 Reinicie o Vite depois de mudar essas variáveis. O simulador aparece apenas na administração
-autenticada. Altere uma vaga vinculada ou use **Simular movimento** e observe a consulta em outra aba.
-O mock repete leituras a cada 10 s e a consulta usa polling de 3 s. Sem leitura há mais de 60 s ou
-sem sensor, o status é **SEM_SINAL**. Gráficos e leituras do seed são sintéticos.
+autenticada e exige `BATSINAL_SIMULADOR=true` na API (padrão do compose). Altere uma vaga vinculada
+ou use **Simular movimento** e observe a consulta em outra aba. A API repete as leituras simuladas a
+cada 10 s e a consulta usa polling de 3 s. Sem leitura há mais de 60 s ou sem sensor, o status é
+**SEM_SINAL**. Gráficos e leituras do seed são sintéticos.
 
 Campus, cena 3D, ícones e fontes são locais, sem CDN. Google Maps e tiles opcionais de localização
 exigem internet; a consulta/lista não depende deles. A maquete 3D é carregada sob demanda;
@@ -114,7 +130,7 @@ o build ainda informa um chunk Three.js de cerca de 688 kB antes de gzip.
 O backend (FastAPI + PostgreSQL) **implementa o contrato completo**: conta e sessões, consulta
 pública, gestão, posicionamento transacional, sensores com chave de dispositivo, leituras e histórico.
 O seed importa a Unisagrado do próprio mock. O mapa fica em JSONB; áreas, âncoras, vagas e sensores
-em tabelas relacionadas. O frontend continua com MSW por padrão; para usar a API real, siga
+em tabelas relacionadas. O frontend usa essa API por padrão; veja
 [backend/README.md](backend/README.md#frontend-contra-a-api-real).
 
 - [Contrato HTTP implementado no mock](docs/api-contract.md)
@@ -125,7 +141,7 @@ em tabelas relacionadas. O frontend continua com MSW por padrão; para usar a AP
 - [Formato GeoJSON futuro](backend/database/mapa-campus.schema.json)
 - [Mapa geográfico inicial vazio](backend/database/mapa-unisagrado.inicial.geojson)
 
-Com a API em execução, configure `VITE_USE_MOCK=false` e `VITE_API_URL`. O frontend usa somente HTTP/JSON.
+O frontend usa somente HTTP/JSON; `VITE_API_URL` aponta para a API.
 O mock compartilha armazenamento entre abas, mas não oferece bloqueio concorrente de banco;
 a API real verifica a versão sob bloqueio da área (`SELECT ... FOR UPDATE`).
 
@@ -138,7 +154,7 @@ npm run build
 npm run preview
 ```
 
-Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte frontend: **76 testes em 14 arquivos**,
+Lint inclui ESLint e Prettier; formate com `npm run format`. Suíte frontend: **78 testes em 14 arquivos**,
 incluindo ímã, troca atômica, persistência/erro de armazenamento, versão, isolamento, cadastro,
 consulta anônima, raiz pública, aliases, checklist, preferências locais, migração, status, teclado,
 publicidade por instituição/período/contato e alternativa sem WebGL.

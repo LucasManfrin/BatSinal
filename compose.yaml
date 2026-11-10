@@ -1,0 +1,74 @@
+# Pilha completa: docker compose up --build  ->  http://localhost:8080
+# O banco vem de backend/compose.yaml e usa o mesmo volume do desenvolvimento local.
+# Somente desenvolvimento e demonstração: credenciais fictícias, sem HTTPS.
+name: batsinal
+
+include:
+  - backend/compose.yaml
+
+services:
+  api:
+    build: ./backend
+    environment:
+      BATSINAL_DATABASE_URL: postgresql+psycopg://batsinal:batsinal_dev@db:5432/batsinal
+      # Sem firmware, é o simulador que mantém as leituras vivas (sem ele, SEM_SINAL em 60 s).
+      BATSINAL_SIMULADOR: ${BATSINAL_SIMULADOR:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/ready', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_SHOW_SIMULATOR: ${BATSINAL_SIMULADOR:-true}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      # BATSINAL_WEB_BIND=0.0.0.0 libera a rede local (celular, ESP32). A conta de demonstração
+      # tem senha pública: só faça isso em rede de confiança.
+      - "${BATSINAL_WEB_BIND:-127.0.0.1}:${BATSINAL_WEB_PORT:-8080}:80"
+
+  # Qualidade do backend sem Python local: docker compose run --rm tests
+  # Lê backend/ do disco (somente leitura) e usa o banco separado batsinal_test, nunca o da demo.
+  tests:
+    image: python:3.14-slim
+    profiles: [test]
+    working_dir: /src
+    volumes:
+      - ./backend:/src:ro
+      - tests-cache:/cache
+    environment:
+      UV_PROJECT_ENVIRONMENT: /cache/venv
+      UV_CACHE_DIR: /cache/uv
+      PYTHONDONTWRITEBYTECODE: "1"
+      BATSINAL_TEST_DATABASE_URL: postgresql+psycopg://batsinal:batsinal_dev@db:5432/batsinal_test
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - >-
+        pip install -q --root-user-action=ignore --disable-pip-version-check "uv==0.13.7" &&
+        uv sync --extra dev --locked -q &&
+        uv run --no-sync ruff check --no-cache app migrations tests &&
+        uv run --no-sync ruff format --no-cache --check app migrations tests &&
+        uv run --no-sync pytest -p no:cacheprovider
+
+volumes:
+  tests-cache:

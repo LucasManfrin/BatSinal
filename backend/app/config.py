@@ -14,7 +14,13 @@ class Settings(BaseSettings):
     )
 
     database_url: SecretStr | None = None
-    cors_origins: list[str] = ["http://127.0.0.1:5173", "http://localhost:5173"]
+    # Vite dev (5173) e preview (4173). O site do Docker usa a mesma origem e dispensa CORS.
+    cors_origins: list[str] = [
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+        "http://127.0.0.1:4173",
+        "http://localhost:4173",
+    ]
     # Duração fixa do token opaco da empresa. Trocar a senha revoga as outras sessões.
     sessao_horas: int = 24 * 7
     # Leitura mais antiga que isso vira SEM_SINAL.

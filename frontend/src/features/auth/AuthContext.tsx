@@ -32,9 +32,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .then((u) => {
           if (mounted) setUser(u);
         })
-        .catch(() => {
-          if (mounted) logout();
-        })
+        // 401 já encerra a sessão em api(). Outra falha (API reiniciando) não invalida o token:
+        // a tela pede login agora, mas recarregar com a API de volta recupera a sessão.
+        .catch(() => undefined)
         .finally(() => {
           if (mounted) setLoading(false);
         });
